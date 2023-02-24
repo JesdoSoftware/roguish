@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License along with
 this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
+import React from "react";
+import ReactDOM from "react-dom";
 import * as THREE from "three";
 
 const scene = new THREE.Scene();
@@ -35,3 +37,8 @@ function animate() {
   requestAnimationFrame(animate);
 }
 animate();
+
+const App = () => {
+  return <p>Hello, React!</p>;
+};
+ReactDOM.render(<App />, document.getElementById("app"));
