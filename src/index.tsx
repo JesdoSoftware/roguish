@@ -22,12 +22,14 @@ import { Canvas } from "@react-three/fiber";
 
 const App = () => {
   return (
-    <Canvas style={{ width: "100vw", height: "100vh" }}>
-      <mesh>
-        <boxGeometry />
-        <meshBasicMaterial />
-      </mesh>
-    </Canvas>
+    <div style={{ width: "100vw", height: "100vh" }}>
+      <Canvas>
+        <mesh>
+          <boxGeometry />
+          <meshBasicMaterial />
+        </mesh>
+      </Canvas>
+    </div>
   );
 };
 ReactDOM.render(<App />, document.getElementById("app"));
