@@ -18,27 +18,16 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 
 import React from "react";
 import ReactDOM from "react-dom";
-import * as THREE from "three";
-
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(
-  75,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
-
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
-
-function animate() {
-  renderer.render(scene, camera);
-  requestAnimationFrame(animate);
-}
-animate();
+import { Canvas } from "@react-three/fiber";
 
 const App = () => {
-  return <p>Hello, React!</p>;
+  return (
+    <Canvas style={{ width: "100vw", height: "100vh" }}>
+      <mesh>
+        <boxGeometry />
+        <meshBasicMaterial />
+      </mesh>
+    </Canvas>
+  );
 };
 ReactDOM.render(<App />, document.getElementById("app"));
