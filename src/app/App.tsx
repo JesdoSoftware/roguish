@@ -17,9 +17,14 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import React from "react";
-import { createRoot } from "react-dom/client";
-import App from "./app/App";
+import styles from "./App.module.css";
 
-const container = document.getElementById("app");
-const root = createRoot(container);
-root.render(<App />);
+const App = () => {
+  return (
+    <div className={styles.app}>
+      <p>Hello, React!</p>
+    </div>
+  );
+};
+
+export default App;
