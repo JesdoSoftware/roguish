@@ -20,6 +20,7 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const ESLintPlugin = require("eslint-webpack-plugin");
 
 module.exports = {
   mode: "development",
@@ -56,6 +57,10 @@ module.exports = {
     extensions: [".tsx", ".ts", ".js"],
   },
   plugins: [
+    new ESLintPlugin({
+      extensions: [".tsx", ".ts", ".js"],
+      exclude: ["node_modules", "dist"],
+    }),
     new HtmlWebpackPlugin({
       template: "./src/index.html",
       filename: "./index.html",
