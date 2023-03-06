@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License along with
 this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
+/* eslint-disable @typescript-eslint/no-var-requires */
+
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
