@@ -17,31 +17,32 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import styles from "./Card.module.css";
+import React from "react";
+import Card, { CardSide } from "../card/Card";
+import styles from "./Board.module.css";
 
-export enum CardSide {
-  Front,
-  Back,
-}
-
-const flipDuration = 0.5;
-
-export const Card = (props: { name: string; side: CardSide }) => {
+export const Board = () => {
   return (
-    <div
-      className={styles.card}
-      style={{
-        transition: `transform ${flipDuration}s`,
-        transformStyle: "preserve-3d",
-        transform: props.side === CardSide.Back ? "rotateY(180deg)" : undefined,
-      }}
-    >
-      <div className={styles.cardSide}>
-        <p>{props.name}</p>
-      </div>
-      <div className={[styles.cardSide, styles.back].join(" ")} />
-    </div>
+    <table className={styles.board}>
+      <tr>
+        <td>
+          <Card name="player" side={CardSide.Front} />
+        </td>
+        <td />
+        <td />
+      </tr>
+      <tr>
+        <td />
+        <td />
+        <td />
+      </tr>
+      <tr>
+        <td />
+        <td />
+        <td />
+      </tr>
+    </table>
   );
 };
 
-export default Card;
+export default Board;

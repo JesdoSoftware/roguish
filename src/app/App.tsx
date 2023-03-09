@@ -17,8 +17,7 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useState } from "react";
-import { Card, CardSide } from "../card/Card";
+import Board from "../board/Board";
 
 const CopyrightLicenseSource = () => {
   return (
@@ -51,22 +50,9 @@ const CopyrightLicenseSource = () => {
 };
 
 const App = () => {
-  const [cardSide, setCardSide] = useState(CardSide.Front);
-
   return (
     <>
-      <div>
-        <Card name="player" side={cardSide} />
-        <button
-          onClick={() => {
-            setCardSide(
-              cardSide === CardSide.Front ? CardSide.Back : CardSide.Front
-            );
-          }}
-        >
-          Flip
-        </button>
-      </div>
+      <Board />
       <hr />
       <CopyrightLicenseSource />
     </>
