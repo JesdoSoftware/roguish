@@ -19,7 +19,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import App from "./app/App";
+import App from "./ui/app/App";
 
 const container = document.getElementById("app");
 const root = createRoot(container);

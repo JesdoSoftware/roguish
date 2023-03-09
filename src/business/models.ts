@@ -17,32 +17,25 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import React from "react";
-import Card, { CardSide } from "../card/Card";
-import styles from "./Board.module.css";
+export enum CardSide {
+  Front,
+  Back,
+}
 
-export const Board = () => {
-  return (
-    <table className={styles.board}>
-      <tr>
-        <td>
-          <Card name="player" side={CardSide.Front} />
-        </td>
-        <td />
-        <td />
-      </tr>
-      <tr>
-        <td />
-        <td />
-        <td />
-      </tr>
-      <tr>
-        <td />
-        <td />
-        <td />
-      </tr>
-    </table>
-  );
-};
+export interface CardModel {
+  name: string;
+  strength: number;
+  side: CardSide;
+}
 
-export default Board;
+export interface BoardModel {
+  northwest?: CardModel;
+  north?: CardModel;
+  northeast?: CardModel;
+  west?: CardModel;
+  center?: CardModel;
+  east?: CardModel;
+  southwest?: CardModel;
+  south?: CardModel;
+  southeast?: CardModel;
+}

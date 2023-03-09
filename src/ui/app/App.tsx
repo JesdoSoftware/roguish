@@ -17,6 +17,7 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { BoardModel, CardModel, CardSide } from "../../business/models";
 import Board from "../board/Board";
 
 const CopyrightLicenseSource = () => {
@@ -50,9 +51,18 @@ const CopyrightLicenseSource = () => {
 };
 
 const App = () => {
+  const cardModel: CardModel = {
+    name: "player",
+    strength: 1,
+    side: CardSide.Front,
+  };
+  const boardModel: BoardModel = {
+    northwest: cardModel,
+  };
+
   return (
     <>
-      <Board />
+      <Board boardModel={boardModel} />
       <hr />
       <CopyrightLicenseSource />
     </>
