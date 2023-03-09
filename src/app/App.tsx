@@ -20,22 +20,56 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 import React, { useState } from "react";
 import { Card, CardSide } from "../card/Card";
 
+const CopyrightLicenseSource = () => {
+  return (
+    <div>
+      <p>Copyright &copy; 2023 Jesdo Software LLC.</p>
+      <p>
+        This program comes with ABSOLUTELY NO WARRANTY. This is free software,
+        and you are welcome to redistribute it under certain conditions. For
+        details, see the GNU Affero General Public License version 3 at{" "}
+        <a
+          href="https://www.gnu.org/licenses/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          https://www.gnu.org/licenses/
+        </a>
+        .
+      </p>
+      <p>
+        <a
+          href="https://github.com/JesdoSoftware/roguish"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Source
+        </a>
+      </p>
+    </div>
+  );
+};
+
 const App = () => {
   const [cardSide, setCardSide] = useState(CardSide.Front);
 
   return (
-    <div>
-      <Card name="player" side={cardSide} />
-      <button
-        onClick={() => {
-          setCardSide(
-            cardSide === CardSide.Front ? CardSide.Back : CardSide.Front
-          );
-        }}
-      >
-        Flip
-      </button>
-    </div>
+    <>
+      <div>
+        <Card name="player" side={cardSide} />
+        <button
+          onClick={() => {
+            setCardSide(
+              cardSide === CardSide.Front ? CardSide.Back : CardSide.Front
+            );
+          }}
+        >
+          Flip
+        </button>
+      </div>
+      <hr />
+      <CopyrightLicenseSource />
+    </>
   );
 };
 
