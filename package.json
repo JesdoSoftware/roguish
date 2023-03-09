@@ -6,7 +6,7 @@
     "start": "webpack serve --open",
     "build": "webpack"
   },
-  "license": "GPL-3.0-or-later",
+  "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "@babel/core": "^7.21.0",
     "@babel/preset-react": "^7.18.6",
