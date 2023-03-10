@@ -18,6 +18,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { BoardModel, CardModel, CardSide } from "../../business/models";
+import { shuffle } from "../../business/operations";
 import Board from "../board/Board";
 
 const CopyrightLicenseSource = () => {
@@ -51,13 +52,64 @@ const CopyrightLicenseSource = () => {
 };
 
 const App = () => {
-  const cardModel: CardModel = {
-    name: "player",
-    strength: 1,
-    side: CardSide.Front,
-  };
+  const deck: CardModel[] = [
+    {
+      name: "1",
+      strength: 0,
+      side: CardSide.Front,
+    },
+    {
+      name: "2",
+      strength: 0,
+      side: CardSide.Front,
+    },
+    {
+      name: "3",
+      strength: 0,
+      side: CardSide.Front,
+    },
+    {
+      name: "4",
+      strength: 0,
+      side: CardSide.Front,
+    },
+    {
+      name: "5",
+      strength: 0,
+      side: CardSide.Front,
+    },
+    {
+      name: "6",
+      strength: 0,
+      side: CardSide.Front,
+    },
+    {
+      name: "7",
+      strength: 0,
+      side: CardSide.Front,
+    },
+    {
+      name: "8",
+      strength: 0,
+      side: CardSide.Front,
+    },
+    {
+      name: "9",
+      strength: 0,
+      side: CardSide.Front,
+    },
+  ];
+  shuffle(deck);
   const boardModel: BoardModel = {
-    northwest: cardModel,
+    northwest: deck[0],
+    north: deck[1],
+    northeast: deck[2],
+    west: deck[3],
+    center: deck[4],
+    east: deck[5],
+    southwest: deck[6],
+    south: deck[7],
+    southeast: deck[8],
   };
 
   return (
