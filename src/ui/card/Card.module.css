@@ -21,6 +21,8 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   width: 30%;
   aspect-ratio: 2.5 / 3.5;
   background-color: lightgray;
+  transform-style: preserve-3d;
+  transition: all 0.5s;
 }
 
 .cardSide {

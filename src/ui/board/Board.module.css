@@ -26,35 +26,29 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 .board .north {
   position: absolute;
   top: 0;
-  transition: top 0.5s;
 }
 
 .board .vertCenter {
   position: absolute;
   top: 35%;
-  transition: top 0.5s;
 }
 
 .board .south {
   position: absolute;
   top: 70%;
-  transition: top 0.5s;
 }
 
 .board .west {
   position: absolute;
   left: 0;
-  transition: left 0.5s;
 }
 
 .board .horizCenter {
   position: absolute;
   left: 35%;
-  transition: left 0.5s;
 }
 
 .board .east {
   position: absolute;
   left: 70%;
-  transition: left 0.5s;
 }

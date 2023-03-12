@@ -20,15 +20,11 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 import { CardModel, CardSide } from "../../business/models";
 import styles from "./Card.module.css";
 
-const flipDuration = 0.5;
-
 export const Card = (props: { cardModel: CardModel; className?: string }) => {
   return (
     <div
       className={`${styles.card} ${props.className}`}
       style={{
-        transition: `transform ${flipDuration}s`,
-        transformStyle: "preserve-3d",
         transform:
           props.cardModel.side === CardSide.Back
             ? "rotateY(180deg)"
