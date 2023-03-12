@@ -19,71 +19,42 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
 .board {
   position: relative;
-  width: 500px;
+  height: 90vh;
   aspect-ratio: 2.5 / 3.5;
-}
-
-.board .northwest {
-  position: absolute;
-  top: 0;
-  left: 0;
 }
 
 .board .north {
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
-  margin: 0 auto;
+  transition: top 0.5s;
 }
 
-.board .northeast {
+.board .vertCenter {
   position: absolute;
-  top: 0;
-  right: 0;
-}
-
-.board .west {
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  margin: auto 0;
-}
-
-.board .center {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  margin: auto;
-}
-
-.board .east {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  margin: auto 0;
-}
-
-.board .southwest {
-  position: absolute;
-  left: 0;
-  bottom: 0;
+  top: 35%;
+  transition: top 0.5s;
 }
 
 .board .south {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  margin: 0 auto;
+  top: 70%;
+  transition: top 0.5s;
 }
 
-.board .southeast {
+.board .west {
   position: absolute;
-  right: 0;
-  bottom: 0;
+  left: 0;
+  transition: left 0.5s;
+}
+
+.board .horizCenter {
+  position: absolute;
+  left: 35%;
+  transition: left 0.5s;
+}
+
+.board .east {
+  position: absolute;
+  left: 70%;
+  transition: left 0.5s;
 }
