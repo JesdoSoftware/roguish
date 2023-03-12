@@ -44,18 +44,42 @@ export const Board = (props: {
 
   return (
     <div className={styles.board}>
-      {cardOrUndefined(props.northwest, `${styles.north} ${styles.west}`)}
-      {cardOrUndefined(props.north, `${styles.north} ${styles.horizCenter}`)}
-      {cardOrUndefined(props.northeast, `${styles.north} ${styles.east}`)}
-      {cardOrUndefined(props.west, `${styles.vertCenter} ${styles.west}`)}
+      {cardOrUndefined(
+        props.northwest,
+        `${styles.card} ${styles.north} ${styles.west}`
+      )}
+      {cardOrUndefined(
+        props.north,
+        `${styles.card} ${styles.north} ${styles.horizCenter}`
+      )}
+      {cardOrUndefined(
+        props.northeast,
+        `${styles.card} ${styles.north} ${styles.east}`
+      )}
+      {cardOrUndefined(
+        props.west,
+        `${styles.card} ${styles.vertCenter} ${styles.west}`
+      )}
       {cardOrUndefined(
         props.center,
-        `${styles.vertCenter} ${styles.horizCenter}`
+        `${styles.card} ${styles.vertCenter} ${styles.horizCenter}`
       )}
-      {cardOrUndefined(props.east, `${styles.vertCenter} ${styles.east}`)}
-      {cardOrUndefined(props.southwest, `${styles.south} ${styles.west}`)}
-      {cardOrUndefined(props.south, `${styles.south} ${styles.horizCenter}`)}
-      {cardOrUndefined(props.southeast, `${styles.south} ${styles.east}`)}
+      {cardOrUndefined(
+        props.east,
+        `${styles.card} ${styles.vertCenter} ${styles.east}`
+      )}
+      {cardOrUndefined(
+        props.southwest,
+        `${styles.card} ${styles.south} ${styles.west}`
+      )}
+      {cardOrUndefined(
+        props.south,
+        `${styles.card} ${styles.south} ${styles.horizCenter}`
+      )}
+      {cardOrUndefined(
+        props.southeast,
+        `${styles.card} ${styles.south} ${styles.east}`
+      )}
     </div>
   );
 };

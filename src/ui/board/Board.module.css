@@ -17,12 +17,21 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
+:root {
+  --card-width: 30%;
+  --gutter-width: 5%;
+}
+
 .board {
   margin: 0 auto;
   position: relative;
   height: 90vh;
   max-width: 100%;
   aspect-ratio: 2.5 / 3.5;
+}
+
+.board .card {
+  width: var(--card-width);
 }
 
 .board .north {
@@ -32,12 +41,12 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
 .board .vertCenter {
   position: absolute;
-  top: 35%;
+  top: calc(var(--card-width) + var(--gutter-width));
 }
 
 .board .south {
   position: absolute;
-  top: 70%;
+  top: calc((var(--card-width) + var(--gutter-width)) * 2);
 }
 
 .board .west {
@@ -47,10 +56,10 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
 .board .horizCenter {
   position: absolute;
-  left: 35%;
+  left: calc(var(--card-width) + var(--gutter-width));
 }
 
 .board .east {
   position: absolute;
-  left: 70%;
+  left: calc((var(--card-width) + var(--gutter-width)) * 2);
 }
