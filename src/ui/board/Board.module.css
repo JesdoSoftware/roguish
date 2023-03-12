@@ -18,8 +18,10 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 .board {
+  margin: 0 auto;
   position: relative;
   height: 90vh;
+  max-width: 100%;
   aspect-ratio: 2.5 / 3.5;
 }
 
