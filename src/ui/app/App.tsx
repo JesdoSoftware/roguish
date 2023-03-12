@@ -17,7 +17,7 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { BoardModel, CardModel, CardSide } from "../../business/models";
+import { CardModel, CardSide } from "../../business/models";
 import { shuffle } from "../../business/operations";
 import Board from "../board/Board";
 
@@ -93,28 +93,28 @@ const App = () => {
       strength: 0,
       side: CardSide.Front,
     },
-    {
-      name: "9",
-      strength: 0,
-      side: CardSide.Front,
-    },
   ];
   shuffle(deck);
-  const boardModel: BoardModel = {
-    northwest: deck[0],
-    north: deck[1],
-    northeast: deck[2],
-    west: deck[3],
-    center: deck[4],
-    east: deck[5],
-    southwest: deck[6],
-    south: deck[7],
-    southeast: deck[8],
+
+  const playerCardModel: CardModel = {
+    name: "Player",
+    strength: 0,
+    side: CardSide.Front,
   };
 
   return (
     <>
-      <Board boardModel={boardModel} />
+      <Board
+        northwest={playerCardModel}
+        north={deck[0]}
+        northeast={deck[1]}
+        west={deck[2]}
+        center={deck[3]}
+        east={deck[4]}
+        southwest={deck[5]}
+        south={deck[6]}
+        southeast={deck[7]}
+      />
       <hr />
       <CopyrightLicenseSource />
     </>

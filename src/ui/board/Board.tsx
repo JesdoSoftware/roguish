@@ -18,35 +18,42 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import React from "react";
-import { BoardModel, CardModel } from "../../business/models";
+import { CardModel } from "../../business/models";
 import Card from "../card/Card";
 import styles from "./Board.module.css";
 
-export const Board = (props: { boardModel: BoardModel }) => {
-  const cardOrUndefined = (cardModel: CardModel | undefined) => {
-    return cardModel ? <Card cardModel={cardModel} /> : undefined;
+export const Board = (props: {
+  northwest?: CardModel;
+  north?: CardModel;
+  northeast?: CardModel;
+  west?: CardModel;
+  center?: CardModel;
+  east?: CardModel;
+  southwest?: CardModel;
+  south?: CardModel;
+  southeast?: CardModel;
+}) => {
+  const cardOrUndefined = (
+    cardModel: CardModel | undefined,
+    className: string
+  ) => {
+    return cardModel ? (
+      <Card cardModel={cardModel} className={className} />
+    ) : undefined;
   };
 
   return (
-    <table className={styles.board}>
-      <tbody>
-        <tr>
-          <td>{cardOrUndefined(props.boardModel.northwest)}</td>
-          <td>{cardOrUndefined(props.boardModel.north)}</td>
-          <td>{cardOrUndefined(props.boardModel.northeast)}</td>
-        </tr>
-        <tr>
-          <td>{cardOrUndefined(props.boardModel.west)}</td>
-          <td>{cardOrUndefined(props.boardModel.center)}</td>
-          <td>{cardOrUndefined(props.boardModel.east)}</td>
-        </tr>
-        <tr>
-          <td>{cardOrUndefined(props.boardModel.southwest)}</td>
-          <td>{cardOrUndefined(props.boardModel.south)}</td>
-          <td>{cardOrUndefined(props.boardModel.southeast)}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div className={styles.board}>
+      {cardOrUndefined(props.northwest, styles.northwest)}
+      {cardOrUndefined(props.north, styles.north)}
+      {cardOrUndefined(props.northeast, styles.northeast)}
+      {cardOrUndefined(props.west, styles.west)}
+      {cardOrUndefined(props.center, styles.center)}
+      {cardOrUndefined(props.east, styles.east)}
+      {cardOrUndefined(props.southwest, styles.southwest)}
+      {cardOrUndefined(props.south, styles.south)}
+      {cardOrUndefined(props.southeast, styles.southeast)}
+    </div>
   );
 };
 

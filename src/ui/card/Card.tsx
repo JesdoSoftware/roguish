@@ -22,10 +22,10 @@ import styles from "./Card.module.css";
 
 const flipDuration = 0.5;
 
-export const Card = (props: { cardModel: CardModel }) => {
+export const Card = (props: { cardModel: CardModel; className?: string }) => {
   return (
     <div
-      className={styles.card}
+      className={`${styles.card} ${props.className}`}
       style={{
         transition: `transform ${flipDuration}s`,
         transformStyle: "preserve-3d",

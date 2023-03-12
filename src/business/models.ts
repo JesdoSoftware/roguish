@@ -27,15 +27,3 @@ export interface CardModel {
   strength: number;
   side: CardSide;
 }
-
-export interface BoardModel {
-  northwest?: CardModel;
-  north?: CardModel;
-  northeast?: CardModel;
-  west?: CardModel;
-  center?: CardModel;
-  east?: CardModel;
-  southwest?: CardModel;
-  south?: CardModel;
-  southeast?: CardModel;
-}

@@ -17,16 +17,73 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-table.board {
-  table-layout: fixed;
+.board {
+  position: relative;
+  width: 500px;
+  aspect-ratio: 2.5 / 3.5;
 }
 
-table.board td {
-  width: 175px;
-  height: 225px;
-  border: 1px dashed gray;
+.board .northwest {
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
-table.board td div {
+.board .north {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+}
+
+.board .northeast {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.board .west {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  margin: auto 0;
+}
+
+.board .center {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   margin: auto;
+}
+
+.board .east {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto 0;
+}
+
+.board .southwest {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+}
+
+.board .south {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0 auto;
+}
+
+.board .southeast {
+  position: absolute;
+  right: 0;
+  bottom: 0;
 }
