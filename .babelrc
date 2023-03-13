@@ -1,3 +1,6 @@
 {
-  "presets": ["@babel/react", "@babel/typescript"]
+  "presets": [
+    ["@babel/preset-react", { "runtime": "automatic" }],
+    "@babel/typescript"
+  ]
 }
