@@ -1,4 +1,4 @@
-<!--
+/*
 Copyright (C) 2023 Jesdo Software LLC.
 
 This file is part of Roguish.
@@ -15,16 +15,7 @@ details.
 
 You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
--->
+*/
 
-<!DOCTYPE html>
-
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Roguish</title>
-  </head>
-  <body>
-    <div id="app" />
-  </body>
-</html>
+export const html = (strings: TemplateStringsArray, ...values: unknown[]) =>
+  String.raw({ raw: strings }, ...values);
