@@ -17,20 +17,49 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-.card {
-  width: 150px;
+:root {
+  --card-width: 30%;
+  --gutter-width: 5%;
+}
+
+.board {
+  margin: 0 auto;
+  position: relative;
+  height: 90vh;
+  max-width: 100%;
   aspect-ratio: 2.5 / 3.5;
-  background-color: lightgray;
 }
 
-.cardSide {
+.board .card {
+  width: var(--card-width);
+}
+
+.board .north {
   position: absolute;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
+  top: 0;
 }
 
-.back {
-  background-color: gray;
-  transform: rotateY(180deg);
+.board .vertCenter {
+  position: absolute;
+  top: calc(var(--card-width) + var(--gutter-width));
+}
+
+.board .south {
+  position: absolute;
+  top: calc((var(--card-width) + var(--gutter-width)) * 2);
+}
+
+.board .west {
+  position: absolute;
+  left: 0;
+}
+
+.board .horizCenter {
+  position: absolute;
+  left: calc(var(--card-width) + var(--gutter-width));
+}
+
+.board .east {
+  position: absolute;
+  left: calc((var(--card-width) + var(--gutter-width)) * 2);
 }

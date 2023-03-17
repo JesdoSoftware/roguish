@@ -17,8 +17,9 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useState } from "react";
-import { Card, CardSide } from "../card/Card";
+import { CardModel, CardSide } from "../../business/models";
+import { shuffle } from "../../business/operations";
+import Board from "../board/Board";
 
 const CopyrightLicenseSource = () => {
   return (
@@ -51,22 +52,69 @@ const CopyrightLicenseSource = () => {
 };
 
 const App = () => {
-  const [cardSide, setCardSide] = useState(CardSide.Front);
+  const deck: CardModel[] = [
+    {
+      name: "1",
+      strength: 0,
+      side: CardSide.Front,
+    },
+    {
+      name: "2",
+      strength: 0,
+      side: CardSide.Front,
+    },
+    {
+      name: "3",
+      strength: 0,
+      side: CardSide.Front,
+    },
+    {
+      name: "4",
+      strength: 0,
+      side: CardSide.Front,
+    },
+    {
+      name: "5",
+      strength: 0,
+      side: CardSide.Front,
+    },
+    {
+      name: "6",
+      strength: 0,
+      side: CardSide.Front,
+    },
+    {
+      name: "7",
+      strength: 0,
+      side: CardSide.Front,
+    },
+    {
+      name: "8",
+      strength: 0,
+      side: CardSide.Front,
+    },
+  ];
+  shuffle(deck);
+
+  const playerCardModel: CardModel = {
+    name: "Player",
+    strength: 0,
+    side: CardSide.Front,
+  };
 
   return (
     <>
-      <div>
-        <Card name="player" side={cardSide} />
-        <button
-          onClick={() => {
-            setCardSide(
-              cardSide === CardSide.Front ? CardSide.Back : CardSide.Front
-            );
-          }}
-        >
-          Flip
-        </button>
-      </div>
+      <Board
+        northwest={playerCardModel}
+        north={deck[0]}
+        northeast={deck[1]}
+        west={deck[2]}
+        center={deck[3]}
+        east={deck[4]}
+        southwest={deck[5]}
+        south={deck[6]}
+        southeast={deck[7]}
+      />
       <hr />
       <CopyrightLicenseSource />
     </>
