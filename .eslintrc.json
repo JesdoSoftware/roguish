@@ -7,9 +7,6 @@
   },
   "extends": [
     "eslint:recommended",
-    "plugin:react/recommended",
-    "plugin:react/jsx-runtime",
-    "plugin:react-hooks/recommended",
     "plugin:@typescript-eslint/recommended",
     "prettier"
   ],
@@ -20,10 +17,5 @@
     "sourceType": "module"
   },
   "plugins": ["@typescript-eslint"],
-  "rules": {},
-  "settings": {
-    "react": {
-      "version": "detect"
-    }
-  }
+  "rules": {}
 }
