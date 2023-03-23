@@ -17,21 +17,22 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-export default abstract class Component {
-  private element: Element;
+import { CardModel, CardSide } from "../../business/models";
+import { html } from "../templateLiterals";
+import styles from "./Card.module.css";
 
-  protected get tagName(): string {
-    return "div";
-  }
+const Card = (cardModel: CardModel, className: string): string => {
+  const style =
+    cardModel.side === CardSide.Back ? "transform: rotateY(180deg);" : "";
 
-  protected abstract getInnerHTML(): string;
+  return html`
+    <div class="${styles.card} ${className}" style="${style}">
+      <div class="${styles.cardSide}">
+        <p>${cardModel.name}</p>
+      </div>
+      <div class="${[styles.cardSide, styles.back].join(" ")}"></div>
+    </div>
+  `;
+};
 
-  getElement(): Element {
-    if (!this.element) {
-      this.element = document.createElement(this.tagName);
-      this.element.innerHTML = this.getInnerHTML();
-    }
-
-    return this.element;
-  }
-}
+export default Card;

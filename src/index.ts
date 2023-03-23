@@ -19,4 +19,6 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import App from "./ui/app/App";
 
-document.body.append(new App().getElement());
+const app = document.createElement("div");
+document.body.append(app);
+app.outerHTML = App();
