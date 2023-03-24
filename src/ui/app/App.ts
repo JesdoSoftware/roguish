@@ -30,14 +30,9 @@ const CopyrightLicenseSource = () => {
         This program comes with ABSOLUTELY NO WARRANTY. This is free software,
         and you are welcome to redistribute it under certain conditions. For
         details, see the GNU Affero General Public License version 3 at
-        <a
-          href="https://www.gnu.org/licenses/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          https://www.gnu.org/licenses/
-        </a>
-        .
+        <a href="https://www.gnu.org/licenses/" target="_blank" rel="noreferrer"
+          >https://www.gnu.org/licenses/</a
+        >.
       </p>
       <p>
         <a
