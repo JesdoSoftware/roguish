@@ -25,7 +25,7 @@ const ESLintPlugin = require("eslint-webpack-plugin");
 
 module.exports = {
   mode: "development",
-  entry: "./src/index.tsx",
+  entry: "./src/index.ts",
   devtool: "inline-source-map",
   devServer: {
     static: "./dist",
@@ -33,7 +33,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.tsx?$/,
+        test: /\.ts$/,
         use: "babel-loader",
         exclude: /node_modules/,
       },
@@ -55,16 +55,15 @@ module.exports = {
     ],
   },
   resolve: {
-    extensions: [".tsx", ".ts", ".js"],
+    extensions: [".ts", ".js"],
   },
   plugins: [
     new ESLintPlugin({
-      extensions: [".tsx", ".ts", ".js"],
+      extensions: [".ts", ".js"],
       exclude: ["node_modules", "dist"],
     }),
     new HtmlWebpackPlugin({
-      template: "./src/index.html",
-      filename: "./index.html",
+      title: "Roguish",
     }),
   ],
   output: {

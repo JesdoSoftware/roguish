@@ -19,68 +19,59 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import { CardModel } from "../../business/models";
 import Card from "../card/Card";
+import { html } from "../templateLiterals";
 import styles from "./Board.module.css";
 
-export const Board = (props: {
-  northwest?: CardModel;
-  north?: CardModel;
-  northeast?: CardModel;
-  west?: CardModel;
-  center?: CardModel;
-  east?: CardModel;
-  southwest?: CardModel;
-  south?: CardModel;
-  southeast?: CardModel;
-}) => {
+const Board = (deck: CardModel[]) => {
   const cardOrUndefined = (
     cardModel: CardModel | undefined,
     className: string
   ) => {
-    return cardModel ? (
-      <Card cardModel={cardModel} className={className} />
-    ) : undefined;
+    return cardModel ? Card(cardModel, className) : undefined;
   };
 
-  return (
-    <div className={styles.board}>
-      {cardOrUndefined(
-        props.northwest,
+  let i = 0;
+
+  return html`
+    <div class="${styles.board}">
+      ${cardOrUndefined(
+        deck[i++],
         `${styles.card} ${styles.north} ${styles.west}`
       )}
-      {cardOrUndefined(
-        props.north,
+      ${cardOrUndefined(
+        deck[i++],
         `${styles.card} ${styles.north} ${styles.horizCenter}`
       )}
-      {cardOrUndefined(
-        props.northeast,
+      ${cardOrUndefined(
+        deck[i++],
         `${styles.card} ${styles.north} ${styles.east}`
       )}
-      {cardOrUndefined(
-        props.west,
+      ${cardOrUndefined(
+        deck[i++],
         `${styles.card} ${styles.vertCenter} ${styles.west}`
       )}
-      {cardOrUndefined(
-        props.center,
+      ${cardOrUndefined(
+        deck[i++],
         `${styles.card} ${styles.vertCenter} ${styles.horizCenter}`
       )}
-      {cardOrUndefined(
-        props.east,
+      ${cardOrUndefined(
+        deck[i++],
         `${styles.card} ${styles.vertCenter} ${styles.east}`
       )}
-      {cardOrUndefined(
-        props.southwest,
+      ${cardOrUndefined(
+        deck[i++],
         `${styles.card} ${styles.south} ${styles.west}`
       )}
-      {cardOrUndefined(
-        props.south,
+      ${cardOrUndefined(
+        deck[i++],
         `${styles.card} ${styles.south} ${styles.horizCenter}`
       )}
-      {cardOrUndefined(
-        props.southeast,
+      ${cardOrUndefined(
+        deck[i++],
         `${styles.card} ${styles.south} ${styles.east}`
       )}
     </div>
-  );
+  `;
 };
 
 export default Board;

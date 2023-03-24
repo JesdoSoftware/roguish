@@ -17,26 +17,5 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { CardModel, CardSide } from "../../business/models";
-import styles from "./Card.module.css";
-
-export const Card = (props: { cardModel: CardModel; className?: string }) => {
-  return (
-    <div
-      className={`${styles.card} ${props.className}`}
-      style={{
-        transform:
-          props.cardModel.side === CardSide.Back
-            ? "rotateY(180deg)"
-            : undefined,
-      }}
-    >
-      <div className={styles.cardSide}>
-        <p>{props.cardModel.name}</p>
-      </div>
-      <div className={[styles.cardSide, styles.back].join(" ")} />
-    </div>
-  );
-};
-
-export default Card;
+export const html = (strings: TemplateStringsArray, ...values: unknown[]) =>
+  String.raw({ raw: strings }, ...values);

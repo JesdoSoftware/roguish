@@ -17,14 +17,22 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import App from "./ui/app/App";
+import { CardModel, CardSide } from "../../business/models";
+import { html } from "../templateLiterals";
+import styles from "./Card.module.css";
 
-const container = document.getElementById("app");
-const root = createRoot(container);
-root.render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+const Card = (cardModel: CardModel, className: string): string => {
+  const style =
+    cardModel.side === CardSide.Back ? "transform: rotateY(180deg);" : "";
+
+  return html`
+    <div class="${styles.card} ${className}" style="${style}">
+      <div class="${styles.cardSide}">
+        <p>${cardModel.name}</p>
+      </div>
+      <div class="${[styles.cardSide, styles.back].join(" ")}"></div>
+    </div>
+  `;
+};
+
+export default Card;

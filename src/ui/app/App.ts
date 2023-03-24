@@ -20,23 +20,19 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 import { CardModel, CardSide } from "../../business/models";
 import { shuffle } from "../../business/operations";
 import Board from "../board/Board";
+import { html } from "../templateLiterals";
 
 const CopyrightLicenseSource = () => {
-  return (
+  return html`
     <div>
       <p>Copyright &copy; 2023 Jesdo Software LLC.</p>
       <p>
         This program comes with ABSOLUTELY NO WARRANTY. This is free software,
         and you are welcome to redistribute it under certain conditions. For
-        details, see the GNU Affero General Public License version 3 at{" "}
-        <a
-          href="https://www.gnu.org/licenses/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          https://www.gnu.org/licenses/
-        </a>
-        .
+        details, see the GNU Affero General Public License version 3 at
+        <a href="https://www.gnu.org/licenses/" target="_blank" rel="noreferrer"
+          >https://www.gnu.org/licenses/</a
+        >.
       </p>
       <p>
         <a
@@ -48,10 +44,10 @@ const CopyrightLicenseSource = () => {
         </a>
       </p>
     </div>
-  );
+  `;
 };
 
-const App = () => {
+const App = (): string => {
   const deck: CardModel[] = [
     {
       name: "1",
@@ -93,32 +89,21 @@ const App = () => {
       strength: 0,
       side: CardSide.Front,
     },
+    {
+      name: "9",
+      strength: 0,
+      side: CardSide.Front,
+    },
   ];
   shuffle(deck);
 
-  const playerCardModel: CardModel = {
-    name: "Player",
-    strength: 0,
-    side: CardSide.Front,
-  };
-
-  return (
-    <>
-      <Board
-        northwest={playerCardModel}
-        north={deck[0]}
-        northeast={deck[1]}
-        west={deck[2]}
-        center={deck[3]}
-        east={deck[4]}
-        southwest={deck[5]}
-        south={deck[6]}
-        southeast={deck[7]}
-      />
+  return html`
+    <div>
+      ${Board(deck)}
       <hr />
-      <CopyrightLicenseSource />
-    </>
-  );
+      ${CopyrightLicenseSource()}
+    </div>
+  `;
 };
 
 export default App;
