@@ -1,11 +1,14 @@
 {
   "compilerOptions": {
     "outDir": "./dist/",
-    "noImplicitAny": true,
     "module": "es6",
     "target": "es5",
-    "allowJs": true,
     "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "forceConsistentCasingInFileNames": true
   }
 }
