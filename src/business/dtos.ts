@@ -17,13 +17,12 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import GameService from "./business/gameService";
-import App from "./ui/app/App";
+export interface CardDto {
+  name: string;
+  strength: number;
+  quantity: number;
+}
 
-const gameService = new GameService();
-// TODO indicate loading
-gameService.init().then(() => {
-  const app = document.createElement("div");
-  document.body.append(app);
-  app.outerHTML = App(gameService);
-});
+export interface DeckDto {
+  cards: CardDto[];
+}

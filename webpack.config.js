@@ -22,6 +22,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const ESLintPlugin = require("eslint-webpack-plugin");
+const Dotenv = require("dotenv-webpack");
 
 module.exports = {
   mode: "development",
@@ -65,6 +66,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       title: "Roguish",
     }),
+    new Dotenv(),
   ],
   output: {
     filename: "bundle.js",

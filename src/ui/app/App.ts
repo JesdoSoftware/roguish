@@ -17,8 +17,7 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { CardModel, CardSide } from "../../business/models";
-import { shuffle } from "../../business/operations";
+import GameService from "../../business/gameService";
 import Board from "../board/Board";
 import { html } from "../templateLiterals";
 
@@ -35,11 +34,7 @@ const CopyrightLicenseSource = () => {
         >.
       </p>
       <p>
-        <a
-          href="https://github.com/JesdoSoftware/roguish"
-          target="_blank"
-          rel="noreferrer"
-        >
+        <a href="${process.env.SOURCE_URL}" target="_blank" rel="noreferrer">
           Source
         </a>
       </p>
@@ -47,59 +42,13 @@ const CopyrightLicenseSource = () => {
   `;
 };
 
-const App = (): string => {
-  const deck: CardModel[] = [
-    {
-      name: "1",
-      strength: 0,
-      side: CardSide.Front,
-    },
-    {
-      name: "2",
-      strength: 0,
-      side: CardSide.Front,
-    },
-    {
-      name: "3",
-      strength: 0,
-      side: CardSide.Front,
-    },
-    {
-      name: "4",
-      strength: 0,
-      side: CardSide.Front,
-    },
-    {
-      name: "5",
-      strength: 0,
-      side: CardSide.Front,
-    },
-    {
-      name: "6",
-      strength: 0,
-      side: CardSide.Front,
-    },
-    {
-      name: "7",
-      strength: 0,
-      side: CardSide.Front,
-    },
-    {
-      name: "8",
-      strength: 0,
-      side: CardSide.Front,
-    },
-    {
-      name: "9",
-      strength: 0,
-      side: CardSide.Front,
-    },
-  ];
-  shuffle(deck);
-
+const App = (gameService: GameService): string => {
+  if (!gameService.deck) {
+    throw new Error("Game service not initialized");
+  }
   return html`
     <div>
-      ${Board(deck)}
+      ${Board(gameService.deck.cards)}
       <hr />
       ${CopyrightLicenseSource()}
     </div>

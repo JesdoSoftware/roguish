@@ -17,6 +17,8 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { CardDto, DeckDto } from "./dtos";
+
 export enum CardSide {
   Front,
   Back,
@@ -27,3 +29,28 @@ export interface CardModel {
   strength: number;
   side: CardSide;
 }
+
+export const cardDtoToModel = (cardDto: CardDto): CardModel => {
+  return {
+    name: cardDto.name,
+    strength: cardDto.strength,
+    side: CardSide.Front,
+  };
+};
+
+export interface DeckModel {
+  cards: CardModel[];
+}
+
+export const deckDtoToModel = (deckDto: DeckDto): DeckModel => {
+  return {
+    cards: deckDto.cards.flatMap((cardDto) => {
+      const cardModels: CardModel[] = [];
+      for (let i = 0; i < cardDto.quantity; ++i) {
+        cardModels.push(cardDtoToModel(cardDto));
+      }
+
+      return cardModels;
+    }),
+  };
+};
