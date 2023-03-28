@@ -43,12 +43,24 @@ const CopyrightLicenseSource = () => {
 };
 
 const App = (gameService: GameService): string => {
-  if (!gameService.deck) {
-    throw new Error("Game service not initialized");
-  }
+  const boardId = "board";
+
+  gameService.addOnDeckLoadedListener(() => {
+    const board = document.getElementById(boardId);
+    if (!board) {
+      throw new Error("Missing board element");
+    }
+    if (!gameService.deck) {
+      throw new Error("Missing deck");
+    }
+    board.outerHTML = Board(gameService.deck.cards);
+  });
+
+  gameService.initialize();
+
   return html`
     <div>
-      ${Board(gameService.deck.cards)}
+      <div id="${boardId}">Loading deck&hellip;</div>
       <hr />
       ${CopyrightLicenseSource()}
     </div>

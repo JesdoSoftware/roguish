@@ -36,9 +36,22 @@ const shuffle = (cardModels: CardModel[]): CardModel[] => {
 };
 
 export default class GameService {
-  deck: DeckModel | undefined;
+  private _isInitialized = false;
+  private _deck: DeckModel | undefined;
+  private onDeckLoaded: (() => void)[] = [];
 
-  async init(): Promise<void> {
+  get isInitialized(): boolean {
+    return this._isInitialized;
+  }
+
+  get deck(): DeckModel | undefined {
+    return this._deck;
+  }
+
+  async initialize(): Promise<void> {
+    if (this.isInitialized) {
+      throw new Error("Game service already initialized");
+    }
     const decksUrl = `${process.env.API_BASE_URL}/decks/deck.json`;
     const response = await fetch(decksUrl);
     if (!response.ok) {
@@ -48,7 +61,24 @@ export default class GameService {
     }
 
     const deckDto = (await response.json()) as DeckDto;
-    this.deck = deckDtoToModel(deckDto);
-    shuffle(this.deck.cards);
+    this._deck = deckDtoToModel(deckDto);
+    shuffle(this._deck.cards);
+
+    this._isInitialized = true;
+
+    this.onDeckLoaded.forEach((listener) => {
+      listener();
+    });
+  }
+
+  addOnDeckLoadedListener(listener: () => void) {
+    this.onDeckLoaded.push(listener);
+  }
+
+  removeOnDeckLoadedListener(listener: () => void) {
+    const index = this.onDeckLoaded.findIndex(listener);
+    if (index > -1) {
+      this.onDeckLoaded.splice(index, 1);
+    }
   }
 }

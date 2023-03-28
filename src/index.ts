@@ -21,9 +21,6 @@ import GameService from "./business/gameService";
 import App from "./ui/app/App";
 
 const gameService = new GameService();
-// TODO indicate loading
-gameService.init().then(() => {
-  const app = document.createElement("div");
-  document.body.append(app);
-  app.outerHTML = App(gameService);
-});
+const app = document.createElement("div");
+document.body.append(app);
+app.outerHTML = App(gameService);
