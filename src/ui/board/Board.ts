@@ -17,61 +17,29 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { CardModel } from "../../business/models";
+import { BoardModel } from "../../business/models";
+import { queueAfterRender } from "../../business/services";
 import Card from "../card/Card";
 import { html } from "../templateLiterals";
 import styles from "./Board.module.css";
 
-const Board = (deck: CardModel[]) => {
-  const cardOrUndefined = (
-    cardModel: CardModel | undefined,
-    className: string
-  ) => {
-    return cardModel ? Card(cardModel, className) : undefined;
-  };
+const Board = (boardModel: BoardModel) => {
+  const boardId = "board";
 
-  let i = 0;
+  boardModel.onCardDealt.addListener((e) => {
+    const board = document.getElementById(boardId);
+    const className = `${styles.card} ${styles[`col${e.column}`]} ${
+      styles[`row${e.row}`]
+    }`;
 
-  return html`
-    <div class="${styles.board}">
-      ${cardOrUndefined(
-        deck[i++],
-        `${styles.card} ${styles.north} ${styles.west}`
-      )}
-      ${cardOrUndefined(
-        deck[i++],
-        `${styles.card} ${styles.north} ${styles.horizCenter}`
-      )}
-      ${cardOrUndefined(
-        deck[i++],
-        `${styles.card} ${styles.north} ${styles.east}`
-      )}
-      ${cardOrUndefined(
-        deck[i++],
-        `${styles.card} ${styles.vertCenter} ${styles.west}`
-      )}
-      ${cardOrUndefined(
-        deck[i++],
-        `${styles.card} ${styles.vertCenter} ${styles.horizCenter}`
-      )}
-      ${cardOrUndefined(
-        deck[i++],
-        `${styles.card} ${styles.vertCenter} ${styles.east}`
-      )}
-      ${cardOrUndefined(
-        deck[i++],
-        `${styles.card} ${styles.south} ${styles.west}`
-      )}
-      ${cardOrUndefined(
-        deck[i++],
-        `${styles.card} ${styles.south} ${styles.horizCenter}`
-      )}
-      ${cardOrUndefined(
-        deck[i++],
-        `${styles.card} ${styles.south} ${styles.east}`
-      )}
-    </div>
-  `;
+    const card = document.createElement("div");
+    board?.appendChild(card);
+    card.outerHTML = Card(e.card, className);
+  });
+
+  queueAfterRender(boardModel.dealCardsForEmptySpots);
+
+  return html`<div id="${boardId}" class="${styles.board}"></div>`;
 };
 
 export default Board;

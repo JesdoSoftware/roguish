@@ -17,7 +17,7 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import GameService from "../../business/gameService";
+import { loadDeck, runAfterRender } from "../../business/services";
 import Board from "../board/Board";
 import { html } from "../templateLiterals";
 
@@ -42,21 +42,18 @@ const CopyrightLicenseSource = () => {
   `;
 };
 
-const App = (gameService: GameService): string => {
+const App = (): string => {
   const boardId = "board";
 
-  gameService.addOnDeckLoadedListener(() => {
+  loadDeck().then((boardModel) => {
     const board = document.getElementById(boardId);
     if (!board) {
       throw new Error("Missing board element");
     }
-    if (!gameService.deck) {
-      throw new Error("Missing deck");
-    }
-    board.outerHTML = Board(gameService.deck.cards);
-  });
+    board.outerHTML = Board(boardModel);
 
-  gameService.initialize();
+    runAfterRender();
+  });
 
   return html`
     <div>

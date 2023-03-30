@@ -17,10 +17,10 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import GameService from "./business/gameService";
+import { runAfterRender } from "./business/services";
 import App from "./ui/app/App";
 
-const gameService = new GameService();
 const app = document.createElement("div");
 document.body.append(app);
-app.outerHTML = App(gameService);
+app.outerHTML = App();
+runAfterRender();
