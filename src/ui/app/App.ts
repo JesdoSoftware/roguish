@@ -17,7 +17,11 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { loadDeck, runAfterRender } from "../../business/services";
+import {
+  loadDeck,
+  queueAfterRender,
+  renderElement,
+} from "../../business/services";
 import Board from "../board/Board";
 import { html } from "../templateLiterals";
 
@@ -45,14 +49,14 @@ const CopyrightLicenseSource = () => {
 const App = (): string => {
   const boardId = "board";
 
-  loadDeck().then((boardModel) => {
-    const board = document.getElementById(boardId);
-    if (!board) {
-      throw new Error("Missing board element");
-    }
-    board.outerHTML = Board(boardModel);
-
-    runAfterRender();
+  queueAfterRender(() => {
+    loadDeck().then((boardModel) => {
+      const board = document.getElementById(boardId);
+      if (!board) {
+        throw new Error("Missing board element");
+      }
+      renderElement(board, Board(boardModel));
+    });
   });
 
   return html`

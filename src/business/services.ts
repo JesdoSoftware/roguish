@@ -57,11 +57,16 @@ export const queueAfterRender = (fn: () => void): void => {
   runAfterRenderQueue.push(fn);
 };
 
-export const runAfterRender = (): void => {
+const runAfterRender = (): void => {
   while (runAfterRenderQueue.length) {
     const fn = runAfterRenderQueue.shift();
     if (fn) {
       fn();
     }
   }
+};
+
+export const renderElement = (element: Element, outerHtml: string) => {
+  element.outerHTML = outerHtml;
+  runAfterRender();
 };

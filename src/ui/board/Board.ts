@@ -18,7 +18,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { BoardModel } from "../../business/models";
-import { queueAfterRender } from "../../business/services";
+import { queueAfterRender, renderElement } from "../../business/services";
 import Card from "../card/Card";
 import { html } from "../templateLiterals";
 import styles from "./Board.module.css";
@@ -34,7 +34,7 @@ const Board = (boardModel: BoardModel) => {
 
     const card = document.createElement("div");
     board?.appendChild(card);
-    card.outerHTML = Card(e.card, className);
+    renderElement(card, Card(e.card, className));
   });
 
   queueAfterRender(boardModel.dealCardsForEmptySpots);
