@@ -25,7 +25,7 @@ import {
 import Board from "../board/Board";
 import { html } from "../templateLiterals";
 
-const CopyrightLicenseSource = () => {
+const CopyrightLicenseSource = (): string => {
   return html`
     <div>
       <p>Copyright &copy; 2023 Jesdo Software LLC.</p>

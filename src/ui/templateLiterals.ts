@@ -17,5 +17,7 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-export const html = (strings: TemplateStringsArray, ...values: unknown[]) =>
-  String.raw({ raw: strings }, ...values);
+export const html = (
+  strings: TemplateStringsArray,
+  ...values: unknown[]
+): string => String.raw({ raw: strings }, ...values);

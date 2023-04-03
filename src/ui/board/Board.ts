@@ -23,7 +23,7 @@ import Card from "../card/Card";
 import { html } from "../templateLiterals";
 import styles from "./Board.module.css";
 
-const Board = (boardModel: BoardModel) => {
+const Board = (boardModel: BoardModel): string => {
   const boardId = "board";
 
   boardModel.onCardDealt.addListener((e) => {

@@ -66,7 +66,7 @@ const runAfterRender = (): void => {
   }
 };
 
-export const renderElement = (element: Element, outerHtml: string) => {
+export const renderElement = (element: Element, outerHtml: string): void => {
   element.outerHTML = outerHtml;
   runAfterRender();
 };
