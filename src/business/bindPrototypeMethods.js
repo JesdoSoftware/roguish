@@ -17,7 +17,11 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-export const html = (
-  strings: TemplateStringsArray,
-  ...values: unknown[]
-): string => String.raw({ raw: strings }, ...values);
+const bindPrototypeMethods = (obj) => {
+  const propertyNames = Object.getOwnPropertyNames(Object.getPrototypeOf(obj));
+  propertyNames
+    .filter((p) => p !== "constructor" && typeof obj[p] === "function")
+    .forEach((p) => (obj[p] = obj[p].bind(obj)));
+};
+
+export default bindPrototypeMethods;

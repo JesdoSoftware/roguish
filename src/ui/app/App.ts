@@ -17,12 +17,15 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { CardModel, CardSide } from "../../business/models";
-import { shuffle } from "../../business/operations";
+import {
+  loadDeck,
+  queueAfterRender,
+  renderElement,
+} from "../../business/services";
 import Board from "../board/Board";
 import { html } from "../templateLiterals";
 
-const CopyrightLicenseSource = () => {
+const CopyrightLicenseSource = (): string => {
   return html`
     <div>
       <p>Copyright &copy; 2023 Jesdo Software LLC.</p>
@@ -35,11 +38,7 @@ const CopyrightLicenseSource = () => {
         >.
       </p>
       <p>
-        <a
-          href="https://github.com/JesdoSoftware/roguish"
-          target="_blank"
-          rel="noreferrer"
-        >
+        <a href="${process.env.SOURCE_URL}" target="_blank" rel="noreferrer">
           Source
         </a>
       </p>
@@ -48,58 +47,21 @@ const CopyrightLicenseSource = () => {
 };
 
 const App = (): string => {
-  const deck: CardModel[] = [
-    {
-      name: "1",
-      strength: 0,
-      side: CardSide.Front,
-    },
-    {
-      name: "2",
-      strength: 0,
-      side: CardSide.Front,
-    },
-    {
-      name: "3",
-      strength: 0,
-      side: CardSide.Front,
-    },
-    {
-      name: "4",
-      strength: 0,
-      side: CardSide.Front,
-    },
-    {
-      name: "5",
-      strength: 0,
-      side: CardSide.Front,
-    },
-    {
-      name: "6",
-      strength: 0,
-      side: CardSide.Front,
-    },
-    {
-      name: "7",
-      strength: 0,
-      side: CardSide.Front,
-    },
-    {
-      name: "8",
-      strength: 0,
-      side: CardSide.Front,
-    },
-    {
-      name: "9",
-      strength: 0,
-      side: CardSide.Front,
-    },
-  ];
-  shuffle(deck);
+  const boardId = "board";
+
+  queueAfterRender(() => {
+    loadDeck().then((boardModel) => {
+      const board = document.getElementById(boardId);
+      if (!board) {
+        throw new Error("Missing board element");
+      }
+      renderElement(board, Board(boardModel));
+    });
+  });
 
   return html`
     <div>
-      ${Board(deck)}
+      <div id="${boardId}">Loading deck&hellip;</div>
       <hr />
       ${CopyrightLicenseSource()}
     </div>

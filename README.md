@@ -2,6 +2,20 @@
 
 A traditional roguelike as a card game.
 
+## Environment variables
+
+Before building, add a `.env` file in the root folder of the repo that defines the following environment variables:
+
+- `SOURCE_URL`: the URL hosting the source code of the application
+- `API_BASE_URL`: the base URL of the back-end API (minus a trailing slash)
+
+For example:
+
+```
+SOURCE_URL=https://github.com/JesdoSoftware/roguish
+API_BASE_URL=https://example.com/api
+```
+
 ## Copyright and license notices
 
 Copyright (C) 2023 Jesdo Software LLC (jesse@jesdosoftware.com).

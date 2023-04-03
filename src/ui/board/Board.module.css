@@ -34,32 +34,32 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   width: var(--card-width);
 }
 
-.board .north {
-  position: absolute;
-  top: 0;
-}
-
-.board .vertCenter {
-  position: absolute;
-  top: calc(var(--card-width) + var(--gutter-width));
-}
-
-.board .south {
-  position: absolute;
-  top: calc((var(--card-width) + var(--gutter-width)) * 2);
-}
-
-.board .west {
+.board .col0 {
   position: absolute;
   left: 0;
 }
 
-.board .horizCenter {
+.board .col1 {
   position: absolute;
   left: calc(var(--card-width) + var(--gutter-width));
 }
 
-.board .east {
+.board .col2 {
   position: absolute;
   left: calc((var(--card-width) + var(--gutter-width)) * 2);
+}
+
+.board .row0 {
+  position: absolute;
+  top: 0;
+}
+
+.board .row1 {
+  position: absolute;
+  top: calc(var(--card-width) + var(--gutter-width));
+}
+
+.board .row2 {
+  position: absolute;
+  top: calc((var(--card-width) + var(--gutter-width)) * 2);
 }
