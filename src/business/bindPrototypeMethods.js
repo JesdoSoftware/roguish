@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-
 const bindPrototypeMethods = (obj) => {
   const propertyNames = Object.getOwnPropertyNames(Object.getPrototypeOf(obj));
   propertyNames
