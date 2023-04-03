@@ -17,6 +17,7 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
+import bindPrototypeMethods from "./bindPrototypeMethods";
 import { CardDto, DeckDto } from "./dtos";
 
 const MaxBoardColumns = 3;
@@ -24,6 +25,10 @@ const MaxBoardRows = 3;
 
 export class EventDispatcher<T> {
   private listeners: ((e: T) => void)[] = [];
+
+  constructor() {
+    bindPrototypeMethods(this);
+  }
 
   addListener(listener: (e: T) => void): void {
     this.listeners.push(listener);
@@ -99,6 +104,11 @@ export class BoardModel {
   private _onCardMoved: EventDispatcher<CardModel> =
     new EventDispatcher<CardModel>();
 
+  constructor(deck: DeckModel) {
+    bindPrototypeMethods(this);
+    this._deck = deck;
+  }
+
   get deck(): DeckModel {
     return this._deck;
   }
@@ -113,10 +123,6 @@ export class BoardModel {
 
   get onCardMoved(): EventDispatcher<CardModel> {
     return this._onCardMoved;
-  }
-
-  constructor(deck: DeckModel) {
-    this._deck = deck;
   }
 
   private validateCoordinates(column: number, row: number): void {
@@ -173,7 +179,7 @@ export class BoardModel {
     this.onCardMoved.dispatch(card);
   }
 
-  dealCardsForEmptySpots = (): void => {
+  dealCardsForEmptySpots(): void {
     for (let column = 0; column < MaxBoardColumns; ++column) {
       for (let row = 0; row < MaxBoardRows; ++row) {
         if (!this.getCard(column, row)) {
@@ -184,5 +190,5 @@ export class BoardModel {
         }
       }
     }
-  };
+  }
 }
