@@ -17,24 +17,49 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { BoardModel } from "../../business/models";
+import { BoardModel, CardDealtEventArgs } from "../../business/models";
 import { queueAfterRender, renderElement } from "../../business/services";
 import Card from "../card/Card";
 import { html } from "../templateLiterals";
 import styles from "./Board.module.css";
 
+const CardDealDelayMs = 125;
+
 const Board = (boardModel: BoardModel): string => {
   const boardId = "board";
 
-  boardModel.onCardDealt.addListener((e) => {
-    const board = document.getElementById(boardId);
-    const className = `${styles.card} ${styles[`col${e.column}`]} ${
-      styles[`row${e.row}`]
-    }`;
+  const cardDealQueue: CardDealtEventArgs[] = [];
+  let isDealingCards = false;
 
-    const card = document.createElement("div");
-    board?.appendChild(card);
-    renderElement(card, Card(e.card, className));
+  const dealNextCard = (): void => {
+    const cardDealt = cardDealQueue.shift();
+    if (cardDealt) {
+      isDealingCards = true;
+
+      const board = document.getElementById(boardId);
+      const className = `${styles.card} ${styles[`col${cardDealt.column}`]} ${
+        styles[`row${cardDealt.row}`]
+      }`;
+
+      const card = document.createElement("div");
+      board?.appendChild(card);
+      renderElement(card, Card(cardDealt.card, className));
+
+      setTimeout(dealNextCard, CardDealDelayMs);
+    } else {
+      isDealingCards = false;
+    }
+  };
+
+  const queueCardToDeal = (cardDealt: CardDealtEventArgs): void => {
+    cardDealQueue.push(cardDealt);
+    if (!isDealingCards) {
+      dealNextCard();
+    }
+  };
+
+  boardModel.onCardDealt.addListener((e) => {
+    queueCardToDeal(e);
   });
 
   queueAfterRender(boardModel.dealCardsForEmptySpots);
