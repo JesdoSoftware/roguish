@@ -19,11 +19,11 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import { BoardModel, CardDealtEventArgs } from "../../business/models";
 import { queueAfterRender, renderElement } from "../../business/services";
-import Card from "../card/Card";
+import Card, { createCardId, updateCardClassName } from "../card/Card";
 import { html } from "../templateLiterals";
 import styles from "./Board.module.css";
 
-const CardDealDelayMs = 125;
+const CardDealDelayMs = 250;
 
 const Board = (boardModel: BoardModel): string => {
   const boardId = "board";
@@ -37,13 +37,22 @@ const Board = (boardModel: BoardModel): string => {
       isDealingCards = true;
 
       const board = document.getElementById(boardId);
-      const className = `${styles.card} ${styles[`col${cardDealt.column}`]} ${
-        styles[`row${cardDealt.row}`]
-      }`;
-
       const card = document.createElement("div");
       board?.appendChild(card);
-      renderElement(card, Card(cardDealt.card, className));
+
+      const cardId = createCardId();
+
+      queueAfterRender(() => {
+        setTimeout(() => {
+          const onBoardClassName = `${styles.card} ${
+            styles[`col${cardDealt.column}`]
+          } ${styles[`row${cardDealt.row}`]}`;
+          updateCardClassName(cardId, onBoardClassName);
+        }, CardDealDelayMs);
+      });
+
+      const atDeckClassName = `${styles.card} ${styles.atDeck}`;
+      renderElement(card, Card(cardDealt.card, cardId, atDeckClassName));
 
       setTimeout(dealNextCard, CardDealDelayMs);
     } else {
