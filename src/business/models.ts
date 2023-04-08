@@ -180,8 +180,8 @@ export class BoardModel {
   }
 
   dealCardsForEmptySpots(): void {
-    for (let column = 0; column < MaxBoardColumns; ++column) {
-      for (let row = 0; row < MaxBoardRows; ++row) {
+    for (let row = 0; row < MaxBoardRows; ++row) {
+      for (let column = 0; column < MaxBoardColumns; ++column) {
         if (!this.getCard(column, row)) {
           const card = this._deck.cards.pop();
           if (card) {
