@@ -21,12 +21,33 @@ import { CardModel, CardSide } from "../../business/models";
 import { html } from "../templateLiterals";
 import styles from "./Card.module.css";
 
-const Card = (cardModel: CardModel, className: string): string => {
+let NextCardId = 1;
+
+export const createCardId = (): string => {
+  return `card${NextCardId++}`;
+};
+
+const getCombinedClassName = (externalClassName: string): string => {
+  return `${styles.card} ${externalClassName}`;
+};
+
+export const updateCardClassName = (
+  cardId: string,
+  className: string
+): void => {
+  const card = document.getElementById(cardId);
+  if (card) {
+    card.className = getCombinedClassName(className);
+  }
+};
+
+const Card = (cardModel: CardModel, id: string, className: string): string => {
+  const combinedClassName = getCombinedClassName(className);
   const style =
     cardModel.side === CardSide.Back ? "transform: rotateY(180deg);" : "";
 
   return html`
-    <div class="${styles.card} ${className}" style="${style}">
+    <div id="${id}" class="${combinedClassName}" style="${style}">
       <div class="${styles.cardSide}">
         <p>${cardModel.name}</p>
       </div>
