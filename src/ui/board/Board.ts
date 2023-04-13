@@ -25,6 +25,10 @@ import styles from "./Board.module.css";
 
 const CardDealDelayMs = 250;
 
+const getCardClassName = (column: number, row: number): string => {
+  return `${styles.card} ${styles[`col${column}`]} ${styles[`row${row}`]}`;
+};
+
 const Board = (boardModel: BoardModel): string => {
   const boardId = "board";
 
@@ -44,10 +48,10 @@ const Board = (boardModel: BoardModel): string => {
 
       queueAfterRender(() => {
         setTimeout(() => {
-          const onBoardClassName = `${styles.card} ${
-            styles[`col${cardDealt.column}`]
-          } ${styles[`row${cardDealt.row}`]}`;
-          updateCardClassName(cardId, onBoardClassName);
+          updateCardClassName(
+            cardId,
+            getCardClassName(cardDealt.column, cardDealt.row)
+          );
         }, CardDealDelayMs);
       });
 
@@ -73,7 +77,9 @@ const Board = (boardModel: BoardModel): string => {
 
   queueAfterRender(boardModel.dealCardsForEmptySpots);
 
-  return html`<div id="${boardId}" class="${styles.board}"></div>`;
+  return html`<div id="${boardId}" class="${styles.board}">
+    ${Card(boardModel.playerCard, "cardPlayer", getCardClassName(1, 1))}
+  </div>`;
 };
 
 export default Board;

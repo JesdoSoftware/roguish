@@ -96,6 +96,7 @@ export interface CardDealtEventArgs {
 
 export class BoardModel {
   private _deck: DeckModel;
+  private _playerCard: CardModel;
   private columns: (CardModel | undefined)[][] = [[], [], []];
   private _onCardDealt: EventDispatcher<CardDealtEventArgs> =
     new EventDispatcher<CardDealtEventArgs>();
@@ -107,10 +108,22 @@ export class BoardModel {
   constructor(deck: DeckModel) {
     bindPrototypeMethods(this);
     this._deck = deck;
+
+    const playerCard: CardModel = {
+      name: "Player",
+      strength: 0,
+      side: CardSide.Front,
+    };
+    this._playerCard = playerCard;
+    this.columns[1][1] = playerCard;
   }
 
   get deck(): DeckModel {
     return this._deck;
+  }
+
+  get playerCard(): CardModel {
+    return this._playerCard;
   }
 
   get onCardDealt(): EventDispatcher<CardDealtEventArgs> {
