@@ -56,13 +56,17 @@ export enum CardSide {
 }
 
 export interface CardModel {
+  id: string;
   name: string;
   strength: number;
   side: CardSide;
 }
 
+let NextCardId = 1;
+
 export const cardDtoToModel = (cardDto: CardDto): CardModel => {
   return {
+    id: `card${NextCardId++}`,
     name: cardDto.name,
     strength: cardDto.strength,
     side: CardSide.Front,
@@ -110,6 +114,7 @@ export class BoardModel {
     this._deck = deck;
 
     const playerCard: CardModel = {
+      id: "cardPlayer",
       name: "Player",
       strength: 0,
       side: CardSide.Front,

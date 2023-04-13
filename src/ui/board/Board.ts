@@ -24,7 +24,7 @@ import {
   MaxBoardRows,
 } from "../../business/models";
 import { queueAfterRender, renderElement } from "../../business/services";
-import Card, { createCardId, updateCardClassName } from "../card/Card";
+import Card, { updateCardClassName } from "../card/Card";
 import { html } from "../templateLiterals";
 import styles from "./Board.module.css";
 
@@ -49,19 +49,17 @@ const Board = (boardModel: BoardModel): string => {
       const card = document.createElement("div");
       board?.appendChild(card);
 
-      const cardId = createCardId();
-
       queueAfterRender(() => {
         setTimeout(() => {
           updateCardClassName(
-            cardId,
+            cardDealt.card.id,
             getCardClassName(cardDealt.column, cardDealt.row)
           );
         }, CardDealDelayMs);
       });
 
       const atDeckClassName = `${styles.card} ${styles.atDeck}`;
-      renderElement(card, Card(cardDealt.card, cardId, atDeckClassName));
+      renderElement(card, Card(cardDealt.card, atDeckClassName));
 
       setTimeout(dealNextCard, CardDealDelayMs);
     } else {
@@ -87,11 +85,7 @@ const Board = (boardModel: BoardModel): string => {
     for (let row = 0; row < MaxBoardRows; ++row) {
       const cardModel = boardModel.getCard(column, row);
       if (cardModel) {
-        initialCards += Card(
-          cardModel,
-          createCardId(),
-          getCardClassName(column, row)
-        );
+        initialCards += Card(cardModel, getCardClassName(column, row));
       }
     }
   }
