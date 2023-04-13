@@ -20,8 +20,8 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 import bindPrototypeMethods from "./bindPrototypeMethods";
 import { CardDto, DeckDto } from "./dtos";
 
-const MaxBoardColumns = 3;
-const MaxBoardRows = 3;
+export const MaxBoardColumns = 3;
+export const MaxBoardRows = 3;
 
 export class EventDispatcher<T> {
   private listeners: ((e: T) => void)[] = [];
@@ -56,13 +56,17 @@ export enum CardSide {
 }
 
 export interface CardModel {
+  id: string;
   name: string;
   strength: number;
   side: CardSide;
 }
 
+let NextCardId = 1;
+
 export const cardDtoToModel = (cardDto: CardDto): CardModel => {
   return {
+    id: `card${NextCardId++}`,
     name: cardDto.name,
     strength: cardDto.strength,
     side: CardSide.Front,
@@ -96,6 +100,7 @@ export interface CardDealtEventArgs {
 
 export class BoardModel {
   private _deck: DeckModel;
+  private _playerCard: CardModel;
   private columns: (CardModel | undefined)[][] = [[], [], []];
   private _onCardDealt: EventDispatcher<CardDealtEventArgs> =
     new EventDispatcher<CardDealtEventArgs>();
@@ -107,10 +112,23 @@ export class BoardModel {
   constructor(deck: DeckModel) {
     bindPrototypeMethods(this);
     this._deck = deck;
+
+    const playerCard: CardModel = {
+      id: "cardPlayer",
+      name: "Player",
+      strength: 0,
+      side: CardSide.Front,
+    };
+    this._playerCard = playerCard;
+    this.columns[1][1] = playerCard;
   }
 
   get deck(): DeckModel {
     return this._deck;
+  }
+
+  get playerCard(): CardModel {
+    return this._playerCard;
   }
 
   get onCardDealt(): EventDispatcher<CardDealtEventArgs> {

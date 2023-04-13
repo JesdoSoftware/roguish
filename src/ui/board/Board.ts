@@ -17,13 +17,22 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { BoardModel, CardDealtEventArgs } from "../../business/models";
+import {
+  BoardModel,
+  CardDealtEventArgs,
+  MaxBoardColumns,
+  MaxBoardRows,
+} from "../../business/models";
 import { queueAfterRender, renderElement } from "../../business/services";
-import Card, { createCardId, updateCardClassName } from "../card/Card";
+import Card, { updateCardClassName } from "../card/Card";
 import { html } from "../templateLiterals";
 import styles from "./Board.module.css";
 
 const CardDealDelayMs = 250;
+
+const getCardClassName = (column: number, row: number): string => {
+  return `${styles.card} ${styles[`col${column}`]} ${styles[`row${row}`]}`;
+};
 
 const Board = (boardModel: BoardModel): string => {
   const boardId = "board";
@@ -40,19 +49,17 @@ const Board = (boardModel: BoardModel): string => {
       const card = document.createElement("div");
       board?.appendChild(card);
 
-      const cardId = createCardId();
-
       queueAfterRender(() => {
         setTimeout(() => {
-          const onBoardClassName = `${styles.card} ${
-            styles[`col${cardDealt.column}`]
-          } ${styles[`row${cardDealt.row}`]}`;
-          updateCardClassName(cardId, onBoardClassName);
+          updateCardClassName(
+            cardDealt.card.id,
+            getCardClassName(cardDealt.column, cardDealt.row)
+          );
         }, CardDealDelayMs);
       });
 
       const atDeckClassName = `${styles.card} ${styles.atDeck}`;
-      renderElement(card, Card(cardDealt.card, cardId, atDeckClassName));
+      renderElement(card, Card(cardDealt.card, atDeckClassName));
 
       setTimeout(dealNextCard, CardDealDelayMs);
     } else {
@@ -73,7 +80,19 @@ const Board = (boardModel: BoardModel): string => {
 
   queueAfterRender(boardModel.dealCardsForEmptySpots);
 
-  return html`<div id="${boardId}" class="${styles.board}"></div>`;
+  let initialCards = "";
+  for (let column = 0; column < MaxBoardColumns; ++column) {
+    for (let row = 0; row < MaxBoardRows; ++row) {
+      const cardModel = boardModel.getCard(column, row);
+      if (cardModel) {
+        initialCards += Card(cardModel, getCardClassName(column, row));
+      }
+    }
+  }
+
+  return html`<div id="${boardId}" class="${styles.board}">
+    ${initialCards}
+  </div>`;
 };
 
 export default Board;
