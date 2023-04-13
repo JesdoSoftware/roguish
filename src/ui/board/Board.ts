@@ -17,7 +17,12 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { BoardModel, CardDealtEventArgs } from "../../business/models";
+import {
+  BoardModel,
+  CardDealtEventArgs,
+  MaxBoardColumns,
+  MaxBoardRows,
+} from "../../business/models";
 import { queueAfterRender, renderElement } from "../../business/services";
 import Card, { createCardId, updateCardClassName } from "../card/Card";
 import { html } from "../templateLiterals";
@@ -77,8 +82,22 @@ const Board = (boardModel: BoardModel): string => {
 
   queueAfterRender(boardModel.dealCardsForEmptySpots);
 
+  let initialCards = "";
+  for (let column = 0; column < MaxBoardColumns; ++column) {
+    for (let row = 0; row < MaxBoardRows; ++row) {
+      const cardModel = boardModel.getCard(column, row);
+      if (cardModel) {
+        initialCards += Card(
+          cardModel,
+          createCardId(),
+          getCardClassName(column, row)
+        );
+      }
+    }
+  }
+
   return html`<div id="${boardId}" class="${styles.board}">
-    ${Card(boardModel.playerCard, "cardPlayer", getCardClassName(1, 1))}
+    ${initialCards}
   </div>`;
 };
 

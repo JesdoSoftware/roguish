@@ -20,8 +20,8 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 import bindPrototypeMethods from "./bindPrototypeMethods";
 import { CardDto, DeckDto } from "./dtos";
 
-const MaxBoardColumns = 3;
-const MaxBoardRows = 3;
+export const MaxBoardColumns = 3;
+export const MaxBoardRows = 3;
 
 export class EventDispatcher<T> {
   private listeners: ((e: T) => void)[] = [];
