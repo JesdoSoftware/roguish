@@ -54,32 +54,32 @@ const Card = (
 
       let startingLeft: number;
       let startingTop: number;
-      let mouseDownX: number;
-      let mouseDownY: number;
+      let pointerDownX: number;
+      let pointerDownY: number;
 
-      card?.addEventListener("mousedown", (e) => {
+      card?.addEventListener("pointerdown", (e) => {
         isDragging = true;
 
         const cardStyle = window.getComputedStyle(card);
         startingLeft = parseInt(cardStyle.left);
         startingTop = parseInt(cardStyle.top);
-        mouseDownX = e.clientX;
-        mouseDownY = e.clientY;
+        pointerDownX = e.clientX;
+        pointerDownY = e.clientY;
 
         card.style.cssText = "z-index: 1; transition: none;";
       });
 
-      card?.addEventListener("mousemove", (e) => {
+      card?.addEventListener("pointermove", (e) => {
         if (isDragging) {
-          const diffX = e.clientX - mouseDownX;
-          const diffY = e.clientY - mouseDownY;
+          const diffX = e.clientX - pointerDownX;
+          const diffY = e.clientY - pointerDownY;
 
           card.style.left = `${startingLeft + diffX}px`;
           card.style.top = `${startingTop + diffY}px`;
         }
       });
 
-      card?.addEventListener("mouseup", () => {
+      card?.addEventListener("pointerup", () => {
         isDragging = false;
         card.style.cssText = "";
       });
