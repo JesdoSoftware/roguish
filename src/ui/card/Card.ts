@@ -18,6 +18,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { CardModel, CardSide } from "../../business/models";
+import { queueAfterRender } from "../../business/services";
 import { html } from "../templateLiterals";
 import styles from "./Card.module.css";
 
@@ -35,13 +36,58 @@ export const updateCardClassName = (
   }
 };
 
-const Card = (cardModel: CardModel, className: string): string => {
+const Card = (
+  cardModel: CardModel,
+  className: string,
+  isDraggable?: boolean
+): string => {
+  const cardId = cardModel.id;
+
   const combinedClassName = getCombinedClassName(className);
   const style =
     cardModel.side === CardSide.Back ? "transform: rotateY(180deg);" : "";
 
+  if (isDraggable) {
+    queueAfterRender(() => {
+      const card = document.getElementById(cardId);
+      let isDragging = false;
+
+      let startingLeft: number;
+      let startingTop: number;
+      let mouseDownX: number;
+      let mouseDownY: number;
+
+      card?.addEventListener("mousedown", (e) => {
+        isDragging = true;
+
+        const cardStyle = window.getComputedStyle(card);
+        startingLeft = parseInt(cardStyle.left);
+        startingTop = parseInt(cardStyle.top);
+        mouseDownX = e.clientX;
+        mouseDownY = e.clientY;
+
+        card.style.cssText = "z-index: 1; transition: none;";
+      });
+
+      card?.addEventListener("mousemove", (e) => {
+        if (isDragging) {
+          const diffX = e.clientX - mouseDownX;
+          const diffY = e.clientY - mouseDownY;
+
+          card.style.left = `${startingLeft + diffX}px`;
+          card.style.top = `${startingTop + diffY}px`;
+        }
+      });
+
+      card?.addEventListener("mouseup", () => {
+        isDragging = false;
+        card.style.cssText = "";
+      });
+    });
+  }
+
   return html`
-    <div id="${cardModel.id}" class="${combinedClassName}" style="${style}">
+    <div id="${cardId}" class="${combinedClassName}" style="${style}">
       <div class="${styles.cardSide}">
         <p>${cardModel.name}</p>
       </div>

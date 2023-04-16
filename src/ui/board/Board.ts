@@ -85,7 +85,7 @@ const Board = (boardModel: BoardModel): string => {
     for (let row = 0; row < MaxBoardRows; ++row) {
       const cardModel = boardModel.getCard(column, row);
       if (cardModel) {
-        initialCards += Card(cardModel, getCardClassName(column, row));
+        initialCards += Card(cardModel, getCardClassName(column, row), true);
       }
     }
   }
