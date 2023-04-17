@@ -50,36 +50,25 @@ const Card = (
   if (isDraggable) {
     queueAfterRender(() => {
       const card = document.getElementById(cardId);
+      if (!card) {
+        throw new Error("Card missing");
+      }
+      const cardStyle = window.getComputedStyle(card);
       let isDragging = false;
 
-      let startingLeft: number;
-      let startingTop: number;
-      let pointerDownX: number;
-      let pointerDownY: number;
-
-      card?.addEventListener("pointerdown", (e) => {
+      card.addEventListener("pointerdown", () => {
         isDragging = true;
-
-        const cardStyle = window.getComputedStyle(card);
-        startingLeft = parseInt(cardStyle.left);
-        startingTop = parseInt(cardStyle.top);
-        pointerDownX = e.clientX;
-        pointerDownY = e.clientY;
-
         card.style.cssText = "z-index: 1; transition: none;";
       });
 
-      card?.addEventListener("pointermove", (e) => {
+      card.addEventListener("pointermove", (e) => {
         if (isDragging) {
-          const diffX = e.clientX - pointerDownX;
-          const diffY = e.clientY - pointerDownY;
-
-          card.style.left = `${startingLeft + diffX}px`;
-          card.style.top = `${startingTop + diffY}px`;
+          card.style.left = `${parseInt(cardStyle.left) + e.movementX}px`;
+          card.style.top = `${parseInt(cardStyle.top) + e.movementY}px`;
         }
       });
 
-      card?.addEventListener("pointerup", () => {
+      card.addEventListener("pointerup", () => {
         isDragging = false;
         card.style.cssText = "";
       });
