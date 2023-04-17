@@ -59,7 +59,10 @@ const Board = (boardModel: BoardModel): string => {
       });
 
       const atDeckClassName = `${styles.card} ${styles.atDeck}`;
-      renderElement(card, Card(cardDealt.card, atDeckClassName));
+      renderElement(
+        card,
+        Card(cardDealt.card, atDeckClassName, boardModel.canMoveCard)
+      );
 
       setTimeout(dealNextCard, CardDealDelayMs);
     } else {
@@ -85,7 +88,11 @@ const Board = (boardModel: BoardModel): string => {
     for (let row = 0; row < MaxBoardRows; ++row) {
       const cardModel = boardModel.getCard(column, row);
       if (cardModel) {
-        initialCards += Card(cardModel, getCardClassName(column, row), true);
+        initialCards += Card(
+          cardModel,
+          getCardClassName(column, row),
+          boardModel.canMoveCard
+        );
       }
     }
   }

@@ -39,7 +39,7 @@ export const updateCardClassName = (
 const Card = (
   cardModel: CardModel,
   className: string,
-  isDraggable?: boolean
+  canMove: (card: CardModel) => boolean
 ): string => {
   const cardId = cardModel.id;
 
@@ -47,33 +47,33 @@ const Card = (
   const style =
     cardModel.side === CardSide.Back ? "transform: rotateY(180deg);" : "";
 
-  if (isDraggable) {
-    queueAfterRender(() => {
-      const card = document.getElementById(cardId);
-      if (!card) {
-        throw new Error("Card missing");
-      }
-      const cardStyle = window.getComputedStyle(card);
-      let isDragging = false;
+  queueAfterRender(() => {
+    const card = document.getElementById(cardId);
+    if (!card) {
+      throw new Error("Card missing");
+    }
+    const cardStyle = window.getComputedStyle(card);
+    let isDragging = false;
 
-      card.addEventListener("pointerdown", () => {
+    card.addEventListener("pointerdown", () => {
+      if (canMove(cardModel)) {
         isDragging = true;
         card.style.cssText = "z-index: 1; transition: none;";
-      });
-
-      card.addEventListener("pointermove", (e) => {
-        if (isDragging) {
-          card.style.left = `${parseInt(cardStyle.left) + e.movementX}px`;
-          card.style.top = `${parseInt(cardStyle.top) + e.movementY}px`;
-        }
-      });
-
-      card.addEventListener("pointerup", () => {
-        isDragging = false;
-        card.style.cssText = "";
-      });
+      }
     });
-  }
+
+    card.addEventListener("pointermove", (e) => {
+      if (isDragging) {
+        card.style.left = `${parseInt(cardStyle.left) + e.movementX}px`;
+        card.style.top = `${parseInt(cardStyle.top) + e.movementY}px`;
+      }
+    });
+
+    card.addEventListener("pointerup", () => {
+      isDragging = false;
+      card.style.cssText = "";
+    });
+  });
 
   return html`
     <div id="${cardId}" class="${combinedClassName}" style="${style}">

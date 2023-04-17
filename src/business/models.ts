@@ -23,6 +23,8 @@ import { CardDto, DeckDto } from "./dtos";
 export const MaxBoardColumns = 3;
 export const MaxBoardRows = 3;
 
+const PlayerCardId = "cardPlayer";
+
 export class EventDispatcher<T> {
   private listeners: ((e: T) => void)[] = [];
 
@@ -100,7 +102,6 @@ export interface CardDealtEventArgs {
 
 export class BoardModel {
   private _deck: DeckModel;
-  private _playerCard: CardModel;
   private columns: (CardModel | undefined)[][] = [[], [], []];
   private _onCardDealt: EventDispatcher<CardDealtEventArgs> =
     new EventDispatcher<CardDealtEventArgs>();
@@ -114,12 +115,11 @@ export class BoardModel {
     this._deck = deck;
 
     const playerCard: CardModel = {
-      id: "cardPlayer",
+      id: PlayerCardId,
       name: "Player",
       strength: 0,
       side: CardSide.Front,
     };
-    this._playerCard = playerCard;
     this.columns[1][1] = playerCard;
   }
 
@@ -127,20 +127,16 @@ export class BoardModel {
     return this._deck;
   }
 
-  get playerCard(): CardModel {
-    return this._playerCard;
-  }
-
   get onCardDealt(): EventDispatcher<CardDealtEventArgs> {
     return this._onCardDealt;
   }
 
-  get onCardDiscarded(): EventDispatcher<CardModel> {
-    return this._onCardDiscarded;
-  }
-
   get onCardMoved(): EventDispatcher<CardModel> {
     return this._onCardMoved;
+  }
+
+  get onCardDiscarded(): EventDispatcher<CardModel> {
+    return this._onCardDiscarded;
   }
 
   private validateCoordinates(column: number, row: number): void {
@@ -165,16 +161,21 @@ export class BoardModel {
     });
   }
 
-  discardCard(column: number, row: number): void {
-    const card = this.getCard(column, row);
-    if (!card) {
-      throw new Error("Card missing");
+  dealCardsForEmptySpots(): void {
+    for (let row = 0; row < MaxBoardRows; ++row) {
+      for (let column = 0; column < MaxBoardColumns; ++column) {
+        if (!this.getCard(column, row)) {
+          const card = this._deck.cards.pop();
+          if (card) {
+            this.dealCard(card, column, row);
+          }
+        }
+      }
     }
+  }
 
-    this.validateCoordinates(column, row);
-    this.columns[column][row] = undefined;
-
-    this.onCardDiscarded.dispatch(card);
+  canMoveCard(card: CardModel): boolean {
+    return card.id === PlayerCardId;
   }
 
   moveCard(
@@ -197,16 +198,15 @@ export class BoardModel {
     this.onCardMoved.dispatch(card);
   }
 
-  dealCardsForEmptySpots(): void {
-    for (let row = 0; row < MaxBoardRows; ++row) {
-      for (let column = 0; column < MaxBoardColumns; ++column) {
-        if (!this.getCard(column, row)) {
-          const card = this._deck.cards.pop();
-          if (card) {
-            this.dealCard(card, column, row);
-          }
-        }
-      }
+  discardCard(column: number, row: number): void {
+    const card = this.getCard(column, row);
+    if (!card) {
+      throw new Error("Card missing");
     }
+
+    this.validateCoordinates(column, row);
+    this.columns[column][row] = undefined;
+
+    this.onCardDiscarded.dispatch(card);
   }
 }
