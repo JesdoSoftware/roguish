@@ -39,15 +39,16 @@ export const updateCardClassName = (
 const Card = (
   cardModel: CardModel,
   className: string,
-  canMove: () => boolean
+  canDrag: () => boolean
 ): string => {
   const cardId = cardModel.id;
 
   const combinedClassName = getCombinedClassName(className);
+  // TODO move to CSS classes
   const style =
     cardModel.side === CardSide.Back ? "transform: rotateY(180deg);" : "";
 
-  registerDraggable(cardId, canMove);
+  registerDraggable(cardId, canDrag);
 
   return html`
     <div id="${cardId}" class="${combinedClassName}" style="${style}">

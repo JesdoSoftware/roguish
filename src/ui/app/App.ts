@@ -43,10 +43,13 @@ const CopyrightLicenseSource = (): string => {
   `;
 };
 
+const DraggingZIndex = 1;
+
 const App = (): string => {
   let isDragging = false;
   let draggedElemComputedStyle: CSSStyleDeclaration;
   let draggedElem: HTMLElement;
+  let lastDraggedElem: HTMLElement | undefined;
 
   const onPointerDown = (e: PointerEvent): void => {
     const elemsAtPoint = document.elementsFromPoint(e.clientX, e.clientY);
@@ -54,9 +57,15 @@ const App = (): string => {
       if (canDrag(elem.id)) {
         isDragging = true;
 
+        if (lastDraggedElem) {
+          // remove the z-index override so the new dragged element
+          // is on top
+          lastDraggedElem.style.cssText = "";
+        }
+
         draggedElem = elem as HTMLElement;
         draggedElemComputedStyle = window.getComputedStyle(draggedElem);
-        draggedElem.style.cssText = "z-index: 1; transition: none;";
+        draggedElem.style.cssText = `z-index: ${DraggingZIndex}; transition: none;`;
       }
     });
   };
@@ -75,7 +84,10 @@ const App = (): string => {
   const onPointerUp = (): void => {
     if (isDragging) {
       isDragging = false;
-      draggedElem.style.cssText = "";
+      // don't reset the z-index yet so it stays on top during any
+      // subsequent transitions
+      draggedElem.style.cssText = `z-index: ${DraggingZIndex};`;
+      lastDraggedElem = draggedElem;
     }
   };
 
