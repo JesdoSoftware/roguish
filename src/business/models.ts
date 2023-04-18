@@ -17,7 +17,7 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import bindPrototypeMethods from "./bindPrototypeMethods";
+import bindPrototypeMethods from "../bindPrototypeMethods";
 import { CardDto, DeckDto } from "./dtos";
 
 export const MaxBoardColumns = 3;

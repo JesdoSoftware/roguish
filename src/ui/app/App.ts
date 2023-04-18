@@ -17,12 +17,9 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import {
-  loadDeck,
-  queueAfterRender,
-  renderElement,
-} from "../../business/services";
+import { loadDeck } from "../../business/dataAccess";
 import Board from "../board/Board";
+import { runAfterRender, renderElement, canDrag } from "../rendering";
 import { html } from "../templateLiterals";
 
 const CopyrightLicenseSource = (): string => {
@@ -47,9 +44,53 @@ const CopyrightLicenseSource = (): string => {
 };
 
 const App = (): string => {
+  let isDragging = false;
+  let draggedElemComputedStyle: CSSStyleDeclaration;
+  let draggedElem: HTMLElement;
+
+  const onPointerDown = (e: PointerEvent): void => {
+    const elemsAtPoint = document.elementsFromPoint(e.clientX, e.clientY);
+    elemsAtPoint.reverse().forEach((elem) => {
+      if (canDrag(elem.id)) {
+        isDragging = true;
+
+        draggedElem = elem as HTMLElement;
+        draggedElemComputedStyle = window.getComputedStyle(draggedElem);
+        draggedElem.style.cssText = "z-index: 1; transition: none;";
+      }
+    });
+  };
+
+  const onPointerMove = (e: PointerEvent): void => {
+    if (isDragging) {
+      draggedElem.style.left = `${
+        parseInt(draggedElemComputedStyle.left) + e.movementX
+      }px`;
+      draggedElem.style.top = `${
+        parseInt(draggedElemComputedStyle.top) + e.movementY
+      }px`;
+    }
+  };
+
+  const onPointerUp = (): void => {
+    if (isDragging) {
+      isDragging = false;
+      draggedElem.style.cssText = "";
+    }
+  };
+
+  const appId = "app";
   const boardId = "board";
 
-  queueAfterRender(() => {
+  runAfterRender(() => {
+    const app = document.getElementById(appId);
+    if (!app) {
+      throw new Error("Missing app element");
+    }
+    app.addEventListener("pointerdown", onPointerDown);
+    app.addEventListener("pointermove", onPointerMove);
+    app.addEventListener("pointerup", onPointerUp);
+
     loadDeck().then((boardModel) => {
       const board = document.getElementById(boardId);
       if (!board) {
@@ -60,7 +101,7 @@ const App = (): string => {
   });
 
   return html`
-    <div>
+    <div id="${appId}">
       <div id="${boardId}">Loading deck&hellip;</div>
       <hr />
       ${CopyrightLicenseSource()}

@@ -20,8 +20,6 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 import { DeckDto } from "./dtos";
 import { BoardModel, CardModel, deckDtoToModel } from "./models";
 
-const runAfterRenderQueue: (() => void)[] = [];
-
 const shuffle = (cardModels: CardModel[]): CardModel[] => {
   // Fisher-Yates shuffle algorithm
 
@@ -51,22 +49,4 @@ export const loadDeck = async (): Promise<BoardModel> => {
   shuffle(deckModel.cards);
 
   return new BoardModel(deckModel);
-};
-
-export const queueAfterRender = (fn: () => void): void => {
-  runAfterRenderQueue.push(fn);
-};
-
-const runAfterRender = (): void => {
-  while (runAfterRenderQueue.length) {
-    const fn = runAfterRenderQueue.shift();
-    if (fn) {
-      fn();
-    }
-  }
-};
-
-export const renderElement = (element: Element, outerHtml: string): void => {
-  element.outerHTML = outerHtml;
-  runAfterRender();
 };

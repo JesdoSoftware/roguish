@@ -18,7 +18,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { CardModel, CardSide } from "../../business/models";
-import { queueAfterRender } from "../../business/services";
+import { registerDraggable } from "../rendering";
 import { html } from "../templateLiterals";
 import styles from "./Card.module.css";
 
@@ -39,7 +39,7 @@ export const updateCardClassName = (
 const Card = (
   cardModel: CardModel,
   className: string,
-  canMove: (card: CardModel) => boolean
+  canMove: () => boolean
 ): string => {
   const cardId = cardModel.id;
 
@@ -47,33 +47,7 @@ const Card = (
   const style =
     cardModel.side === CardSide.Back ? "transform: rotateY(180deg);" : "";
 
-  queueAfterRender(() => {
-    const card = document.getElementById(cardId);
-    if (!card) {
-      throw new Error("Card missing");
-    }
-    const cardStyle = window.getComputedStyle(card);
-    let isDragging = false;
-
-    card.addEventListener("pointerdown", () => {
-      if (canMove(cardModel)) {
-        isDragging = true;
-        card.style.cssText = "z-index: 1; transition: none;";
-      }
-    });
-
-    card.addEventListener("pointermove", (e) => {
-      if (isDragging) {
-        card.style.left = `${parseInt(cardStyle.left) + e.movementX}px`;
-        card.style.top = `${parseInt(cardStyle.top) + e.movementY}px`;
-      }
-    });
-
-    card.addEventListener("pointerup", () => {
-      isDragging = false;
-      card.style.cssText = "";
-    });
-  });
+  registerDraggable(cardId, canMove);
 
   return html`
     <div id="${cardId}" class="${combinedClassName}" style="${style}">

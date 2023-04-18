@@ -23,8 +23,8 @@ import {
   MaxBoardColumns,
   MaxBoardRows,
 } from "../../business/models";
-import { queueAfterRender, renderElement } from "../../business/services";
 import Card, { updateCardClassName } from "../card/Card";
+import { runAfterRender, renderElement } from "../rendering";
 import { html } from "../templateLiterals";
 import styles from "./Board.module.css";
 
@@ -49,7 +49,7 @@ const Board = (boardModel: BoardModel): string => {
       const card = document.createElement("div");
       board?.appendChild(card);
 
-      queueAfterRender(() => {
+      runAfterRender(() => {
         setTimeout(() => {
           updateCardClassName(
             cardDealt.card.id,
@@ -61,7 +61,9 @@ const Board = (boardModel: BoardModel): string => {
       const atDeckClassName = `${styles.card} ${styles.atDeck}`;
       renderElement(
         card,
-        Card(cardDealt.card, atDeckClassName, boardModel.canMoveCard)
+        Card(cardDealt.card, atDeckClassName, () =>
+          boardModel.canMoveCard(cardDealt.card)
+        )
       );
 
       setTimeout(dealNextCard, CardDealDelayMs);
@@ -81,17 +83,15 @@ const Board = (boardModel: BoardModel): string => {
     queueCardToDeal(e);
   });
 
-  queueAfterRender(boardModel.dealCardsForEmptySpots);
+  runAfterRender(boardModel.dealCardsForEmptySpots);
 
   let initialCards = "";
   for (let column = 0; column < MaxBoardColumns; ++column) {
     for (let row = 0; row < MaxBoardRows; ++row) {
       const cardModel = boardModel.getCard(column, row);
       if (cardModel) {
-        initialCards += Card(
-          cardModel,
-          getCardClassName(column, row),
-          boardModel.canMoveCard
+        initialCards += Card(cardModel, getCardClassName(column, row), () =>
+          boardModel.canMoveCard(cardModel)
         );
       }
     }
