@@ -92,6 +92,11 @@ export const deckDtoToModel = (deckDto: DeckDto): DeckModel => {
   };
 };
 
+export interface BoardPosition {
+  column: number;
+  row: number;
+}
+
 export interface CardDealtEventArgs {
   card: CardModel;
   column: number;
@@ -145,9 +150,33 @@ export class BoardModel {
     }
   }
 
-  getCard(column: number, row: number): CardModel | undefined {
+  getCardById(cardId: string): CardModel | undefined {
+    for (let column = 0; column < MaxBoardColumns; ++column) {
+      for (let row = 0; row < MaxBoardRows; ++row) {
+        const card = this.columns[column][row];
+        if (card?.id === cardId) {
+          return card;
+        }
+      }
+    }
+    return undefined;
+  }
+
+  getCardByPosition(column: number, row: number): CardModel | undefined {
     this.validateCoordinates(column, row);
     return this.columns[column][row];
+  }
+
+  getCardPosition(card: CardModel): BoardPosition | undefined {
+    for (let column = 0; column < MaxBoardColumns; ++column) {
+      for (let row = 0; row < MaxBoardRows; ++row) {
+        const other = this.columns[column][row];
+        if (other?.id === card.id) {
+          return { column, row };
+        }
+      }
+    }
+    return undefined;
   }
 
   dealCard(card: CardModel, column: number, row: number): void {
@@ -164,7 +193,7 @@ export class BoardModel {
   dealCardsForEmptySpots(): void {
     for (let row = 0; row < MaxBoardRows; ++row) {
       for (let column = 0; column < MaxBoardColumns; ++column) {
-        if (!this.getCard(column, row)) {
+        if (!this.getCardByPosition(column, row)) {
           const card = this._deck.cards.pop();
           if (card) {
             this.dealCard(card, column, row);
@@ -178,6 +207,19 @@ export class BoardModel {
     return card.id === PlayerCardId;
   }
 
+  canMoveCardTo(card: CardModel, toColumn: number, toRow: number): boolean {
+    this.validateCoordinates(toColumn, toRow);
+
+    const cardPos = this.getCardPosition(card);
+    if (!cardPos) {
+      throw new Error("Card has no position");
+    }
+    // allow moving one space in any direction (incl. diagonal)
+    const colDiff = Math.abs(toColumn - cardPos.column);
+    const rowDiff = Math.abs(toRow - cardPos.row);
+    return ((colDiff || rowDiff) && colDiff === 1) || rowDiff === 1;
+  }
+
   moveCard(
     fromColumn: number,
     fromRow: number,
@@ -187,7 +229,7 @@ export class BoardModel {
     this.validateCoordinates(fromColumn, fromRow);
     this.validateCoordinates(toColumn, toRow);
 
-    const card = this.getCard(fromColumn, fromRow);
+    const card = this.getCardByPosition(fromColumn, fromRow);
     if (!card) {
       throw new Error("Card missing");
     }
@@ -199,7 +241,7 @@ export class BoardModel {
   }
 
   discardCard(column: number, row: number): void {
-    const card = this.getCard(column, row);
+    const card = this.getCardByPosition(column, row);
     if (!card) {
       throw new Error("Card missing");
     }

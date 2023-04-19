@@ -59,11 +59,22 @@ const Board = (boardModel: BoardModel): string => {
       });
 
       const atDeckClassName = `${styles.card} ${styles.atDeck}`;
+      const canDrag = (): boolean => boardModel.canMoveCard(cardDealt.card);
+      const canDrop = (draggableId: string): boolean => {
+        const draggedCard = boardModel.getCardById(draggableId);
+        const dropPosition = boardModel.getCardPosition(cardDealt.card);
+        if (draggedCard && dropPosition) {
+          return boardModel.canMoveCardTo(
+            draggedCard,
+            dropPosition.column,
+            dropPosition.row
+          );
+        }
+        return false;
+      };
       renderElement(
         card,
-        Card(cardDealt.card, atDeckClassName, () =>
-          boardModel.canMoveCard(cardDealt.card)
-        )
+        Card(cardDealt.card, atDeckClassName, canDrag, canDrop)
       );
 
       setTimeout(dealNextCard, CardDealDelayMs);
@@ -88,10 +99,13 @@ const Board = (boardModel: BoardModel): string => {
   let initialCards = "";
   for (let column = 0; column < MaxBoardColumns; ++column) {
     for (let row = 0; row < MaxBoardRows; ++row) {
-      const cardModel = boardModel.getCard(column, row);
+      const cardModel = boardModel.getCardByPosition(column, row);
       if (cardModel) {
-        initialCards += Card(cardModel, getCardClassName(column, row), () =>
-          boardModel.canMoveCard(cardModel)
+        initialCards += Card(
+          cardModel,
+          getCardClassName(column, row),
+          () => boardModel.canMoveCard(cardModel),
+          () => false
         );
       }
     }

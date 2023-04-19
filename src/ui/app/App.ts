@@ -19,7 +19,13 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import { loadDeck } from "../../business/dataAccess";
 import Board from "../board/Board";
-import { runAfterRender, renderElement, canDrag } from "../rendering";
+import {
+  runAfterRender,
+  renderElement,
+  canDrag,
+  canDrop,
+  drop,
+} from "../rendering";
 import { html } from "../templateLiterals";
 
 const CopyrightLicenseSource = (): string => {
@@ -70,6 +76,17 @@ const App = (): string => {
     });
   };
 
+  const getDropTargetAtPoint = (
+    clientX: number,
+    clientY: number
+  ): HTMLElement | undefined => {
+    const elemsAtPoint = document.elementsFromPoint(clientX, clientY);
+    return elemsAtPoint
+      .reverse()
+      .filter((elem) => elem.id !== draggedElem.id)
+      .filter((elem) => canDrop(draggedElem.id, elem.id))[0] as HTMLElement;
+  };
+
   const onPointerMove = (e: PointerEvent): void => {
     if (isDragging) {
       draggedElem.style.left = `${
@@ -78,16 +95,26 @@ const App = (): string => {
       draggedElem.style.top = `${
         parseInt(draggedElemComputedStyle.top) + e.movementY
       }px`;
+
+      const dropTarget = getDropTargetAtPoint(e.clientX, e.clientY);
+      if (dropTarget) {
+        console.log("TODO highlight drop target");
+      }
     }
   };
 
-  const onPointerUp = (): void => {
+  const onPointerUp = (e: PointerEvent): void => {
     if (isDragging) {
       isDragging = false;
       // don't reset the z-index yet so it stays on top during any
       // subsequent transitions
       draggedElem.style.cssText = `z-index: ${DraggingZIndex};`;
       lastDraggedElem = draggedElem;
+
+      const dropTarget = getDropTargetAtPoint(e.clientX, e.clientY);
+      if (dropTarget) {
+        drop(draggedElem.id, dropTarget.id);
+      }
     }
   };
 

@@ -37,16 +37,46 @@ export const renderElement = (element: Element, outerHtml: string): void => {
   flushRunAfterRenderQueue();
 };
 
-const draggableIds = new Map<string, () => boolean>();
+interface DropTarget {
+  canDrop: (draggableId: string) => boolean;
+  onDrop: (draggableId: string) => void;
+}
+
+const draggables = new Map<string, () => boolean>();
+const dropTargets = new Map<string, DropTarget>();
 
 export const registerDraggable = (id: string, canDrag: () => boolean): void => {
-  draggableIds.set(id, canDrag);
+  draggables.set(id, canDrag);
 };
 
 export const canDrag = (id: string): boolean => {
-  const canDrag = draggableIds.get(id);
+  const canDrag = draggables.get(id);
   if (!canDrag) {
     return false;
   }
   return canDrag();
+};
+
+export const registerDropTarget = (
+  id: string,
+  canDrop: (draggableId: string) => boolean,
+  onDrop: (draggableId: string) => void
+): void => {
+  dropTargets.set(id, { canDrop, onDrop });
+};
+
+export const canDrop = (draggableId: string, dropTargetId: string): boolean => {
+  const dropTarget = dropTargets.get(dropTargetId);
+  if (!dropTarget) {
+    return false;
+  }
+  return dropTarget.canDrop(draggableId);
+};
+
+export const drop = (draggableId: string, dropTargetId: string): void => {
+  const dropTarget = dropTargets.get(dropTargetId);
+  if (!dropTarget) {
+    throw new Error("Missing drop target");
+  }
+  dropTarget.onDrop(draggableId);
 };

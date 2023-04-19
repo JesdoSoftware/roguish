@@ -18,7 +18,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { CardModel, CardSide } from "../../business/models";
-import { registerDraggable } from "../rendering";
+import { registerDraggable, registerDropTarget } from "../rendering";
 import { html } from "../templateLiterals";
 import styles from "./Card.module.css";
 
@@ -39,7 +39,8 @@ export const updateCardClassName = (
 const Card = (
   cardModel: CardModel,
   className: string,
-  canDrag: () => boolean
+  canDrag: () => boolean,
+  canDrop: (draggableId: string) => boolean
 ): string => {
   const cardId = cardModel.id;
 
@@ -49,6 +50,9 @@ const Card = (
     cardModel.side === CardSide.Back ? "transform: rotateY(180deg);" : "";
 
   registerDraggable(cardId, canDrag);
+  registerDropTarget(cardId, canDrop, () => {
+    console.log("dropped!");
+  });
 
   return html`
     <div id="${cardId}" class="${combinedClassName}" style="${style}">
