@@ -53,8 +53,11 @@ const DraggingZIndex = 1;
 
 const App = (): string => {
   let isDragging = false;
-  let draggedElemComputedStyle: CSSStyleDeclaration;
+  let pointerDownClientX: number;
+  let pointerDownClientY: number;
   let draggedElem: HTMLElement;
+  let draggedElemStartingLeft: number;
+  let draggedElemStartingTop: number;
   let lastDraggedElem: HTMLElement | undefined;
 
   const onPointerDown = (e: PointerEvent): void => {
@@ -62,6 +65,8 @@ const App = (): string => {
     elemsAtPoint.reverse().forEach((elem) => {
       if (canDrag(elem.id)) {
         isDragging = true;
+        pointerDownClientX = e.clientX;
+        pointerDownClientY = e.clientY;
 
         if (lastDraggedElem) {
           // remove the z-index override so the new dragged element
@@ -70,7 +75,9 @@ const App = (): string => {
         }
 
         draggedElem = elem as HTMLElement;
-        draggedElemComputedStyle = window.getComputedStyle(draggedElem);
+        const computedStyle = window.getComputedStyle(draggedElem);
+        draggedElemStartingLeft = parseInt(computedStyle.left);
+        draggedElemStartingTop = parseInt(computedStyle.top);
         draggedElem.style.cssText = `z-index: ${DraggingZIndex}; transition: none;`;
       }
     });
@@ -88,13 +95,15 @@ const App = (): string => {
   };
 
   const onPointerMove = (e: PointerEvent): void => {
+    // calculating from the pointer down X/Y (instead of using
+    // e.movementX and e.movementY) fixes some glitchiness on
+    // mobile, and when the pointer leaves and reenters the window
+    const diffX = e.clientX - pointerDownClientX;
+    const diffY = e.clientY - pointerDownClientY;
+
     if (isDragging) {
-      draggedElem.style.left = `${
-        parseInt(draggedElemComputedStyle.left) + e.movementX
-      }px`;
-      draggedElem.style.top = `${
-        parseInt(draggedElemComputedStyle.top) + e.movementY
-      }px`;
+      draggedElem.style.left = `${draggedElemStartingLeft + diffX}px`;
+      draggedElem.style.top = `${draggedElemStartingTop + diffY}px`;
 
       const dropTarget = getDropTargetAtPoint(e.clientX, e.clientY);
       if (dropTarget) {
