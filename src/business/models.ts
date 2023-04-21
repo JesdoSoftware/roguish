@@ -75,6 +75,21 @@ export const cardDtoToModel = (cardDto: CardDto): CardModel => {
   };
 };
 
+const shuffleCards = (cardModels: CardModel[]): CardModel[] => {
+  // Fisher-Yates shuffle algorithm
+
+  let temp: CardModel;
+
+  for (let i = cardModels.length - 1; i > 0; --i) {
+    const j = Math.floor(Math.random() * i);
+    temp = cardModels[j];
+    cardModels[j] = cardModels[i];
+    cardModels[i] = temp;
+  }
+
+  return cardModels;
+};
+
 export interface DeckModel {
   cards: CardModel[];
 }
@@ -118,6 +133,7 @@ export class BoardModel {
   constructor(deck: DeckModel) {
     bindPrototypeMethods(this);
     this._deck = deck;
+    shuffleCards(this._deck.cards);
 
     const playerCard: CardModel = {
       id: PlayerCardId,

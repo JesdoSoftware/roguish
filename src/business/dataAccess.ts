@@ -18,22 +18,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { DeckDto } from "./dtos";
-import { BoardModel, CardModel, deckDtoToModel } from "./models";
-
-const shuffle = (cardModels: CardModel[]): CardModel[] => {
-  // Fisher-Yates shuffle algorithm
-
-  let temp: CardModel;
-
-  for (let i = cardModels.length - 1; i > 0; --i) {
-    const j = Math.floor(Math.random() * i);
-    temp = cardModels[j];
-    cardModels[j] = cardModels[i];
-    cardModels[i] = temp;
-  }
-
-  return cardModels;
-};
+import { BoardModel, deckDtoToModel } from "./models";
 
 export const loadDeck = async (): Promise<BoardModel> => {
   const decksUrl = `${process.env.API_BASE_URL}/decks/deck.json`;
@@ -46,7 +31,6 @@ export const loadDeck = async (): Promise<BoardModel> => {
 
   const deckDto = (await response.json()) as DeckDto;
   const deckModel = deckDtoToModel(deckDto);
-  shuffle(deckModel.cards);
 
   return new BoardModel(deckModel);
 };
