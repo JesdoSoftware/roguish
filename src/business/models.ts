@@ -26,7 +26,7 @@ export const MaxBoardRows = 3;
 const PlayerCardId = "cardPlayer";
 
 export class EventDispatcher<T> {
-  private listeners: ((e: T) => void)[] = [];
+  private readonly listeners: ((e: T) => void)[] = [];
 
   constructor() {
     bindPrototypeMethods(this);
@@ -121,19 +121,20 @@ export interface CardDealtEventArgs {
 // TODO add event args for other events
 
 export class BoardModel {
-  private _deck: DeckModel;
-  private columns: (CardModel | undefined)[][] = [[], [], []];
-  private _onCardDealt: EventDispatcher<CardDealtEventArgs> =
+  readonly deck: DeckModel;
+  readonly onCardDealt: EventDispatcher<CardDealtEventArgs> =
     new EventDispatcher<CardDealtEventArgs>();
-  private _onCardDiscarded: EventDispatcher<CardModel> =
+  readonly onCardDiscarded: EventDispatcher<CardModel> =
     new EventDispatcher<CardModel>();
-  private _onCardMoved: EventDispatcher<CardModel> =
+  readonly onCardMoved: EventDispatcher<CardModel> =
     new EventDispatcher<CardModel>();
+
+  private readonly columns: (CardModel | undefined)[][] = [[], [], []];
 
   constructor(deck: DeckModel) {
     bindPrototypeMethods(this);
-    this._deck = deck;
-    shuffleCards(this._deck.cards);
+    this.deck = deck;
+    shuffleCards(this.deck.cards);
 
     const playerCard: CardModel = {
       id: PlayerCardId,
@@ -142,22 +143,6 @@ export class BoardModel {
       side: CardSide.Front,
     };
     this.columns[1][1] = playerCard;
-  }
-
-  get deck(): DeckModel {
-    return this._deck;
-  }
-
-  get onCardDealt(): EventDispatcher<CardDealtEventArgs> {
-    return this._onCardDealt;
-  }
-
-  get onCardMoved(): EventDispatcher<CardModel> {
-    return this._onCardMoved;
-  }
-
-  get onCardDiscarded(): EventDispatcher<CardModel> {
-    return this._onCardDiscarded;
   }
 
   private validateCoordinates(column: number, row: number): void {
@@ -210,7 +195,7 @@ export class BoardModel {
     for (let row = 0; row < MaxBoardRows; ++row) {
       for (let column = 0; column < MaxBoardColumns; ++column) {
         if (!this.getCardByPosition(column, row)) {
-          const card = this._deck.cards.pop();
+          const card = this.deck.cards.pop();
           if (card) {
             this.dealCard(card, column, row);
           }
