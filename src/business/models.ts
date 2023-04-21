@@ -129,7 +129,7 @@ export class BoardModel {
   readonly onCardMoved: EventDispatcher<CardModel> =
     new EventDispatcher<CardModel>();
 
-  private readonly columns: (CardModel | undefined)[][] = [[], [], []];
+  private readonly cards = new Map<string, CardModel>();
 
   constructor(deck: DeckModel) {
     bindPrototypeMethods(this);
@@ -142,7 +142,7 @@ export class BoardModel {
       strength: 0,
       side: CardSide.Front,
     };
-    this.columns[1][1] = playerCard;
+    this.cards.set(this.getCardKey(1, 1), playerCard);
   }
 
   private validateCoordinates(column: number, row: number): void {
@@ -151,13 +151,23 @@ export class BoardModel {
     }
   }
 
+  private getCardKey(column: number, row: number): string {
+    return `${column}:${row}`;
+  }
+
+  private getPositionFromCardKey(cardKey: string): BoardPosition | undefined {
+    const matches = cardKey.match(/\d+:\d+/);
+    if (matches) {
+      const [column, row] = matches.map(parseInt);
+      return { column, row };
+    }
+    return undefined;
+  }
+
   getCardById(cardId: string): CardModel | undefined {
-    for (let column = 0; column < MaxBoardColumns; ++column) {
-      for (let row = 0; row < MaxBoardRows; ++row) {
-        const card = this.columns[column][row];
-        if (card?.id === cardId) {
-          return card;
-        }
+    for (const card of this.cards.values()) {
+      if (card.id === cardId) {
+        return card;
       }
     }
     return undefined;
@@ -165,16 +175,13 @@ export class BoardModel {
 
   getCardByPosition(column: number, row: number): CardModel | undefined {
     this.validateCoordinates(column, row);
-    return this.columns[column][row];
+    return this.cards.get(this.getCardKey(column, row));
   }
 
   getCardPosition(card: CardModel): BoardPosition | undefined {
-    for (let column = 0; column < MaxBoardColumns; ++column) {
-      for (let row = 0; row < MaxBoardRows; ++row) {
-        const other = this.columns[column][row];
-        if (other?.id === card.id) {
-          return { column, row };
-        }
+    for (const [key, other] of this.cards) {
+      if (other.id === card.id) {
+        return this.getPositionFromCardKey(key);
       }
     }
     return undefined;
@@ -182,7 +189,7 @@ export class BoardModel {
 
   dealCard(card: CardModel, column: number, row: number): void {
     this.validateCoordinates(column, row);
-    this.columns[column][row] = card;
+    this.cards.set(this.getCardKey(column, row), card);
 
     this.onCardDealt.dispatch({
       card: card,
@@ -219,37 +226,5 @@ export class BoardModel {
     const colDiff = Math.abs(toColumn - cardPos.column);
     const rowDiff = Math.abs(toRow - cardPos.row);
     return ((colDiff || rowDiff) && colDiff === 1) || rowDiff === 1;
-  }
-
-  moveCard(
-    fromColumn: number,
-    fromRow: number,
-    toColumn: number,
-    toRow: number
-  ): void {
-    this.validateCoordinates(fromColumn, fromRow);
-    this.validateCoordinates(toColumn, toRow);
-
-    const card = this.getCardByPosition(fromColumn, fromRow);
-    if (!card) {
-      throw new Error("Card missing");
-    }
-
-    this.columns[toColumn][toRow] = card;
-    this.columns[fromColumn][fromRow] = undefined;
-
-    this.onCardMoved.dispatch(card);
-  }
-
-  discardCard(column: number, row: number): void {
-    const card = this.getCardByPosition(column, row);
-    if (!card) {
-      throw new Error("Card missing");
-    }
-
-    this.validateCoordinates(column, row);
-    this.columns[column][row] = undefined;
-
-    this.onCardDiscarded.dispatch(card);
   }
 }
