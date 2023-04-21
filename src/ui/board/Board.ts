@@ -24,7 +24,12 @@ import {
   MaxBoardRows,
 } from "../../business/models";
 import Card, { updateCardClassName } from "../card/Card";
-import { runAfterRender, renderElement } from "../rendering";
+import {
+  runAfterRender,
+  renderElement,
+  registerDraggable,
+  registerDropTarget,
+} from "../rendering";
 import { html } from "../templateLiterals";
 import styles from "./Board.module.css";
 
@@ -72,10 +77,12 @@ const Board = (boardModel: BoardModel): string => {
         }
         return false;
       };
-      renderElement(
-        card,
-        Card(cardDealt.card, atDeckClassName, canDrag, canDrop)
-      );
+      const onDrop = (): void => {
+        console.log("dropped!");
+      };
+      renderElement(card, Card(cardDealt.card, atDeckClassName));
+      registerDraggable(cardDealt.card.id, canDrag);
+      registerDropTarget(cardDealt.card.id, canDrop, onDrop);
 
       setTimeout(dealNextCard, CardDealDelayMs);
     } else {
@@ -101,11 +108,9 @@ const Board = (boardModel: BoardModel): string => {
     for (let row = 0; row < MaxBoardRows; ++row) {
       const cardModel = boardModel.getCardByPosition(column, row);
       if (cardModel) {
-        initialCards += Card(
-          cardModel,
-          getCardClassName(column, row),
-          () => boardModel.canMoveCard(cardModel),
-          () => false
+        initialCards += Card(cardModel, getCardClassName(column, row));
+        registerDraggable(cardModel.id, () =>
+          boardModel.canMoveCard(cardModel)
         );
       }
     }

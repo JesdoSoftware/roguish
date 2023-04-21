@@ -96,8 +96,8 @@ const App = (): string => {
 
   const onPointerMove = (e: PointerEvent): void => {
     // calculating from the pointer down X/Y (instead of using
-    // e.movementX and e.movementY) fixes some glitchiness on
-    // mobile, and when the pointer leaves and reenters the window
+    // e.movementX and e.movementY) fixes some glitchiness when
+    // the pointer leaves and reenters the window
     const diffX = e.clientX - pointerDownClientX;
     const diffY = e.clientY - pointerDownClientY;
 
