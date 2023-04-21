@@ -59,6 +59,7 @@ const App = (): string => {
   let draggedElemStartingLeft: number;
   let draggedElemStartingTop: number;
   let lastDraggedElem: HTMLElement | undefined;
+  let lastHoveredOverDropTarget: HTMLElement | undefined;
 
   const onPointerDown = (e: PointerEvent): void => {
     const elemsAtPoint = document.elementsFromPoint(e.clientX, e.clientY);
@@ -106,7 +107,16 @@ const App = (): string => {
       draggedElem.style.top = `${draggedElemStartingTop + diffY}px`;
 
       const dropTarget = getDropTargetAtPoint(e.clientX, e.clientY);
+      if (
+        lastHoveredOverDropTarget &&
+        lastHoveredOverDropTarget.id !== dropTarget?.id
+      ) {
+        lastHoveredOverDropTarget.style.cssText = "";
+      }
       if (dropTarget) {
+        lastHoveredOverDropTarget = dropTarget;
+        dropTarget.style.cssText =
+          "border: 5px solid green; transform: translate(-4px, -4px);";
         console.log("TODO highlight drop target");
       }
     }
@@ -115,10 +125,15 @@ const App = (): string => {
   const onPointerUp = (e: PointerEvent): void => {
     if (isDragging) {
       isDragging = false;
+
       // don't reset the z-index yet so it stays on top during any
       // subsequent transitions
       draggedElem.style.cssText = `z-index: ${DraggingZIndex};`;
       lastDraggedElem = draggedElem;
+
+      if (lastHoveredOverDropTarget) {
+        lastHoveredOverDropTarget.style.cssText = "";
+      }
 
       const dropTarget = getDropTargetAtPoint(e.clientX, e.clientY);
       if (dropTarget) {

@@ -23,7 +23,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   aspect-ratio: 2.5 / 3.5;
   background-color: lightgray;
   transform-style: preserve-3d;
-  transition: all 0.5s;
+  transition: top 0.5s, left 0.5s;
   user-select: none;
 }
 
