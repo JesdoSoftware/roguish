@@ -18,7 +18,9 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
+  BoardColumn,
   BoardModel,
+  BoardRow,
   CardDealtEventArgs,
   MaxBoardColumns,
   MaxBoardRows,
@@ -35,7 +37,7 @@ import styles from "./Board.module.css";
 
 const CardDealDelayMs = 250;
 
-const getCardClassName = (column: number, row: number): string => {
+const getCardClassName = (column: BoardColumn, row: BoardRow): string => {
   return `${styles.card} ${styles[`col${column}`]} ${styles[`row${row}`]}`;
 };
 
@@ -58,7 +60,7 @@ const Board = (boardModel: BoardModel): string => {
         setTimeout(() => {
           updateCardClassName(
             cardDealt.card.id,
-            getCardClassName(cardDealt.column, cardDealt.row)
+            getCardClassName(cardDealt.position.column, cardDealt.position.row)
           );
         }, CardDealDelayMs);
       });
@@ -69,11 +71,10 @@ const Board = (boardModel: BoardModel): string => {
         const draggedCard = boardModel.getCardById(draggableId);
         const dropPosition = boardModel.getCardPosition(cardDealt.card);
         if (draggedCard && dropPosition) {
-          return boardModel.canMoveCardTo(
-            draggedCard,
-            dropPosition.column,
-            dropPosition.row
-          );
+          return boardModel.canMoveCardTo(draggedCard, {
+            column: dropPosition.column,
+            row: dropPosition.row,
+          });
         }
         return false;
       };
@@ -104,8 +105,16 @@ const Board = (boardModel: BoardModel): string => {
   runAfterRender(boardModel.dealCardsForEmptySpots);
 
   let initialCards = "";
-  for (let column = 0; column < MaxBoardColumns; ++column) {
-    for (let row = 0; row < MaxBoardRows; ++row) {
+  for (
+    let column: BoardColumn = 0;
+    column < MaxBoardColumns;
+    column = (column + 1) as BoardColumn
+  ) {
+    for (
+      let row: BoardRow = 0;
+      row < MaxBoardRows;
+      row = (row + 1) as BoardRow
+    ) {
       const cardModel = boardModel.getCardByPosition(column, row);
       if (cardModel) {
         initialCards += Card(cardModel, getCardClassName(column, row));

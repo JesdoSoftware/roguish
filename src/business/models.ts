@@ -20,9 +20,6 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 import bindPrototypeMethods from "../bindPrototypeMethods";
 import { CardDto, DeckDto } from "./dtos";
 
-export const MaxBoardColumns = 3;
-export const MaxBoardRows = 3;
-
 const PlayerCardId = "cardPlayer";
 
 export class EventDispatcher<T> {
@@ -107,15 +104,19 @@ export const deckDtoToModel = (deckDto: DeckDto): DeckModel => {
   };
 };
 
+export type BoardColumn = 0 | 1 | 2;
+export const MaxBoardColumns = 3;
+export type BoardRow = 0 | 1 | 2;
+export const MaxBoardRows = 3;
+
 export interface BoardPosition {
-  column: number;
-  row: number;
+  column: BoardColumn;
+  row: BoardRow;
 }
 
 export interface CardDealtEventArgs {
   card: CardModel;
-  column: number;
-  row: number;
+  position: BoardPosition;
 }
 
 // TODO add event args for other events
@@ -145,20 +146,15 @@ export class BoardModel {
     this.cards.set(this.getCardKey(1, 1), playerCard);
   }
 
-  private validateCoordinates(column: number, row: number): void {
-    if (column >= MaxBoardColumns || row >= MaxBoardRows) {
-      throw new Error(`Board coordinates ${column}, ${row} outside range`);
-    }
-  }
-
-  private getCardKey(column: number, row: number): string {
+  private getCardKey(column: BoardColumn, row: BoardRow): string {
     return `${column}:${row}`;
   }
 
   private getPositionFromCardKey(cardKey: string): BoardPosition | undefined {
-    const matches = cardKey.match(/\d+:\d+/);
+    const matches = cardKey.match(/(\d+):(\d+)/);
     if (matches) {
-      const [column, row] = matches.map(parseInt);
+      const column = parseInt(matches[1]) as BoardColumn;
+      const row = parseInt(matches[2]) as BoardRow;
       return { column, row };
     }
     return undefined;
@@ -173,8 +169,7 @@ export class BoardModel {
     return undefined;
   }
 
-  getCardByPosition(column: number, row: number): CardModel | undefined {
-    this.validateCoordinates(column, row);
+  getCardByPosition(column: BoardColumn, row: BoardRow): CardModel | undefined {
     return this.cards.get(this.getCardKey(column, row));
   }
 
@@ -187,20 +182,26 @@ export class BoardModel {
     return undefined;
   }
 
-  dealCard(card: CardModel, column: number, row: number): void {
-    this.validateCoordinates(column, row);
+  dealCard(card: CardModel, column: BoardColumn, row: BoardRow): void {
     this.cards.set(this.getCardKey(column, row), card);
 
     this.onCardDealt.dispatch({
       card: card,
-      column: column,
-      row: row,
+      position: { column, row },
     });
   }
 
   dealCardsForEmptySpots(): void {
-    for (let row = 0; row < MaxBoardRows; ++row) {
-      for (let column = 0; column < MaxBoardColumns; ++column) {
+    for (
+      let row: BoardRow = 0;
+      row < MaxBoardRows;
+      row = (row + 1) as BoardRow
+    ) {
+      for (
+        let column: BoardColumn = 0;
+        column < MaxBoardColumns;
+        column = (column + 1) as BoardColumn
+      ) {
         if (!this.getCardByPosition(column, row)) {
           const card = this.deck.cards.pop();
           if (card) {
@@ -215,16 +216,14 @@ export class BoardModel {
     return card.id === PlayerCardId;
   }
 
-  canMoveCardTo(card: CardModel, toColumn: number, toRow: number): boolean {
-    this.validateCoordinates(toColumn, toRow);
-
+  canMoveCardTo(card: CardModel, toPosition: BoardPosition): boolean {
     const cardPos = this.getCardPosition(card);
     if (!cardPos) {
       throw new Error("Card has no position");
     }
     // allow moving one space in any direction (incl. diagonal)
-    const colDiff = Math.abs(toColumn - cardPos.column);
-    const rowDiff = Math.abs(toRow - cardPos.row);
+    const colDiff = Math.abs(toPosition.column - cardPos.column);
+    const rowDiff = Math.abs(toPosition.row - cardPos.row);
     return ((colDiff || rowDiff) && colDiff === 1) || rowDiff === 1;
   }
 }
