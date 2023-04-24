@@ -68,7 +68,7 @@ const App = (): string => {
   ): HTMLElement | undefined => {
     const elemsAtPoint = document.elementsFromPoint(clientX, clientY);
     return elemsAtPoint
-      .reverse()
+      .reverse() // find bottommost matching element
       .find((elem) => predicate(elem)) as HTMLElement;
   };
 
@@ -121,7 +121,6 @@ const App = (): string => {
         lastHoveredOverDropTarget = dropTarget;
         dropTarget.style.cssText =
           "border: 5px solid green; transform: translate(-4px, -4px);";
-        console.log("TODO highlight drop target");
       }
     }
   };

@@ -119,16 +119,21 @@ export interface CardDealtEventArgs {
   position: BoardPosition;
 }
 
-// TODO add event args for other events
+export interface CardMovedEventArgs {
+  card: CardModel;
+  toPosition: BoardPosition;
+}
+
+export interface CardDiscardedEventArgs {
+  card: CardModel;
+}
 
 export class BoardModel {
   readonly deck: DeckModel;
-  readonly onCardDealt: EventDispatcher<CardDealtEventArgs> =
-    new EventDispatcher<CardDealtEventArgs>();
-  readonly onCardDiscarded: EventDispatcher<CardModel> =
-    new EventDispatcher<CardModel>();
-  readonly onCardMoved: EventDispatcher<CardModel> =
-    new EventDispatcher<CardModel>();
+  readonly discarded: CardModel[] = [];
+  readonly onCardDealt = new EventDispatcher<CardDealtEventArgs>();
+  readonly onCardMoved = new EventDispatcher<CardMovedEventArgs>();
+  readonly onCardDiscarded = new EventDispatcher<CardDiscardedEventArgs>();
 
   private readonly cards = new Map<string, CardModel>();
 
@@ -224,6 +229,39 @@ export class BoardModel {
     // allow moving one space in any direction (incl. diagonal)
     const colDiff = Math.abs(toPosition.column - cardPos.column);
     const rowDiff = Math.abs(toPosition.row - cardPos.row);
-    return ((colDiff || rowDiff) && colDiff === 1) || rowDiff === 1;
+    return (colDiff > 0 || rowDiff > 0) && colDiff <= 1 && rowDiff <= 1;
+  }
+
+  moveCard(cardToMove: CardModel, toPosition: BoardPosition): void {
+    // TODO handle card interaction based on card types
+    this.discardCard(toPosition);
+
+    const oldPosition = this.getCardPosition(cardToMove);
+    if (oldPosition) {
+      this.cards.delete(this.getCardKey(oldPosition.column, oldPosition.row));
+    }
+    this.cards.set(
+      this.getCardKey(toPosition.column, toPosition.row),
+      cardToMove
+    );
+    this.onCardMoved.dispatch({
+      card: cardToMove,
+      toPosition: toPosition,
+    });
+
+    this.dealCardsForEmptySpots();
+  }
+
+  private discardCard(position: BoardPosition): void {
+    const cardKey = this.getCardKey(position.column, position.row);
+    const card = this.cards.get(cardKey);
+    if (card) {
+      this.cards.delete(cardKey);
+      this.discarded.push(card);
+
+      this.onCardDiscarded.dispatch({
+        card: card,
+      });
+    }
   }
 }
