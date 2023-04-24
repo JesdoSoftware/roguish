@@ -61,38 +61,38 @@ const App = (): string => {
   let lastDraggedElem: HTMLElement | undefined;
   let lastHoveredOverDropTarget: HTMLElement | undefined;
 
-  const onPointerDown = (e: PointerEvent): void => {
-    const elemsAtPoint = document.elementsFromPoint(e.clientX, e.clientY);
-    elemsAtPoint.reverse().forEach((elem) => {
-      if (canDrag(elem.id)) {
-        isDragging = true;
-        pointerDownClientX = e.clientX;
-        pointerDownClientY = e.clientY;
-
-        if (lastDraggedElem) {
-          // remove the z-index override so the new dragged element
-          // is on top
-          lastDraggedElem.style.cssText = "";
-        }
-
-        draggedElem = elem as HTMLElement;
-        const computedStyle = window.getComputedStyle(draggedElem);
-        draggedElemStartingLeft = parseInt(computedStyle.left);
-        draggedElemStartingTop = parseInt(computedStyle.top);
-        draggedElem.style.cssText = `z-index: ${DraggingZIndex}; transition: none;`;
-      }
-    });
-  };
-
-  const getDropTargetAtPoint = (
+  const getMatchingElementAtPoint = (
     clientX: number,
-    clientY: number
+    clientY: number,
+    predicate: (elem: Element) => boolean
   ): HTMLElement | undefined => {
     const elemsAtPoint = document.elementsFromPoint(clientX, clientY);
     return elemsAtPoint
       .reverse()
-      .filter((elem) => elem.id !== draggedElem.id)
-      .filter((elem) => canDrop(draggedElem.id, elem.id))[0] as HTMLElement;
+      .find((elem) => predicate(elem)) as HTMLElement;
+  };
+
+  const onPointerDown = (e: PointerEvent): void => {
+    const draggable = getMatchingElementAtPoint(e.clientX, e.clientY, (elem) =>
+      canDrag(elem.id)
+    );
+    if (draggable) {
+      isDragging = true;
+      pointerDownClientX = e.clientX;
+      pointerDownClientY = e.clientY;
+
+      if (lastDraggedElem) {
+        // remove the z-index override so the new dragged element
+        // is on top
+        lastDraggedElem.style.cssText = "";
+      }
+
+      draggedElem = draggable;
+      const computedStyle = window.getComputedStyle(draggedElem);
+      draggedElemStartingLeft = parseInt(computedStyle.left);
+      draggedElemStartingTop = parseInt(computedStyle.top);
+      draggedElem.style.cssText = `z-index: ${DraggingZIndex}; transition: none;`;
+    }
   };
 
   const onPointerMove = (e: PointerEvent): void => {
@@ -106,7 +106,11 @@ const App = (): string => {
       draggedElem.style.left = `${draggedElemStartingLeft + diffX}px`;
       draggedElem.style.top = `${draggedElemStartingTop + diffY}px`;
 
-      const dropTarget = getDropTargetAtPoint(e.clientX, e.clientY);
+      const dropTarget = getMatchingElementAtPoint(
+        e.clientX,
+        e.clientY,
+        (elem) => canDrop(draggedElem.id, elem.id)
+      );
       if (
         lastHoveredOverDropTarget &&
         lastHoveredOverDropTarget.id !== dropTarget?.id
@@ -135,7 +139,11 @@ const App = (): string => {
         lastHoveredOverDropTarget.style.cssText = "";
       }
 
-      const dropTarget = getDropTargetAtPoint(e.clientX, e.clientY);
+      const dropTarget = getMatchingElementAtPoint(
+        e.clientX,
+        e.clientY,
+        (elem) => canDrop(draggedElem.id, elem.id)
+      );
       if (dropTarget) {
         drop(draggedElem.id, dropTarget.id);
       }
