@@ -35,7 +35,6 @@ import {
 import { html } from "../templateLiterals";
 import styles from "./Board.module.css";
 
-const CardDealDelayMs = 250;
 const CardTransitionDurationMs = 500;
 
 const getCardClassNameForPosition = (
@@ -47,7 +46,7 @@ const getCardClassNameForPosition = (
 
 interface EventHandler {
   handle: () => void;
-  delayAfterMs: number;
+  delayBeforeMs: number;
 }
 
 const Board = (boardModel: BoardModel): string => {
@@ -60,8 +59,10 @@ const Board = (boardModel: BoardModel): string => {
     const eventHandler = eventQueue.shift();
     if (eventHandler) {
       isHandlingEvents = true;
-      eventHandler.handle();
-      setTimeout(handleNextEvent, eventHandler.delayAfterMs);
+      setTimeout(() => {
+        eventHandler.handle();
+        handleNextEvent();
+      }, eventHandler.delayBeforeMs);
     } else {
       isHandlingEvents = false;
     }
@@ -73,8 +74,8 @@ const Board = (boardModel: BoardModel): string => {
     }
   };
 
-  const queueEvent = (handle: () => void, delayAfterMs: number): void => {
-    eventQueue.push({ handle, delayAfterMs });
+  const queueEvent = (handle: () => void, delayBeforeMs: number): void => {
+    eventQueue.push({ handle, delayBeforeMs });
     handleEvents();
   };
 
@@ -92,7 +93,7 @@ const Board = (boardModel: BoardModel): string => {
             cardDealt.position.row
           )
         );
-      }, CardDealDelayMs);
+      }, 50); // TODO don't depend on this delay
     });
 
     const atDeckClassName = `${styles.card} ${styles.atDeck}`;
@@ -122,7 +123,7 @@ const Board = (boardModel: BoardModel): string => {
   boardModel.onCardDealt.addListener((e) =>
     queueEvent(() => {
       dealCard(e);
-    }, CardDealDelayMs)
+    }, 250)
   );
 
   boardModel.onCardMoved.addListener((e) => {

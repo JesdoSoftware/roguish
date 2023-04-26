@@ -249,6 +249,8 @@ export class BoardModel {
       toPosition: toPosition,
     });
 
+    // TODO move existing cards toward empty spot
+
     this.dealCardsForEmptySpots();
   }
 
