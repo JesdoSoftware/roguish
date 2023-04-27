@@ -74,7 +74,7 @@ const Board = (boardModel: BoardModel): string => {
     }
   };
 
-  const queueEvent = (handle: () => void, delayBeforeMs: number): void => {
+  const queueEvent = (handle: () => void, delayBeforeMs = 0): void => {
     eventQueue.push({ handle, delayBeforeMs });
     handleEvents();
   };
@@ -124,7 +124,7 @@ const Board = (boardModel: BoardModel): string => {
         e.card.id,
         getCardClassNameForPosition(e.toPosition.column, e.toPosition.row)
       );
-    }, 0);
+    });
   });
 
   boardModel.onCardDiscarded.addListener((e) => {
@@ -134,7 +134,7 @@ const Board = (boardModel: BoardModel): string => {
         const cardElem = document.getElementById(e.card.id);
         cardElem?.parentElement?.removeChild(cardElem);
       }, CardTransitionDurationMs);
-    }, 0);
+    });
   });
 
   runAfterRender(boardModel.dealCardsForEmptySpots);

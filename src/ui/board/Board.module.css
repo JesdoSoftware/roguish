@@ -18,10 +18,17 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 :root {
-  --card-width: 30%;
-  --gutter-width: 5%;
-  --col-width: calc(var(--card-width) + var(--gutter-width));
-  --deck-top: -500px;
+  --cardWidth: 30%;
+  --gutterWidth: 5%;
+  --colWidth: calc(var(--cardWidth) + var(--gutterWidth));
+  --col0Left: 0;
+  --col1Left: var(--colWidth);
+  --col2Left: calc(var(--colWidth) * 2);
+  --row0Top: 0;
+  --row1Top: var(--colWidth);
+  --row2Top: calc(var(--colWidth) * 2);
+  --dungeonDeckTop: -500px;
+  --dungeonDeckLeft: 0;
 }
 
 .board {
@@ -33,61 +40,61 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 }
 
 .board .card {
-  width: var(--card-width);
+  width: var(--cardWidth);
   position: absolute;
 }
 
 @keyframes deckToCol0 {
   from {
-    left: 0;
+    left: var(--dungeonDeckLeft);
   }
   to {
-    left: 0;
+    left: var(--col0Left);
   }
 }
 
 @keyframes deckToCol1 {
   from {
-    left: 0;
+    left: var(--dungeonDeckLeft);
   }
   to {
-    left: var(--col-width);
+    left: var(--col1Left);
   }
 }
 
 @keyframes deckToCol2 {
   from {
-    left: 0;
+    left: var(--dungeonDeckLeft);
   }
   to {
-    left: calc(var(--col-width) * 2);
+    left: var(--col2Left);
   }
 }
 
 @keyframes deckToRow0 {
   from {
-    top: var(--deck-top);
+    top: var(--dungeonDeckTop);
   }
   to {
-    top: 0;
+    top: var(--row0Top);
   }
 }
 
 @keyframes deckToRow1 {
   from {
-    top: var(--deck-top);
+    top: var(--dungeonDeckTop);
   }
   to {
-    top: var(--col-width);
+    top: var(--row1Top);
   }
 }
 
 @keyframes deckToRow2 {
   from {
-    top: var(--deck-top);
+    top: var(--dungeonDeckTop);
   }
   to {
-    top: calc(var(--col-width) * 2);
+    top: var(--row2Top);
   }
 }
 
@@ -137,30 +144,30 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 }
 
 .board .col0 {
-  left: 0;
+  left: var(--col0Left);
 }
 
 .board .col1 {
-  left: var(--col-width);
+  left: var(--col1Left);
 }
 
 .board .col2 {
-  left: calc(var(--col-width) * 2);
+  left: var(--col2Left);
 }
 
 .board .row0 {
-  top: 0;
+  top: var(--row0Top);
 }
 
 .board .row1 {
-  top: var(--col-width);
+  top: var(--row1Top);
 }
 
 .board .row2 {
-  top: calc(var(--col-width) * 2);
+  top: var(--row2Top);
 }
 
 .board .discarded {
-  top: var(--deck-top);
-  left: calc(var(--col-width) * 2);
+  top: var(--dungeonDeckTop);
+  left: var(--col2Left);
 }
