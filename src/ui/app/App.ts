@@ -49,7 +49,7 @@ const CopyrightLicenseSource = (): string => {
   `;
 };
 
-const DraggingZIndex = 1;
+const DraggingZIndex = 2;
 
 const App = (): string => {
   let isDragging = false;

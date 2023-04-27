@@ -170,4 +170,5 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 .board .discarded {
   top: var(--dungeonDeckTop);
   left: var(--col2Left);
+  z-index: 1;
 }
