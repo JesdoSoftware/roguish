@@ -79,6 +79,25 @@ const Board = (boardModel: BoardModel): string => {
     handleEvents();
   };
 
+  const canDropCard = (draggableId: string, dropTargetId: string): boolean => {
+    const draggedCard = boardModel.getCardById(draggableId);
+    const dropTarget = boardModel.getCardById(dropTargetId);
+    const dropTargetPosition = boardModel.getCardPosition(dropTarget);
+
+    return boardModel.canMoveCardTo(draggedCard, {
+      column: dropTargetPosition.column,
+      row: dropTargetPosition.row,
+    });
+  };
+
+  const onDropCard = (draggableId: string, dropTargetId: string): void => {
+    const droppedCard = boardModel.getCardById(draggableId);
+    const dropTarget = boardModel.getCardById(dropTargetId);
+    const dropTargetPosition = boardModel.getCardPosition(dropTarget);
+
+    boardModel.moveCard(droppedCard, dropTargetPosition);
+  };
+
   const dealCard = (cardDealt: CardDealtEventArgs): void => {
     const board = document.getElementById(boardId);
     const card = document.createElement("div");
@@ -89,27 +108,12 @@ const Board = (boardModel: BoardModel): string => {
     const className = `${styles.card} ${styles[`col${column}`]} ${
       styles[`row${row}`]
     } ${styles[`dealingToPos${column}_${row}`]}`;
+
     const canDrag = (): boolean => boardModel.canMoveCard(cardDealt.card);
-    const canDrop = (draggableId: string): boolean => {
-      const draggedCard = boardModel.getCardById(draggableId);
-      if (draggedCard) {
-        return boardModel.canMoveCardTo(draggedCard, {
-          column,
-          row,
-        });
-      }
-      return false;
-    };
-    const onDrop = (draggableId: string): void => {
-      const droppedCard = boardModel.getCardById(draggableId);
-      if (droppedCard) {
-        boardModel.moveCard(droppedCard, cardDealt.position);
-      }
-    };
 
     renderElement(card, Card(cardDealt.card, className));
     registerDraggable(cardDealt.card.id, canDrag);
-    registerDropTarget(cardDealt.card.id, canDrop, onDrop);
+    registerDropTarget(cardDealt.card.id, canDropCard, onDropCard);
   };
 
   boardModel.onCardDealt.addListener((e) =>

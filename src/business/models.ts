@@ -155,36 +155,36 @@ export class BoardModel {
     return `${column}:${row}`;
   }
 
-  private getPositionFromCardKey(cardKey: string): BoardPosition | undefined {
+  private getPositionFromCardKey(cardKey: string): BoardPosition {
     const matches = cardKey.match(/(\d+):(\d+)/);
     if (matches) {
       const column = parseInt(matches[1]) as BoardColumn;
       const row = parseInt(matches[2]) as BoardRow;
       return { column, row };
     }
-    return undefined;
+    throw new Error("No matching position for card key");
   }
 
-  getCardById(cardId: string): CardModel | undefined {
+  getCardById(cardId: string): CardModel {
     for (const card of this.cards.values()) {
       if (card.id === cardId) {
         return card;
       }
     }
-    return undefined;
+    throw new Error("No card for ID");
   }
 
   getCardByPosition(column: BoardColumn, row: BoardRow): CardModel | undefined {
     return this.cards.get(this.getCardKey(column, row));
   }
 
-  getCardPosition(card: CardModel): BoardPosition | undefined {
+  getCardPosition(card: CardModel): BoardPosition {
     for (const [key, other] of this.cards) {
       if (other.id === card.id) {
         return this.getPositionFromCardKey(key);
       }
     }
-    return undefined;
+    throw new Error("No position for card");
   }
 
   dealCard(card: CardModel, column: BoardColumn, row: BoardRow): void {
@@ -222,13 +222,12 @@ export class BoardModel {
   }
 
   canMoveCardTo(card: CardModel, toPosition: BoardPosition): boolean {
-    const cardPos = this.getCardPosition(card);
-    if (!cardPos) {
-      throw new Error("Card has no position");
-    }
+    const cardPosition = this.getCardPosition(card);
+
     // allow moving one space in any direction (incl. diagonal)
-    const colDiff = Math.abs(toPosition.column - cardPos.column);
-    const rowDiff = Math.abs(toPosition.row - cardPos.row);
+    const colDiff = Math.abs(toPosition.column - cardPosition.column);
+    const rowDiff = Math.abs(toPosition.row - cardPosition.row);
+
     return (colDiff > 0 || rowDiff > 0) && colDiff <= 1 && rowDiff <= 1;
   }
 
@@ -236,10 +235,8 @@ export class BoardModel {
     // TODO handle card interaction based on card types
     this.discardCard(toPosition);
 
-    const oldPosition = this.getCardPosition(cardToMove);
-    if (oldPosition) {
-      this.cards.delete(this.getCardKey(oldPosition.column, oldPosition.row));
-    }
+    const fromPosition = this.getCardPosition(cardToMove);
+    this.cards.delete(this.getCardKey(fromPosition.column, fromPosition.row));
     this.cards.set(
       this.getCardKey(toPosition.column, toPosition.row),
       cardToMove
@@ -249,7 +246,28 @@ export class BoardModel {
       toPosition: toPosition,
     });
 
-    // TODO move existing cards toward empty spot
+    const positionBehindColumn =
+      fromPosition.column + (fromPosition.column - toPosition.column);
+    const positionBehindRow =
+      fromPosition.row + (fromPosition.row - toPosition.row);
+    if (
+      positionBehindColumn > -1 &&
+      positionBehindColumn < MaxBoardColumns &&
+      positionBehindRow > -1 &&
+      positionBehindRow < MaxBoardRows
+    ) {
+      const positionBehind = {
+        column: positionBehindColumn,
+        row: positionBehindRow,
+      };
+      const cardBehind = this.getCardByPosition(
+        positionBehind.column as BoardColumn,
+        positionBehind.row as BoardRow
+      );
+      if (cardBehind) {
+        this.moveCard(cardBehind, fromPosition);
+      }
+    }
 
     this.dealCardsForEmptySpots();
   }

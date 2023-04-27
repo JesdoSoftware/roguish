@@ -38,8 +38,8 @@ export const renderElement = (element: Element, outerHtml: string): void => {
 };
 
 interface DropTarget {
-  canDrop: (draggableId: string) => boolean;
-  onDrop: (draggableId: string) => void;
+  canDrop: (draggableId: string, dropTargetId: string) => boolean;
+  onDrop: (draggableId: string, dropTargetId: string) => void;
 }
 
 const draggables = new Map<string, () => boolean>();
@@ -59,8 +59,8 @@ export const canDrag = (id: string): boolean => {
 
 export const registerDropTarget = (
   id: string,
-  canDrop: (draggableId: string) => boolean,
-  onDrop: (draggableId: string) => void
+  canDrop: (draggableId: string, dropTargetId: string) => boolean,
+  onDrop: (draggableId: string, dropTargetId: string) => void
 ): void => {
   dropTargets.set(id, { canDrop, onDrop });
 };
@@ -70,7 +70,7 @@ export const canDrop = (draggableId: string, dropTargetId: string): boolean => {
   if (!dropTarget) {
     return false;
   }
-  return dropTarget.canDrop(draggableId);
+  return dropTarget.canDrop(draggableId, dropTargetId);
 };
 
 export const drop = (draggableId: string, dropTargetId: string): void => {
@@ -78,5 +78,5 @@ export const drop = (draggableId: string, dropTargetId: string): void => {
   if (!dropTarget) {
     throw new Error("Missing drop target");
   }
-  dropTarget.onDrop(draggableId);
+  dropTarget.onDrop(draggableId, dropTargetId);
 };
