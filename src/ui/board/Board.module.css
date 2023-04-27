@@ -20,6 +20,8 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 :root {
   --card-width: 30%;
   --gutter-width: 5%;
+  --col-width: calc(var(--card-width) + var(--gutter-width));
+  --deck-top: -500px;
 }
 
 .board {
@@ -32,46 +34,133 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
 .board .card {
   width: var(--card-width);
+  position: absolute;
 }
 
-.board .atDeck {
-  position: absolute;
-  top: -500px;
-  left: 0;
+@keyframes deckToCol0 {
+  from {
+    left: 0;
+  }
+  to {
+    left: 0;
+  }
 }
 
-.board .discarded {
-  position: absolute;
-  top: -500px;
-  left: calc((var(--card-width) + var(--gutter-width)) * 2);
+@keyframes deckToCol1 {
+  from {
+    left: 0;
+  }
+  to {
+    left: var(--col-width);
+  }
+}
+
+@keyframes deckToCol2 {
+  from {
+    left: 0;
+  }
+  to {
+    left: calc(var(--col-width) * 2);
+  }
+}
+
+@keyframes deckToRow0 {
+  from {
+    top: var(--deck-top);
+  }
+  to {
+    top: 0;
+  }
+}
+
+@keyframes deckToRow1 {
+  from {
+    top: var(--deck-top);
+  }
+  to {
+    top: var(--col-width);
+  }
+}
+
+@keyframes deckToRow2 {
+  from {
+    top: var(--deck-top);
+  }
+  to {
+    top: calc(var(--col-width) * 2);
+  }
+}
+
+.board .dealingToPos0_0 {
+  animation-name: deckToCol0, deckToRow0;
+  animation-duration: 0.5s;
+}
+
+.board .dealingToPos0_1 {
+  animation-name: deckToCol0, deckToRow1;
+  animation-duration: 0.5s;
+}
+
+.board .dealingToPos0_2 {
+  animation-name: deckToCol0, deckToRow2;
+  animation-duration: 0.5s;
+}
+
+.board .dealingToPos1_0 {
+  animation-name: deckToCol1, deckToRow0;
+  animation-duration: 0.5s;
+}
+
+.board .dealingToPos1_1 {
+  animation-name: deckToCol1, deckToRow1;
+  animation-duration: 0.5s;
+}
+
+.board .dealingToPos1_2 {
+  animation-name: deckToCol1, deckToRow2;
+  animation-duration: 0.5s;
+}
+
+.board .dealingToPos2_0 {
+  animation-name: deckToCol2, deckToRow0;
+  animation-duration: 0.5s;
+}
+
+.board .dealingToPos2_1 {
+  animation-name: deckToCol2, deckToRow1;
+  animation-duration: 0.5s;
+}
+
+.board .dealingToPos2_2 {
+  animation-name: deckToCol2, deckToRow2;
+  animation-duration: 0.5s;
 }
 
 .board .col0 {
-  position: absolute;
   left: 0;
 }
 
 .board .col1 {
-  position: absolute;
-  left: calc(var(--card-width) + var(--gutter-width));
+  left: var(--col-width);
 }
 
 .board .col2 {
-  position: absolute;
-  left: calc((var(--card-width) + var(--gutter-width)) * 2);
+  left: calc(var(--col-width) * 2);
 }
 
 .board .row0 {
-  position: absolute;
   top: 0;
 }
 
 .board .row1 {
-  position: absolute;
-  top: calc(var(--card-width) + var(--gutter-width));
+  top: var(--col-width);
 }
 
 .board .row2 {
-  position: absolute;
-  top: calc((var(--card-width) + var(--gutter-width)) * 2);
+  top: calc(var(--col-width) * 2);
+}
+
+.board .discarded {
+  top: var(--deck-top);
+  left: calc(var(--col-width) * 2);
 }

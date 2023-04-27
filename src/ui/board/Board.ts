@@ -84,26 +84,18 @@ const Board = (boardModel: BoardModel): string => {
     const card = document.createElement("div");
     board?.appendChild(card);
 
-    runAfterRender(() => {
-      setTimeout(() => {
-        updateCardClassName(
-          cardDealt.card.id,
-          getCardClassNameForPosition(
-            cardDealt.position.column,
-            cardDealt.position.row
-          )
-        );
-      }, 50); // TODO don't depend on this delay
-    });
-
-    const atDeckClassName = `${styles.card} ${styles.atDeck}`;
+    const column = cardDealt.position.column;
+    const row = cardDealt.position.row;
+    const className = `${styles.card} ${styles[`col${column}`]} ${
+      styles[`row${row}`]
+    } ${styles[`dealingToPos${column}_${row}`]}`;
     const canDrag = (): boolean => boardModel.canMoveCard(cardDealt.card);
     const canDrop = (draggableId: string): boolean => {
       const draggedCard = boardModel.getCardById(draggableId);
       if (draggedCard) {
         return boardModel.canMoveCardTo(draggedCard, {
-          column: cardDealt.position.column,
-          row: cardDealt.position.row,
+          column,
+          row,
         });
       }
       return false;
@@ -115,7 +107,7 @@ const Board = (boardModel: BoardModel): string => {
       }
     };
 
-    renderElement(card, Card(cardDealt.card, atDeckClassName));
+    renderElement(card, Card(cardDealt.card, className));
     registerDraggable(cardDealt.card.id, canDrag);
     registerDropTarget(cardDealt.card.id, canDrop, onDrop);
   };
