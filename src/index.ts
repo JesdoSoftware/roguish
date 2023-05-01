@@ -19,6 +19,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import App from "./ui/app/App";
 import { renderElement } from "./ui/rendering";
+import "./styles.css";
 
 const app = document.createElement("div");
 document.body.append(app);

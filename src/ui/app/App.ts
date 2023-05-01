@@ -49,7 +49,8 @@ const CopyrightLicenseSource = (): string => {
   `;
 };
 
-const DraggingZIndex = 2;
+const DraggingClassName = "dragging";
+const ActiveDropTargetClassName = "activeDropTarget";
 
 const App = (): string => {
   let isDragging = false;
@@ -58,7 +59,6 @@ const App = (): string => {
   let draggedElem: HTMLElement;
   let draggedElemStartingLeft: number;
   let draggedElemStartingTop: number;
-  let lastDraggedElem: HTMLElement | undefined;
   let lastHoveredOverDropTarget: HTMLElement | undefined;
 
   const getMatchingElementAtPoint = (
@@ -81,17 +81,11 @@ const App = (): string => {
       pointerDownClientX = e.clientX;
       pointerDownClientY = e.clientY;
 
-      if (lastDraggedElem) {
-        // remove the z-index override so the new dragged element
-        // is on top
-        lastDraggedElem.style.cssText = "";
-      }
-
       draggedElem = draggable;
       const computedStyle = window.getComputedStyle(draggedElem);
       draggedElemStartingLeft = parseInt(computedStyle.left);
       draggedElemStartingTop = parseInt(computedStyle.top);
-      draggedElem.style.cssText = `z-index: ${DraggingZIndex}; transition: none;`;
+      draggedElem.classList.add(DraggingClassName);
     }
   };
 
@@ -115,12 +109,11 @@ const App = (): string => {
         lastHoveredOverDropTarget &&
         lastHoveredOverDropTarget.id !== dropTarget?.id
       ) {
-        lastHoveredOverDropTarget.style.cssText = "";
+        lastHoveredOverDropTarget.classList.remove(ActiveDropTargetClassName);
       }
       if (dropTarget) {
         lastHoveredOverDropTarget = dropTarget;
-        dropTarget.style.cssText =
-          "border: 5px solid green; transform: translate(-4px, -4px);";
+        dropTarget.classList.add(ActiveDropTargetClassName);
       }
     }
   };
@@ -129,13 +122,11 @@ const App = (): string => {
     if (isDragging) {
       isDragging = false;
 
-      // don't reset the z-index yet so it stays on top during any
-      // subsequent transitions
-      draggedElem.style.cssText = `z-index: ${DraggingZIndex};`;
-      lastDraggedElem = draggedElem;
+      draggedElem.classList.remove(DraggingClassName);
+      draggedElem.style.cssText = ""; // remove the top and left overrides
 
       if (lastHoveredOverDropTarget) {
-        lastHoveredOverDropTarget.style.cssText = "";
+        lastHoveredOverDropTarget.classList.remove(ActiveDropTargetClassName);
       }
 
       const dropTarget = getMatchingElementAtPoint(
