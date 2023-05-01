@@ -18,6 +18,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { CardModel, CardSide } from "../../business/models";
+import { runAfterRender } from "../rendering";
 import { html } from "../templateLiterals";
 import styles from "./Card.module.css";
 
@@ -35,8 +36,21 @@ export const updateCardClassName = (
   }
 };
 
-const Card = (cardModel: CardModel, className: string): string => {
+const Card = (
+  cardModel: CardModel,
+  className: string,
+  onTransitionStart: (e: TransitionEvent) => void,
+  onTransitionEnd: (e: TransitionEvent) => void
+): string => {
   const cardId = cardModel.id;
+
+  runAfterRender(() => {
+    const card = document.getElementById(cardId);
+    if (card) {
+      card.addEventListener("transitionstart", onTransitionStart);
+      card.addEventListener("transitionend", onTransitionEnd);
+    }
+  });
 
   const combinedClassName = getCombinedClassName(className);
   // TODO move to CSS classes

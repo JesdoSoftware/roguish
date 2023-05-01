@@ -29,6 +29,9 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   --row2Top: calc(var(--colWidth) * 2);
   --dungeonDeckTop: -500px;
   --dungeonDeckLeft: 0;
+  --dealingZIndex: 3;
+  --movingZIndex: 2;
+  --discardedZIndex: 1;
 }
 
 .board {
@@ -47,54 +50,66 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 @keyframes deckToCol0 {
   from {
     left: var(--dungeonDeckLeft);
+    z-index: var(--dealingZIndex);
   }
   to {
     left: var(--col0Left);
+    z-index: var(--dealingZIndex);
   }
 }
 
 @keyframes deckToCol1 {
   from {
     left: var(--dungeonDeckLeft);
+    z-index: var(--dealingZIndex);
   }
   to {
     left: var(--col1Left);
+    z-index: var(--dealingZIndex);
   }
 }
 
 @keyframes deckToCol2 {
   from {
     left: var(--dungeonDeckLeft);
+    z-index: var(--dealingZIndex);
   }
   to {
     left: var(--col2Left);
+    z-index: var(--dealingZIndex);
   }
 }
 
 @keyframes deckToRow0 {
   from {
     top: var(--dungeonDeckTop);
+    z-index: var(--dealingZIndex);
   }
   to {
     top: var(--row0Top);
+    z-index: var(--dealingZIndex);
   }
 }
 
 @keyframes deckToRow1 {
   from {
     top: var(--dungeonDeckTop);
+    z-index: var(--dealingZIndex);
   }
   to {
     top: var(--row1Top);
+    z-index: var(--dealingZIndex);
   }
 }
 
 @keyframes deckToRow2 {
   from {
     top: var(--dungeonDeckTop);
+    z-index: var(--dealingZIndex);
   }
   to {
     top: var(--row2Top);
+    z-index: var(--dealingZIndex);
   }
 }
 
@@ -167,8 +182,12 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   top: var(--row2Top);
 }
 
+.board .moving {
+  z-index: var(--movingZIndex);
+}
+
 .board .discarded {
   top: var(--dungeonDeckTop);
   left: var(--col2Left);
-  z-index: 1;
+  z-index: var(--discardedZIndex);
 }

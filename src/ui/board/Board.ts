@@ -96,6 +96,20 @@ const Board = (boardModel: BoardModel): string => {
     boardModel.moveCard(droppedCard, dropTargetPosition);
   };
 
+  const onCardTransitionStart = (e: TransitionEvent): void => {
+    const target = e.target as HTMLElement;
+    if (target) {
+      target.classList.add(styles.moving);
+    }
+  };
+
+  const onCardTransitionEnd = (e: TransitionEvent): void => {
+    const target = e.target as HTMLElement;
+    if (target) {
+      target.classList.remove(styles.moving);
+    }
+  };
+
   const dealCard = (cardDealt: CardDealtEventArgs): void => {
     const board = document.getElementById(boardId);
     const card = document.createElement("div");
@@ -109,7 +123,15 @@ const Board = (boardModel: BoardModel): string => {
 
     const canDrag = (): boolean => boardModel.canMoveCard(cardDealt.card);
 
-    renderElement(card, Card(cardDealt.card, className));
+    renderElement(
+      card,
+      Card(
+        cardDealt.card,
+        className,
+        onCardTransitionStart,
+        onCardTransitionEnd
+      )
+    );
     registerDraggable(cardDealt.card.id, canDrag);
     registerDropTarget(cardDealt.card.id, canDropCard, onDropCard);
   };
@@ -144,7 +166,12 @@ const Board = (boardModel: BoardModel): string => {
       const position = { column, row };
       const cardModel = boardModel.getCardByPosition(position);
       if (cardModel) {
-        initialCards += Card(cardModel, getCardClassNameForPosition(position));
+        initialCards += Card(
+          cardModel,
+          getCardClassNameForPosition(position),
+          onCardTransitionStart,
+          onCardTransitionEnd
+        );
         registerDraggable(cardModel.id, () =>
           boardModel.canMoveCard(cardModel)
         );

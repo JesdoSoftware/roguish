@@ -122,8 +122,8 @@ const App = (): string => {
     if (isDragging) {
       isDragging = false;
 
-      draggedElem.classList.remove(DraggingClassName);
       draggedElem.style.cssText = ""; // remove the top and left overrides
+      draggedElem.classList.remove(DraggingClassName);
 
       if (lastHoveredOverDropTarget) {
         lastHoveredOverDropTarget.classList.remove(ActiveDropTargetClassName);
