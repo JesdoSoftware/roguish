@@ -20,6 +20,9 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 import bindPrototypeMethods from "../bindPrototypeMethods";
 import { CardDto, DeckDto } from "./dtos";
 
+export const MaxBoardColumns = 3;
+export const MaxBoardRows = 3;
+
 const PlayerCardId = "cardPlayer";
 
 export class EventDispatcher<T> {
@@ -104,14 +107,9 @@ export const deckDtoToModel = (deckDto: DeckDto): DeckModel => {
   };
 };
 
-export type BoardColumn = 0 | 1 | 2;
-export const MaxBoardColumns = 3;
-export type BoardRow = 0 | 1 | 2;
-export const MaxBoardRows = 3;
-
 export interface BoardPosition {
-  column: BoardColumn;
-  row: BoardRow;
+  column: number;
+  row: number;
 }
 
 export interface CardDealtEventArgs {
@@ -148,18 +146,18 @@ export class BoardModel {
       strength: 0,
       side: CardSide.Front,
     };
-    this.cards.set(this.getCardKey(1, 1), playerCard);
+    this.cards.set(this.getCardKey({ column: 1, row: 1 }), playerCard);
   }
 
-  private getCardKey(column: BoardColumn, row: BoardRow): string {
-    return `${column}:${row}`;
+  private getCardKey(position: BoardPosition): string {
+    return `${position.column}:${position.row}`;
   }
 
   private getPositionFromCardKey(cardKey: string): BoardPosition {
     const matches = cardKey.match(/(\d+):(\d+)/);
     if (matches) {
-      const column = parseInt(matches[1]) as BoardColumn;
-      const row = parseInt(matches[2]) as BoardRow;
+      const column = parseInt(matches[1]);
+      const row = parseInt(matches[2]);
       return { column, row };
     }
     throw new Error("No matching position for card key");
@@ -174,8 +172,8 @@ export class BoardModel {
     throw new Error("No card for ID");
   }
 
-  getCardByPosition(column: BoardColumn, row: BoardRow): CardModel | undefined {
-    return this.cards.get(this.getCardKey(column, row));
+  getCardByPosition(position: BoardPosition): CardModel | undefined {
+    return this.cards.get(this.getCardKey(position));
   }
 
   getCardPosition(card: CardModel): BoardPosition {
@@ -187,30 +185,23 @@ export class BoardModel {
     throw new Error("No position for card");
   }
 
-  dealCard(card: CardModel, column: BoardColumn, row: BoardRow): void {
-    this.cards.set(this.getCardKey(column, row), card);
+  dealCard(card: CardModel, position: BoardPosition): void {
+    this.cards.set(this.getCardKey(position), card);
 
     this.onCardDealt.dispatch({
       card: card,
-      position: { column, row },
+      position: position,
     });
   }
 
   dealCardsForEmptySpots(): void {
-    for (
-      let row: BoardRow = 0;
-      row < MaxBoardRows;
-      row = (row + 1) as BoardRow
-    ) {
-      for (
-        let column: BoardColumn = 0;
-        column < MaxBoardColumns;
-        column = (column + 1) as BoardColumn
-      ) {
-        if (!this.getCardByPosition(column, row)) {
+    for (let row = 0; row < MaxBoardRows; ++row) {
+      for (let column = 0; column < MaxBoardColumns; ++column) {
+        const position = { column, row };
+        if (!this.getCardByPosition(position)) {
           const card = this.deck.cards.pop();
           if (card) {
-            this.dealCard(card, column, row);
+            this.dealCard(card, position);
           }
         }
       }
@@ -236,11 +227,8 @@ export class BoardModel {
     this.discardCard(toPosition);
 
     const fromPosition = this.getCardPosition(cardToMove);
-    this.cards.delete(this.getCardKey(fromPosition.column, fromPosition.row));
-    this.cards.set(
-      this.getCardKey(toPosition.column, toPosition.row),
-      cardToMove
-    );
+    this.cards.delete(this.getCardKey(fromPosition));
+    this.cards.set(this.getCardKey(toPosition), cardToMove);
     this.onCardMoved.dispatch({
       card: cardToMove,
       toPosition: toPosition,
@@ -256,14 +244,10 @@ export class BoardModel {
       positionBehindRow > -1 &&
       positionBehindRow < MaxBoardRows
     ) {
-      const positionBehind = {
+      const cardBehind = this.getCardByPosition({
         column: positionBehindColumn,
         row: positionBehindRow,
-      };
-      const cardBehind = this.getCardByPosition(
-        positionBehind.column as BoardColumn,
-        positionBehind.row as BoardRow
-      );
+      });
       if (cardBehind) {
         this.moveCard(cardBehind, fromPosition);
       }
@@ -273,7 +257,7 @@ export class BoardModel {
   }
 
   private discardCard(position: BoardPosition): void {
-    const cardKey = this.getCardKey(position.column, position.row);
+    const cardKey = this.getCardKey(position);
     const card = this.cards.get(cardKey);
     if (card) {
       this.cards.delete(cardKey);

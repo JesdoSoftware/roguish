@@ -18,9 +18,8 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
-  BoardColumn,
   BoardModel,
-  BoardRow,
+  BoardPosition,
   CardDealtEventArgs,
   MaxBoardColumns,
   MaxBoardRows,
@@ -37,11 +36,10 @@ import styles from "./Board.module.css";
 
 const CardTransitionDurationMs = 500;
 
-const getCardClassNameForPosition = (
-  column: BoardColumn,
-  row: BoardRow
-): string => {
-  return `${styles.card} ${styles[`col${column}`]} ${styles[`row${row}`]}`;
+const getCardClassNameForPosition = (position: BoardPosition): string => {
+  return `${styles.card} ${styles[`col${position.column}`]} ${
+    styles[`row${position.row}`]
+  }`;
 };
 
 interface EventHandler {
@@ -124,10 +122,7 @@ const Board = (boardModel: BoardModel): string => {
 
   boardModel.onCardMoved.addListener((e) => {
     queueEvent(() => {
-      updateCardClassName(
-        e.card.id,
-        getCardClassNameForPosition(e.toPosition.column, e.toPosition.row)
-      );
+      updateCardClassName(e.card.id, getCardClassNameForPosition(e.toPosition));
     });
   });
 
@@ -144,22 +139,12 @@ const Board = (boardModel: BoardModel): string => {
   runAfterRender(boardModel.dealCardsForEmptySpots);
 
   let initialCards = "";
-  for (
-    let column: BoardColumn = 0;
-    column < MaxBoardColumns;
-    column = (column + 1) as BoardColumn
-  ) {
-    for (
-      let row: BoardRow = 0;
-      row < MaxBoardRows;
-      row = (row + 1) as BoardRow
-    ) {
-      const cardModel = boardModel.getCardByPosition(column, row);
+  for (let column = 0; column < MaxBoardColumns; ++column) {
+    for (let row = 0; row < MaxBoardRows; row = ++row) {
+      const position = { column, row };
+      const cardModel = boardModel.getCardByPosition(position);
       if (cardModel) {
-        initialCards += Card(
-          cardModel,
-          getCardClassNameForPosition(column, row)
-        );
+        initialCards += Card(cardModel, getCardClassNameForPosition(position));
         registerDraggable(cardModel.id, () =>
           boardModel.canMoveCard(cardModel)
         );
