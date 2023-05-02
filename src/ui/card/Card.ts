@@ -22,17 +22,17 @@ import { addOrUpdateStyleProperties } from "../rendering";
 import { html } from "../templateLiterals";
 import styles from "./Card.module.css";
 
-const getCombinedClassName = (externalClassName: string): string => {
-  return `${styles.card} ${externalClassName}`;
+const getCombinedClassName = (externalClassNames: string[]): string => {
+  return `${styles.card} ${externalClassNames.join(" ")}`;
 };
 
-export const updateCardClassName = (
+export const updateCardClassNames = (
   cardId: string,
-  className: string
+  classNames: string[]
 ): void => {
   const card = document.getElementById(cardId);
   if (card) {
-    card.className = getCombinedClassName(className);
+    card.className = getCombinedClassName(classNames);
   }
 };
 
@@ -43,10 +43,10 @@ export const updateCardZIndex = (cardId: string, zIndex: number): void => {
   }
 };
 
-const Card = (cardModel: CardModel, className: string): string => {
+const Card = (cardModel: CardModel, classNames: string[]): string => {
   const cardId = cardModel.id;
 
-  const combinedClassName = getCombinedClassName(className);
+  const combinedClassName = getCombinedClassName(classNames);
   // TODO move to CSS classes
   const style =
     cardModel.side === CardSide.Back ? "transform: rotateY(180deg);" : "";
