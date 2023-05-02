@@ -125,7 +125,7 @@ const App = (): string => {
     if (isDragging) {
       isDragging = false;
 
-      removeStyleProperties(draggedElem, ["top", "left"]);
+      removeStyleProperties(draggedElem, ["left", "top"]);
       draggedElem.classList.remove(DraggingClassName);
 
       if (lastHoveredOverDropTarget) {

@@ -18,9 +18,9 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 :root {
-  --cardWidth: 30%;
+  --spaceWidth: 30%;
   --gutterWidth: 5%;
-  --colWidth: calc(var(--cardWidth) + var(--gutterWidth));
+  --colWidth: calc(var(--spaceWidth) + var(--gutterWidth));
   --col0Left: 0;
   --col1Left: var(--colWidth);
   --col2Left: calc(var(--colWidth) * 2);
@@ -39,8 +39,8 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   aspect-ratio: 2.5 / 3.5;
 }
 
-.board .card {
-  width: var(--cardWidth);
+.board .space {
+  width: var(--spaceWidth);
   position: absolute;
 }
 

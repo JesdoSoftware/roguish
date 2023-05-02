@@ -64,11 +64,15 @@ export interface CardModel {
   side: CardSide;
 }
 
-let NextCardId = 1;
+let NextId = 1;
+
+export const createId = (prefix?: string): string => {
+  return `${prefix}${NextId++}`;
+};
 
 export const cardDtoToModel = (cardDto: CardDto): CardModel => {
   return {
-    id: `card${NextCardId++}`,
+    id: createId("card"),
     name: cardDto.name,
     strength: cardDto.strength,
     side: CardSide.Front,
@@ -126,12 +130,17 @@ export interface CardDiscardedEventArgs {
   card: CardModel;
 }
 
+export interface SpaceLeftEmptyEventArgs {
+  position: BoardPosition;
+}
+
 export class BoardModel {
   readonly deck: DeckModel;
   readonly discarded: CardModel[] = [];
   readonly onCardDealt = new EventDispatcher<CardDealtEventArgs>();
   readonly onCardMoved = new EventDispatcher<CardMovedEventArgs>();
   readonly onCardDiscarded = new EventDispatcher<CardDiscardedEventArgs>();
+  readonly onSpaceLeftEmpty = new EventDispatcher<SpaceLeftEmptyEventArgs>();
 
   private readonly cards = new Map<string, CardModel>();
 
@@ -185,7 +194,7 @@ export class BoardModel {
     throw new Error("No position for card");
   }
 
-  dealCard(card: CardModel, position: BoardPosition): void {
+  private dealCard(card: CardModel, position: BoardPosition): void {
     this.cards.set(this.getCardKey(position), card);
 
     this.onCardDealt.dispatch({
@@ -194,7 +203,7 @@ export class BoardModel {
     });
   }
 
-  dealCardsForEmptySpots(): void {
+  dealCards(): void {
     for (let row = 0; row < MaxBoardRows; ++row) {
       for (let column = 0; column < MaxBoardColumns; ++column) {
         const position = { column, row };
@@ -202,6 +211,8 @@ export class BoardModel {
           const card = this.deck.cards.pop();
           if (card) {
             this.dealCard(card, position);
+          } else {
+            this.onSpaceLeftEmpty.dispatch({ position: position });
           }
         }
       }
@@ -253,7 +264,7 @@ export class BoardModel {
       }
     }
 
-    this.dealCardsForEmptySpots();
+    this.dealCards();
   }
 
   private discardCard(position: BoardPosition): void {

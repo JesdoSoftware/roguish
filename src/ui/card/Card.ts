@@ -44,15 +44,13 @@ export const updateCardZIndex = (cardId: string, zIndex: number): void => {
 };
 
 const Card = (cardModel: CardModel, classNames: string[]): string => {
-  const cardId = cardModel.id;
-
   const combinedClassName = getCombinedClassName(classNames);
   // TODO move to CSS classes
   const style =
     cardModel.side === CardSide.Back ? "transform: rotateY(180deg);" : "";
 
   return html`
-    <div id="${cardId}" class="${combinedClassName}" style="${style}">
+    <div id="${cardModel.id}" class="${combinedClassName}" style="${style}">
       <div class="${styles.cardSide}">
         <p>${cardModel.name}</p>
       </div>

@@ -23,7 +23,10 @@ import {
   CardDealtEventArgs,
   MaxBoardColumns,
   MaxBoardRows,
+  SpaceLeftEmptyEventArgs,
+  createId,
 } from "../../business/models";
+import EmptySpace from "../EmptySpace/EmptySpace";
 import Card, { updateCardClassNames, updateCardZIndex } from "../card/Card";
 import {
   runAfterRender,
@@ -39,7 +42,7 @@ const CardTransitionDurationMs = 500;
 
 const getCardClassNamesForPosition = (position: BoardPosition): string[] => {
   return [
-    styles.card,
+    styles.space,
     styles[`col${position.column}`],
     styles[`row${position.row}`],
   ];
@@ -107,7 +110,7 @@ const Board = (boardModel: BoardModel): string => {
     const column = cardDealt.position.column;
     const row = cardDealt.position.row;
     const classNames = [
-      styles.card,
+      styles.space,
       styles[`col${column}`],
       styles[`row${row}`],
       styles[`dealingToPos${column}_${row}`],
@@ -122,6 +125,35 @@ const Board = (boardModel: BoardModel): string => {
     renderElement(card, Card(cardDealt.card, classNames));
     registerDraggable(cardDealt.card.id, canDrag);
     registerDropTarget(cardDealt.card.id, canDropCard, onDropCard);
+  };
+
+  const emptySpaces: BoardPosition[] = [];
+
+  const isSpaceEmpty = (position: BoardPosition): boolean => {
+    return (
+      emptySpaces.findIndex(
+        (es) => es.column === position.column && es.row === position.row
+      ) > -1
+    );
+  };
+
+  const addEmptySpace = (spaceLeftEmpty: SpaceLeftEmptyEventArgs): void => {
+    if (!isSpaceEmpty(spaceLeftEmpty.position)) {
+      const board = document.getElementById(boardId);
+      const emptySpace = document.createElement("div");
+      board?.appendChild(emptySpace);
+
+      renderElement(
+        emptySpace,
+        EmptySpace(createId("emptySpace"), [
+          styles.space,
+          styles[`col${spaceLeftEmpty.position.column}`],
+          styles[`row${spaceLeftEmpty.position.row}`],
+        ])
+      );
+
+      emptySpaces.push(spaceLeftEmpty.position);
+    }
   };
 
   boardModel.onCardDealt.addListener((e) =>
@@ -142,7 +174,7 @@ const Board = (boardModel: BoardModel): string => {
 
   boardModel.onCardDiscarded.addListener((e) => {
     queueEvent(() => {
-      updateCardClassNames(e.card.id, [styles.card, styles.discarded]);
+      updateCardClassNames(e.card.id, [styles.space, styles.discarded]);
       updateCardZIndex(e.card.id, getNextZIndex());
       setTimeout(() => {
         const cardElem = document.getElementById(e.card.id);
@@ -151,7 +183,13 @@ const Board = (boardModel: BoardModel): string => {
     });
   });
 
-  runAfterRender(boardModel.dealCardsForEmptySpots);
+  boardModel.onSpaceLeftEmpty.addListener((e) => {
+    queueEvent(() => {
+      addEmptySpace(e);
+    });
+  });
+
+  runAfterRender(boardModel.dealCards);
 
   let initialCards = "";
   for (let column = 0; column < MaxBoardColumns; ++column) {
