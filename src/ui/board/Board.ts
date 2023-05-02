@@ -21,8 +21,8 @@ import {
   BoardModel,
   BoardPosition,
   CardDealtEventArgs,
-  MaxBoardColumns,
-  MaxBoardRows,
+  maxBoardColumns,
+  maxBoardRows,
   SpaceLeftEmptyEventArgs,
   createId,
 } from "../../business/models";
@@ -38,7 +38,7 @@ import {
 import { html } from "../templateLiterals";
 import styles from "./Board.module.css";
 
-const CardTransitionDurationMs = 500;
+const cardTransitionDurationMs = 500;
 
 const getCardClassNamesForPosition = (position: BoardPosition): string[] => {
   return [
@@ -179,7 +179,7 @@ const Board = (boardModel: BoardModel): string => {
       setTimeout(() => {
         const cardElem = document.getElementById(e.card.id);
         cardElem?.parentElement?.removeChild(cardElem);
-      }, CardTransitionDurationMs);
+      }, cardTransitionDurationMs);
     });
   });
 
@@ -192,8 +192,8 @@ const Board = (boardModel: BoardModel): string => {
   runAfterRender(boardModel.dealCards);
 
   let initialCards = "";
-  for (let column = 0; column < MaxBoardColumns; ++column) {
-    for (let row = 0; row < MaxBoardRows; row = ++row) {
+  for (let column = 0; column < maxBoardColumns; ++column) {
+    for (let row = 0; row < maxBoardRows; row = ++row) {
       const position = { column, row };
       const cardModel = boardModel.getCardByPosition(position);
       if (cardModel) {

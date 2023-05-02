@@ -51,8 +51,8 @@ const CopyrightLicenseSource = (): string => {
   `;
 };
 
-const DraggingClassName = "dragging";
-const ActiveDropTargetClassName = "activeDropTarget";
+const draggingClassName = "dragging";
+const activeDropTargetClassName = "activeDropTarget";
 
 const App = (): string => {
   let isDragging = false;
@@ -87,7 +87,7 @@ const App = (): string => {
       const computedStyle = window.getComputedStyle(draggedElem);
       draggedElemStartingLeft = parseInt(computedStyle.left);
       draggedElemStartingTop = parseInt(computedStyle.top);
-      draggedElem.classList.add(DraggingClassName);
+      draggedElem.classList.add(draggingClassName);
       draggedElem.style.zIndex = getNextZIndex().toString();
     }
   };
@@ -112,11 +112,11 @@ const App = (): string => {
         lastHoveredOverDropTarget &&
         lastHoveredOverDropTarget.id !== dropTarget?.id
       ) {
-        lastHoveredOverDropTarget.classList.remove(ActiveDropTargetClassName);
+        lastHoveredOverDropTarget.classList.remove(activeDropTargetClassName);
       }
       if (dropTarget) {
         lastHoveredOverDropTarget = dropTarget;
-        dropTarget.classList.add(ActiveDropTargetClassName);
+        dropTarget.classList.add(activeDropTargetClassName);
       }
     }
   };
@@ -126,10 +126,10 @@ const App = (): string => {
       isDragging = false;
 
       removeStyleProperties(draggedElem, ["left", "top"]);
-      draggedElem.classList.remove(DraggingClassName);
+      draggedElem.classList.remove(draggingClassName);
 
       if (lastHoveredOverDropTarget) {
-        lastHoveredOverDropTarget.classList.remove(ActiveDropTargetClassName);
+        lastHoveredOverDropTarget.classList.remove(activeDropTargetClassName);
       }
 
       const dropTarget = getMatchingElementAtPoint(

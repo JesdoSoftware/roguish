@@ -20,10 +20,10 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 import bindPrototypeMethods from "../bindPrototypeMethods";
 import { CardDto, DeckDto } from "./dtos";
 
-export const MaxBoardColumns = 3;
-export const MaxBoardRows = 3;
+export const maxBoardColumns = 3;
+export const maxBoardRows = 3;
 
-const PlayerCardId = "cardPlayer";
+const playerCardId = "cardPlayer";
 
 export class EventDispatcher<T> {
   private readonly listeners: ((e: T) => void)[] = [];
@@ -64,10 +64,10 @@ export interface CardModel {
   side: CardSide;
 }
 
-let NextId = 1;
+let nextId = 1;
 
 export const createId = (prefix?: string): string => {
-  return `${prefix}${NextId++}`;
+  return `${prefix}${nextId++}`;
 };
 
 export const cardDtoToModel = (cardDto: CardDto): CardModel => {
@@ -150,7 +150,7 @@ export class BoardModel {
     shuffleCards(this.deck.cards);
 
     const playerCard: CardModel = {
-      id: PlayerCardId,
+      id: playerCardId,
       name: "Player",
       strength: 0,
       side: CardSide.Front,
@@ -204,8 +204,8 @@ export class BoardModel {
   }
 
   dealCards(): void {
-    for (let row = 0; row < MaxBoardRows; ++row) {
-      for (let column = 0; column < MaxBoardColumns; ++column) {
+    for (let row = 0; row < maxBoardRows; ++row) {
+      for (let column = 0; column < maxBoardColumns; ++column) {
         const position = { column, row };
         if (!this.getCardByPosition(position)) {
           const card = this.deck.cards.pop();
@@ -220,7 +220,7 @@ export class BoardModel {
   }
 
   canMoveCard(card: CardModel): boolean {
-    return card.id === PlayerCardId;
+    return card.id === playerCardId;
   }
 
   canMoveCardTo(card: CardModel, toPosition: BoardPosition): boolean {
@@ -251,9 +251,9 @@ export class BoardModel {
       fromPosition.row + (fromPosition.row - toPosition.row);
     if (
       positionBehindColumn > -1 &&
-      positionBehindColumn < MaxBoardColumns &&
+      positionBehindColumn < maxBoardColumns &&
       positionBehindRow > -1 &&
-      positionBehindRow < MaxBoardRows
+      positionBehindRow < maxBoardRows
     ) {
       const cardBehind = this.getCardByPosition({
         column: positionBehindColumn,
