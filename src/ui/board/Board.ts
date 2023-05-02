@@ -24,12 +24,13 @@ import {
   MaxBoardColumns,
   MaxBoardRows,
 } from "../../business/models";
-import Card, { updateCardClassName } from "../card/Card";
+import Card, { updateCardClassName, updateCardZIndex } from "../card/Card";
 import {
   runAfterRender,
   renderElement,
   registerDraggable,
   registerDropTarget,
+  getNextZIndex,
 } from "../rendering";
 import { html } from "../templateLiterals";
 import styles from "./Board.module.css";
@@ -96,20 +97,6 @@ const Board = (boardModel: BoardModel): string => {
     boardModel.moveCard(droppedCard, dropTargetPosition);
   };
 
-  const onCardTransitionStart = (e: TransitionEvent): void => {
-    const target = e.target as HTMLElement;
-    if (target) {
-      target.classList.add(styles.moving);
-    }
-  };
-
-  const onCardTransitionEnd = (e: TransitionEvent): void => {
-    const target = e.target as HTMLElement;
-    if (target) {
-      target.classList.remove(styles.moving);
-    }
-  };
-
   const dealCard = (cardDealt: CardDealtEventArgs): void => {
     const board = document.getElementById(boardId);
     const card = document.createElement("div");
@@ -123,15 +110,11 @@ const Board = (boardModel: BoardModel): string => {
 
     const canDrag = (): boolean => boardModel.canMoveCard(cardDealt.card);
 
-    renderElement(
-      card,
-      Card(
-        cardDealt.card,
-        className,
-        onCardTransitionStart,
-        onCardTransitionEnd
-      )
-    );
+    runAfterRender(() => {
+      updateCardZIndex(cardDealt.card.id, getNextZIndex());
+    });
+
+    renderElement(card, Card(cardDealt.card, className));
     registerDraggable(cardDealt.card.id, canDrag);
     registerDropTarget(cardDealt.card.id, canDropCard, onDropCard);
   };
@@ -145,12 +128,14 @@ const Board = (boardModel: BoardModel): string => {
   boardModel.onCardMoved.addListener((e) => {
     queueEvent(() => {
       updateCardClassName(e.card.id, getCardClassNameForPosition(e.toPosition));
+      updateCardZIndex(e.card.id, getNextZIndex());
     });
   });
 
   boardModel.onCardDiscarded.addListener((e) => {
     queueEvent(() => {
       updateCardClassName(e.card.id, `${styles.card} ${styles.discarded}`);
+      updateCardZIndex(e.card.id, getNextZIndex());
       setTimeout(() => {
         const cardElem = document.getElementById(e.card.id);
         cardElem?.parentElement?.removeChild(cardElem);
@@ -166,12 +151,7 @@ const Board = (boardModel: BoardModel): string => {
       const position = { column, row };
       const cardModel = boardModel.getCardByPosition(position);
       if (cardModel) {
-        initialCards += Card(
-          cardModel,
-          getCardClassNameForPosition(position),
-          onCardTransitionStart,
-          onCardTransitionEnd
-        );
+        initialCards += Card(cardModel, getCardClassNameForPosition(position));
         registerDraggable(cardModel.id, () =>
           boardModel.canMoveCard(cardModel)
         );

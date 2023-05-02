@@ -37,6 +37,56 @@ export const renderElement = (element: Element, outerHtml: string): void => {
   flushRunAfterRenderQueue();
 };
 
+export interface Style {
+  [property: string]: string;
+}
+
+const cssTextToStyle = (cssText: string): Style => {
+  const declarations = cssText.split(/;\s*/);
+  const style: Style = {};
+  declarations.forEach((declaration) => {
+    const [property, value] = declaration.split(/:\s*/);
+    style[property] = value;
+  });
+  return style;
+};
+
+const styleToCssText = (style: Style): string => {
+  const declarations: string[] = [];
+  for (const propertyName in style) {
+    declarations.push(`${propertyName}: ${style[propertyName]}`);
+  }
+  return declarations.join("; ");
+};
+
+export const addOrUpdateStyleProperties = (
+  element: HTMLElement,
+  newStyle: Style
+): void => {
+  const elementStyle = cssTextToStyle(element.style.cssText);
+  for (const propertyName in newStyle) {
+    elementStyle[propertyName] = newStyle[propertyName];
+  }
+  element.style.cssText = styleToCssText(elementStyle);
+};
+
+export const removeStyleProperties = (
+  element: HTMLElement,
+  propertyNames: string[]
+): void => {
+  const elementStyle = cssTextToStyle(element.style.cssText);
+  propertyNames.forEach((propertyName) => {
+    delete elementStyle[propertyName];
+  });
+  element.style.cssText = styleToCssText(elementStyle);
+};
+
+let nextZIndex = 1;
+
+export const getNextZIndex = (): number => {
+  return nextZIndex++;
+};
+
 interface DropTarget {
   canDrop: (draggableId: string, dropTargetId: string) => boolean;
   onDrop: (draggableId: string, dropTargetId: string) => void;

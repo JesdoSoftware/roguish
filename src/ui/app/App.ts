@@ -25,6 +25,8 @@ import {
   canDrag,
   canDrop,
   drop,
+  getNextZIndex,
+  removeStyleProperties,
 } from "../rendering";
 import { html } from "../templateLiterals";
 
@@ -86,6 +88,7 @@ const App = (): string => {
       draggedElemStartingLeft = parseInt(computedStyle.left);
       draggedElemStartingTop = parseInt(computedStyle.top);
       draggedElem.classList.add(DraggingClassName);
+      draggedElem.style.zIndex = getNextZIndex().toString();
     }
   };
 
@@ -122,7 +125,7 @@ const App = (): string => {
     if (isDragging) {
       isDragging = false;
 
-      draggedElem.style.cssText = ""; // remove the top and left overrides
+      removeStyleProperties(draggedElem, ["top", "left"]);
       draggedElem.classList.remove(DraggingClassName);
 
       if (lastHoveredOverDropTarget) {
