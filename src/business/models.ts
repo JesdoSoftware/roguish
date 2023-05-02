@@ -155,10 +155,10 @@ export class BoardModel {
       strength: 0,
       side: CardSide.Front,
     };
-    this.cards.set(this.getCardKey({ column: 1, row: 1 }), playerCard);
+    this.cards.set(this.positionToString({ column: 1, row: 1 }), playerCard);
   }
 
-  private getCardKey(position: BoardPosition): string {
+  positionToString(position: BoardPosition): string {
     return `${position.column}:${position.row}`;
   }
 
@@ -182,7 +182,7 @@ export class BoardModel {
   }
 
   getCardByPosition(position: BoardPosition): CardModel | undefined {
-    return this.cards.get(this.getCardKey(position));
+    return this.cards.get(this.positionToString(position));
   }
 
   getCardPosition(card: CardModel): BoardPosition {
@@ -195,7 +195,7 @@ export class BoardModel {
   }
 
   private dealCard(card: CardModel, position: BoardPosition): void {
-    this.cards.set(this.getCardKey(position), card);
+    this.cards.set(this.positionToString(position), card);
 
     this.onCardDealt.dispatch({
       card: card,
@@ -238,8 +238,8 @@ export class BoardModel {
     this.discardCard(toPosition);
 
     const fromPosition = this.getCardPosition(cardToMove);
-    this.cards.delete(this.getCardKey(fromPosition));
-    this.cards.set(this.getCardKey(toPosition), cardToMove);
+    this.cards.delete(this.positionToString(fromPosition));
+    this.cards.set(this.positionToString(toPosition), cardToMove);
     this.onCardMoved.dispatch({
       card: cardToMove,
       toPosition: toPosition,
@@ -268,7 +268,7 @@ export class BoardModel {
   }
 
   private discardCard(position: BoardPosition): void {
-    const cardKey = this.getCardKey(position);
+    const cardKey = this.positionToString(position);
     const card = this.cards.get(cardKey);
     if (card) {
       this.cards.delete(cardKey);

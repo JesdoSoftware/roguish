@@ -127,32 +127,55 @@ const Board = (boardModel: BoardModel): string => {
     registerDropTarget(cardDealt.card.id, canDropCard, onDropCard);
   };
 
-  const emptySpaces: BoardPosition[] = [];
+  const emptySpaceIds = new Map<string, string>(); // key is position, value is ID
 
-  const isSpaceEmpty = (position: BoardPosition): boolean => {
-    return (
-      emptySpaces.findIndex(
-        (es) => es.column === position.column && es.row === position.row
-      ) > -1
-    );
+  const isSpaceMarkedEmpty = (position: BoardPosition): boolean => {
+    return emptySpaceIds.has(boardModel.positionToString(position));
   };
 
-  const addEmptySpace = (spaceLeftEmpty: SpaceLeftEmptyEventArgs): void => {
-    if (!isSpaceEmpty(spaceLeftEmpty.position)) {
+  const markEmptySpace = (spaceLeftEmpty: SpaceLeftEmptyEventArgs): void => {
+    if (!isSpaceMarkedEmpty(spaceLeftEmpty.position)) {
       const board = document.getElementById(boardId);
       const emptySpace = document.createElement("div");
       board?.appendChild(emptySpace);
 
+      const emptySpaceId = createId("emptySpace");
       renderElement(
         emptySpace,
-        EmptySpace(createId("emptySpace"), [
+        EmptySpace(emptySpaceId, [
           styles.space,
           styles[`col${spaceLeftEmpty.position.column}`],
           styles[`row${spaceLeftEmpty.position.row}`],
         ])
       );
+      registerDropTarget(
+        emptySpaceId,
+        (draggableId: string) => {
+          const movedCard = boardModel.getCardById(draggableId);
+          return boardModel.canMoveCardTo(movedCard, spaceLeftEmpty.position);
+        },
+        (draggableId: string) => {
+          const movedCard = boardModel.getCardById(draggableId);
+          boardModel.moveCard(movedCard, spaceLeftEmpty.position);
+        }
+      );
 
-      emptySpaces.push(spaceLeftEmpty.position);
+      emptySpaceIds.set(
+        boardModel.positionToString(spaceLeftEmpty.position),
+        emptySpaceId
+      );
+    }
+  };
+
+  const unmarkEmptySpace = (position: BoardPosition): void => {
+    const emptySpaceKey = boardModel.positionToString(position);
+    const emptySpaceId = emptySpaceIds.get(emptySpaceKey);
+    if (emptySpaceId) {
+      emptySpaceIds.delete(emptySpaceKey);
+      const emptySpaceElem = document.getElementById(emptySpaceId);
+      if (emptySpaceElem) {
+        emptySpaceElem.parentElement?.removeChild(emptySpaceElem);
+      }
     }
   };
 
@@ -164,6 +187,9 @@ const Board = (boardModel: BoardModel): string => {
 
   boardModel.onCardMoved.addListener((e) => {
     queueEvent(() => {
+      if (isSpaceMarkedEmpty(e.toPosition)) {
+        unmarkEmptySpace(e.toPosition);
+      }
       updateCardClassNames(
         e.card.id,
         getCardClassNamesForPosition(e.toPosition)
@@ -185,7 +211,7 @@ const Board = (boardModel: BoardModel): string => {
 
   boardModel.onSpaceLeftEmpty.addListener((e) => {
     queueEvent(() => {
-      addEmptySpace(e);
+      markEmptySpace(e);
     });
   });
 

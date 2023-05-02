@@ -19,15 +19,15 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
 const runAfterRenderQueue: (() => void)[] = [];
 
-export const runAfterRender = (fn: () => void): void => {
-  runAfterRenderQueue.push(fn);
+export const runAfterRender = (callback: () => void): void => {
+  runAfterRenderQueue.push(callback);
 };
 
 const flushRunAfterRenderQueue = (): void => {
   while (runAfterRenderQueue.length) {
-    const fn = runAfterRenderQueue.shift();
-    if (fn) {
-      fn();
+    const callback = runAfterRenderQueue.shift();
+    if (callback) {
+      callback();
     }
   }
 };
