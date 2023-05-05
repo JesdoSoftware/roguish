@@ -26,7 +26,7 @@ import {
   SpaceLeftEmptyEventArgs,
   createId,
 } from "../../business/models";
-import EmptySpace from "../EmptySpace/EmptySpace";
+import EmptySpace from "../emptySpace/EmptySpace";
 import Card, { updateCardClassNames, updateCardZIndex } from "../card/Card";
 import {
   runAfterRender,
