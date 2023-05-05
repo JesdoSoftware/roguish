@@ -181,7 +181,7 @@ export class BoardModel {
     throw new Error("No card for ID");
   }
 
-  getCardByPosition(position: BoardPosition): CardModel | undefined {
+  getCardAtPosition(position: BoardPosition): CardModel | undefined {
     return this.cards.get(this.positionToString(position));
   }
 
@@ -207,7 +207,7 @@ export class BoardModel {
     for (let row = 0; row < maxBoardRows; ++row) {
       for (let column = 0; column < maxBoardColumns; ++column) {
         const position = { column, row };
-        if (!this.getCardByPosition(position)) {
+        if (!this.getCardAtPosition(position)) {
           const card = this.deck.cards.pop();
           if (card) {
             this.dealCard(card, position);
@@ -225,12 +225,34 @@ export class BoardModel {
 
   canMoveCardTo(card: CardModel, toPosition: BoardPosition): boolean {
     const cardPosition = this.getCardPosition(card);
+    return this.canMoveFromTo(cardPosition, toPosition);
+  }
 
+  canMoveFromTo(
+    fromPosition: BoardPosition,
+    toPosition: BoardPosition
+  ): boolean {
     // allow moving one space in any direction (incl. diagonal)
-    const colDiff = Math.abs(toPosition.column - cardPosition.column);
-    const rowDiff = Math.abs(toPosition.row - cardPosition.row);
+    const colDiff = Math.abs(toPosition.column - fromPosition.column);
+    const rowDiff = Math.abs(toPosition.row - fromPosition.row);
 
     return (colDiff > 0 || rowDiff > 0) && colDiff <= 1 && rowDiff <= 1;
+  }
+
+  getMovableToPositions(movedCard: CardModel): BoardPosition[] {
+    const fromPosition = this.getCardPosition(movedCard);
+    const movableToPositions: BoardPosition[] = [];
+
+    for (let column = 0; column < maxBoardColumns; ++column) {
+      for (let row = 0; row < maxBoardRows; ++row) {
+        const toPosition = { column, row };
+        if (this.canMoveFromTo(fromPosition, toPosition)) {
+          movableToPositions.push(toPosition);
+        }
+      }
+    }
+
+    return movableToPositions;
   }
 
   moveCard(cardToMove: CardModel, toPosition: BoardPosition): void {
@@ -255,7 +277,7 @@ export class BoardModel {
       positionBehindRow > -1 &&
       positionBehindRow < maxBoardRows
     ) {
-      const cardBehind = this.getCardByPosition({
+      const cardBehind = this.getCardAtPosition({
         column: positionBehindColumn,
         row: positionBehindRow,
       });

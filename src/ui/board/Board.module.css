@@ -39,12 +39,12 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   aspect-ratio: 2.5 / 3.5;
 }
 
-.board .space {
+.space {
   width: var(--spaceWidth);
   position: absolute;
 }
 
-@keyframes deckToCol0 {
+@keyframes dungeonDeckToCol0 {
   from {
     left: var(--dungeonDeckLeft);
   }
@@ -53,7 +53,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-@keyframes deckToCol1 {
+@keyframes dungeonDeckToCol1 {
   from {
     left: var(--dungeonDeckLeft);
   }
@@ -62,7 +62,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-@keyframes deckToCol2 {
+@keyframes dungeonDeckToCol2 {
   from {
     left: var(--dungeonDeckLeft);
   }
@@ -71,7 +71,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-@keyframes deckToRow0 {
+@keyframes dungeonDeckToRow0 {
   from {
     top: var(--dungeonDeckTop);
   }
@@ -80,7 +80,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-@keyframes deckToRow1 {
+@keyframes dungeonDeckToRow1 {
   from {
     top: var(--dungeonDeckTop);
   }
@@ -89,7 +89,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-@keyframes deckToRow2 {
+@keyframes dungeonDeckToRow2 {
   from {
     top: var(--dungeonDeckTop);
   }
@@ -98,76 +98,81 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-.board .dealingToPos0_0 {
-  animation-name: deckToCol0, deckToRow0;
+.dealingToPos0_0 {
+  animation-name: dungeonDeckToCol0, dungeonDeckToRow0;
   animation-duration: 0.5s;
 }
 
-.board .dealingToPos0_1 {
-  animation-name: deckToCol0, deckToRow1;
+.dealingToPos0_1 {
+  animation-name: dungeonDeckToCol0, dungeonDeckToRow1;
   animation-duration: 0.5s;
 }
 
-.board .dealingToPos0_2 {
-  animation-name: deckToCol0, deckToRow2;
+.dealingToPos0_2 {
+  animation-name: dungeonDeckToCol0, dungeonDeckToRow2;
   animation-duration: 0.5s;
 }
 
-.board .dealingToPos1_0 {
-  animation-name: deckToCol1, deckToRow0;
+.dealingToPos1_0 {
+  animation-name: dungeonDeckToCol1, dungeonDeckToRow0;
   animation-duration: 0.5s;
 }
 
-.board .dealingToPos1_1 {
-  animation-name: deckToCol1, deckToRow1;
+.dealingToPos1_1 {
+  animation-name: dungeonDeckToCol1, dungeonDeckToRow1;
   animation-duration: 0.5s;
 }
 
-.board .dealingToPos1_2 {
-  animation-name: deckToCol1, deckToRow2;
+.dealingToPos1_2 {
+  animation-name: dungeonDeckToCol1, dungeonDeckToRow2;
   animation-duration: 0.5s;
 }
 
-.board .dealingToPos2_0 {
-  animation-name: deckToCol2, deckToRow0;
+.dealingToPos2_0 {
+  animation-name: dungeonDeckToCol2, dungeonDeckToRow0;
   animation-duration: 0.5s;
 }
 
-.board .dealingToPos2_1 {
-  animation-name: deckToCol2, deckToRow1;
+.dealingToPos2_1 {
+  animation-name: dungeonDeckToCol2, dungeonDeckToRow1;
   animation-duration: 0.5s;
 }
 
-.board .dealingToPos2_2 {
-  animation-name: deckToCol2, deckToRow2;
+.dealingToPos2_2 {
+  animation-name: dungeonDeckToCol2, dungeonDeckToRow2;
   animation-duration: 0.5s;
 }
 
-.board .col0 {
+.col0 {
   left: var(--col0Left);
 }
 
-.board .col1 {
+.col1 {
   left: var(--col1Left);
 }
 
-.board .col2 {
+.col2 {
   left: var(--col2Left);
 }
 
-.board .row0 {
+.row0 {
   top: var(--row0Top);
 }
 
-.board .row1 {
+.row1 {
   top: var(--row1Top);
 }
 
-.board .row2 {
+.row2 {
   top: var(--row2Top);
 }
 
-.board .discarded {
+.discarded {
   top: var(--dungeonDeckTop);
   left: var(--col2Left);
+}
+
+.potentialDropTarget {
+  border: 3px solid gray;
+  transform: translate(-1.5px, -1.5px);
 }

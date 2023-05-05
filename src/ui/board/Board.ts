@@ -83,6 +83,44 @@ const Board = (boardModel: BoardModel): string => {
     handleEvents();
   };
 
+  const potentialDropTargetIds: string[] = [];
+
+  const onDragCardStart = (draggableId: string): void => {
+    const draggedCard = boardModel.getCardById(draggableId);
+
+    const potentialDropPositions =
+      boardModel.getMovableToPositions(draggedCard);
+    potentialDropPositions.forEach((position) => {
+      const card = boardModel.getCardAtPosition(position);
+      if (card) {
+        potentialDropTargetIds.push(card.id);
+      } else {
+        const emptySpaceId = emptySpaceIds.get(
+          boardModel.positionToString(position)
+        );
+        if (emptySpaceId) {
+          potentialDropTargetIds.push(emptySpaceId);
+        }
+      }
+    });
+    potentialDropTargetIds.forEach((potentialDropTargetId) => {
+      const dropTargetElem = document.getElementById(potentialDropTargetId);
+      if (dropTargetElem) {
+        dropTargetElem.classList.add(styles.potentialDropTarget);
+      }
+    });
+  };
+
+  const onDragCardEnd = (): void => {
+    potentialDropTargetIds.forEach((id) => {
+      const dropTargetElem = document.getElementById(id);
+      if (dropTargetElem) {
+        dropTargetElem.classList.remove(styles.potentialDropTarget);
+      }
+    });
+    potentialDropTargetIds.splice(0, potentialDropTargetIds.length);
+  };
+
   const canDropCard = (draggableId: string, dropTargetId: string): boolean => {
     const draggedCard = boardModel.getCardById(draggableId);
     const dropTarget = boardModel.getCardById(dropTargetId);
@@ -123,15 +161,19 @@ const Board = (boardModel: BoardModel): string => {
     });
 
     renderElement(card, Card(cardDealt.card, classNames));
-    registerDraggable(cardDealt.card.id, canDrag);
+    registerDraggable(
+      cardDealt.card.id,
+      canDrag,
+      onDragCardStart,
+      onDragCardEnd
+    );
     registerDropTarget(cardDealt.card.id, canDropCard, onDropCard);
   };
 
   const emptySpaceIds = new Map<string, string>(); // key is position, value is ID
 
-  const isSpaceMarkedEmpty = (position: BoardPosition): boolean => {
-    return emptySpaceIds.has(boardModel.positionToString(position));
-  };
+  const isSpaceMarkedEmpty = (position: BoardPosition): boolean =>
+    emptySpaceIds.has(boardModel.positionToString(position));
 
   const markEmptySpace = (spaceLeftEmpty: SpaceLeftEmptyEventArgs): void => {
     if (!isSpaceMarkedEmpty(spaceLeftEmpty.position)) {
@@ -221,11 +263,14 @@ const Board = (boardModel: BoardModel): string => {
   for (let column = 0; column < maxBoardColumns; ++column) {
     for (let row = 0; row < maxBoardRows; row = ++row) {
       const position = { column, row };
-      const cardModel = boardModel.getCardByPosition(position);
+      const cardModel = boardModel.getCardAtPosition(position);
       if (cardModel) {
         initialCards += Card(cardModel, getCardClassNamesForPosition(position));
-        registerDraggable(cardModel.id, () =>
-          boardModel.canMoveCard(cardModel)
+        registerDraggable(
+          cardModel.id,
+          () => boardModel.canMoveCard(cardModel),
+          onDragCardStart,
+          onDragCardEnd
         );
       }
     }

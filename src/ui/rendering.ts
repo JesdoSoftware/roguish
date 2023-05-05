@@ -87,24 +87,49 @@ export const getNextZIndex = (): number => {
   return nextZIndex++;
 };
 
+interface Draggable {
+  canDrag: (draggableId: string) => boolean;
+  onDragStart?: ((draggableId: string) => void) | undefined;
+  onDragEnd?: ((draggableId: string) => void) | undefined;
+}
+
 interface DropTarget {
   canDrop: (draggableId: string, dropTargetId: string) => boolean;
   onDrop: (draggableId: string, dropTargetId: string) => void;
 }
 
-const draggables = new Map<string, () => boolean>();
+const draggables = new Map<string, Draggable>();
 const dropTargets = new Map<string, DropTarget>();
 
-export const registerDraggable = (id: string, canDrag: () => boolean): void => {
-  draggables.set(id, canDrag);
+export const registerDraggable = (
+  id: string,
+  canDrag: (draggableId: string) => boolean,
+  onDragStart?: (draggableId: string) => void,
+  onDragEnd?: (draggableId: string) => void
+): void => {
+  draggables.set(id, { canDrag, onDragStart, onDragEnd });
 };
 
 export const canDrag = (id: string): boolean => {
-  const canDrag = draggables.get(id);
-  if (!canDrag) {
+  const draggable = draggables.get(id);
+  if (!draggable) {
     return false;
   }
-  return canDrag();
+  return draggable.canDrag(id);
+};
+
+export const startDrag = (id: string): void => {
+  const draggable = draggables.get(id);
+  if (draggable && draggable.onDragStart) {
+    draggable.onDragStart(id);
+  }
+};
+
+export const endDrag = (id: string): void => {
+  const draggable = draggables.get(id);
+  if (draggable && draggable.onDragEnd) {
+    draggable.onDragEnd(id);
+  }
 };
 
 export const registerDropTarget = (

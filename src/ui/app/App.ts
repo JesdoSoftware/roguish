@@ -27,8 +27,11 @@ import {
   drop,
   getNextZIndex,
   removeStyleProperties,
+  startDrag,
+  endDrag,
 } from "../rendering";
 import { html } from "../templateLiterals";
+import styles from "./App.module.css";
 
 const CopyrightLicenseSource = (): string => {
   return html`
@@ -50,9 +53,6 @@ const CopyrightLicenseSource = (): string => {
     </div>
   `;
 };
-
-const draggingClassName = "dragging";
-const activeDropTargetClassName = "activeDropTarget";
 
 const App = (): string => {
   let isDragging = false;
@@ -87,8 +87,10 @@ const App = (): string => {
       const computedStyle = window.getComputedStyle(draggedElem);
       draggedElemStartingLeft = parseInt(computedStyle.left);
       draggedElemStartingTop = parseInt(computedStyle.top);
-      draggedElem.classList.add(draggingClassName);
+      draggedElem.classList.add(styles.dragging);
       draggedElem.style.zIndex = getNextZIndex().toString();
+
+      startDrag(draggable.id);
     }
   };
 
@@ -112,11 +114,11 @@ const App = (): string => {
         lastHoveredOverDropTarget &&
         lastHoveredOverDropTarget.id !== dropTarget?.id
       ) {
-        lastHoveredOverDropTarget.classList.remove(activeDropTargetClassName);
+        lastHoveredOverDropTarget.classList.remove(styles.activeDropTarget);
       }
       if (dropTarget) {
         lastHoveredOverDropTarget = dropTarget;
-        dropTarget.classList.add(activeDropTargetClassName);
+        dropTarget.classList.add(styles.activeDropTarget);
       }
     }
   };
@@ -126,11 +128,13 @@ const App = (): string => {
       isDragging = false;
 
       removeStyleProperties(draggedElem, ["left", "top"]);
-      draggedElem.classList.remove(draggingClassName);
+      draggedElem.classList.remove(styles.dragging);
 
       if (lastHoveredOverDropTarget) {
-        lastHoveredOverDropTarget.classList.remove(activeDropTargetClassName);
+        lastHoveredOverDropTarget.classList.remove(styles.activeDropTarget);
       }
+
+      endDrag(draggedElem.id);
 
       const dropTarget = getMatchingElementAtPoint(
         e.clientX,
