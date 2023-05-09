@@ -123,6 +123,7 @@ export interface CardDealtEventArgs {
 
 export interface CardMovedEventArgs {
   card: CardModel;
+  fromPosition: BoardPosition;
   toPosition: BoardPosition;
 }
 
@@ -264,7 +265,8 @@ export class BoardModel {
     this.cards.set(this.positionToString(toPosition), cardToMove);
     this.onCardMoved.dispatch({
       card: cardToMove,
-      toPosition: toPosition,
+      fromPosition,
+      toPosition,
     });
 
     const positionBehindColumn =

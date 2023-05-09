@@ -172,6 +172,14 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   left: var(--col2Left);
 }
 
+.draggable {
+  box-shadow: 5px 5px 5px gray;
+}
+
+.draggable:hover {
+  box-shadow: 10px 10px 10px gray;
+}
+
 .potentialDropTarget {
   border: 3px solid gray;
   transform: translate(-1.5px, -1.5px);

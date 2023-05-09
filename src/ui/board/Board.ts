@@ -27,7 +27,7 @@ import {
   createId,
 } from "../../business/models";
 import EmptySpace from "../emptySpace/EmptySpace";
-import Card, { updateCardClassNames, updateCardZIndex } from "../card/Card";
+import Card, { updateCardZIndex } from "../card/Card";
 import {
   runAfterRender,
   renderElement,
@@ -232,17 +232,23 @@ const Board = (boardModel: BoardModel): string => {
       if (isSpaceMarkedEmpty(e.toPosition)) {
         unmarkEmptySpace(e.toPosition);
       }
-      updateCardClassNames(
-        e.card.id,
-        getCardClassNamesForPosition(e.toPosition)
-      );
+      const cardElem = document.getElementById(e.card.id);
+      if (cardElem) {
+        cardElem.classList.remove(
+          ...getCardClassNamesForPosition(e.fromPosition)
+        );
+        cardElem.classList.add(...getCardClassNamesForPosition(e.toPosition));
+      }
       updateCardZIndex(e.card.id, getNextZIndex());
     });
   });
 
   boardModel.onCardDiscarded.addListener((e) => {
     queueEvent(() => {
-      updateCardClassNames(e.card.id, [styles.space, styles.discarded]);
+      const cardElem = document.getElementById(e.card.id);
+      if (cardElem) {
+        cardElem.classList.add(styles.discarded);
+      }
       updateCardZIndex(e.card.id, getNextZIndex());
       setTimeout(() => {
         const cardElem = document.getElementById(e.card.id);
@@ -265,7 +271,10 @@ const Board = (boardModel: BoardModel): string => {
       const position = { column, row };
       const cardModel = boardModel.getCardAtPosition(position);
       if (cardModel) {
-        initialCards += Card(cardModel, getCardClassNamesForPosition(position));
+        initialCards += Card(cardModel, [
+          ...getCardClassNamesForPosition(position),
+          styles.draggable,
+        ]);
         registerDraggable(
           cardModel.id,
           () => boardModel.canMoveCard(cardModel),

@@ -26,16 +26,6 @@ const getCombinedClassName = (externalClassNames: string[]): string => {
   return `${styles.card} ${externalClassNames.join(" ")}`;
 };
 
-export const updateCardClassNames = (
-  cardId: string,
-  classNames: string[]
-): void => {
-  const card = document.getElementById(cardId);
-  if (card) {
-    card.className = getCombinedClassName(classNames);
-  }
-};
-
 export const updateCardZIndex = (cardId: string, zIndex: number): void => {
   const cardElement = document.getElementById(cardId);
   if (cardElement) {
