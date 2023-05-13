@@ -173,6 +173,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 }
 
 .draggable {
+  cursor: grab;
   box-shadow: 5px 5px 5px gray;
 }
 
@@ -180,7 +181,17 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   box-shadow: 10px 10px 10px gray;
 }
 
+.dragging {
+  cursor: grabbing;
+  transition: top 0s, left 0s, box-shadow 0.1s, scale 0.1s;
+  scale: 105%;
+}
+
+.dragging:hover {
+  box-shadow: 15px 15px 15px gray;
+}
+
 .potentialDropTarget {
-  border: 3px solid gray;
+  border: 3px dashed gray;
   transform: translate(-1.5px, -1.5px);
 }

@@ -87,7 +87,6 @@ const App = (): string => {
       const computedStyle = window.getComputedStyle(draggedElem);
       draggedElemStartingLeft = parseInt(computedStyle.left);
       draggedElemStartingTop = parseInt(computedStyle.top);
-      draggedElem.classList.add(styles.dragging);
       draggedElem.style.zIndex = getNextZIndex().toString();
 
       startDrag(draggable.id);
@@ -128,7 +127,6 @@ const App = (): string => {
       isDragging = false;
 
       removeStyleProperties(draggedElem, ["left", "top"]);
-      draggedElem.classList.remove(styles.dragging);
 
       if (lastHoveredOverDropTarget) {
         lastHoveredOverDropTarget.classList.remove(styles.activeDropTarget);

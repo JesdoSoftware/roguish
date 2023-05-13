@@ -17,11 +17,7 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-.dragging {
-  transition: none;
-}
-
 .activeDropTarget {
-  border: 5px solid green;
+  border: 5px solid blue;
   transform: translate(-4px, -4px);
 }

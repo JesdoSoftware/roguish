@@ -86,10 +86,14 @@ const Board = (boardModel: BoardModel): string => {
   const potentialDropTargetIds: string[] = [];
 
   const onDragCardStart = (draggableId: string): void => {
-    const draggedCard = boardModel.getCardById(draggableId);
+    const draggedElem = document.getElementById(draggableId);
+    if (draggedElem) {
+      draggedElem.classList.add(styles.dragging);
+    }
 
+    const draggedCardModel = boardModel.getCardById(draggableId);
     const potentialDropPositions =
-      boardModel.getMovableToPositions(draggedCard);
+      boardModel.getMovableToPositions(draggedCardModel);
     potentialDropPositions.forEach((position) => {
       const card = boardModel.getCardAtPosition(position);
       if (card) {
@@ -111,7 +115,12 @@ const Board = (boardModel: BoardModel): string => {
     });
   };
 
-  const onDragCardEnd = (): void => {
+  const onDragCardEnd = (draggableId: string): void => {
+    const draggedElem = document.getElementById(draggableId);
+    if (draggedElem) {
+      draggedElem.classList.remove(styles.dragging);
+    }
+
     potentialDropTargetIds.forEach((id) => {
       const dropTargetElem = document.getElementById(id);
       if (dropTargetElem) {
