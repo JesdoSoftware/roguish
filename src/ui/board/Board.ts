@@ -27,7 +27,7 @@ import {
   createId,
 } from "../../business/models";
 import EmptySpace from "../emptySpace/EmptySpace";
-import Card, { updateCardZIndex } from "../card/Card";
+import Card, { updateCardZIndex, updateCardZIndexById } from "../card/Card";
 import {
   runAfterRender,
   renderElement,
@@ -166,7 +166,7 @@ const Board = (boardModel: BoardModel): string => {
     const canDrag = (): boolean => boardModel.canMoveCard(cardDealt.card);
 
     runAfterRender(() => {
-      updateCardZIndex(cardDealt.card.id, getNextZIndex());
+      updateCardZIndexById(cardDealt.card.id, getNextZIndex());
     });
 
     renderElement(card, Card(cardDealt.card, classNames));
@@ -247,8 +247,8 @@ const Board = (boardModel: BoardModel): string => {
           ...getCardClassNamesForPosition(e.fromPosition)
         );
         cardElem.classList.add(...getCardClassNamesForPosition(e.toPosition));
+        updateCardZIndex(cardElem, getNextZIndex());
       }
-      updateCardZIndex(e.card.id, getNextZIndex());
     });
   });
 
@@ -257,8 +257,8 @@ const Board = (boardModel: BoardModel): string => {
       const cardElem = document.getElementById(e.card.id);
       if (cardElem) {
         cardElem.classList.add(styles.discarded);
+        updateCardZIndex(cardElem, getNextZIndex());
       }
-      updateCardZIndex(e.card.id, getNextZIndex());
       setTimeout(() => {
         const cardElem = document.getElementById(e.card.id);
         cardElem?.parentElement?.removeChild(cardElem);

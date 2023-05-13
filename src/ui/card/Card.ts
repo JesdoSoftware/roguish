@@ -26,11 +26,18 @@ const getCombinedClassName = (externalClassNames: string[]): string => {
   return `${styles.card} ${externalClassNames.join(" ")}`;
 };
 
-export const updateCardZIndex = (cardId: string, zIndex: number): void => {
+export const updateCardZIndexById = (cardId: string, zIndex: number): void => {
   const cardElement = document.getElementById(cardId);
   if (cardElement) {
-    addOrUpdateStyleProperties(cardElement, { "z-index": zIndex.toString() });
+    updateCardZIndex(cardElement, zIndex);
   }
+};
+
+export const updateCardZIndex = (
+  cardElement: HTMLElement,
+  zIndex: number
+): void => {
+  addOrUpdateStyleProperties(cardElement, { "z-index": zIndex.toString() });
 };
 
 const Card = (cardModel: CardModel, classNames: string[]): string => {
