@@ -177,6 +177,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   box-shadow: 5px 5px 5px gray;
 }
 
+/* TODO don't include hover states on mobile */
 .draggable:hover {
   box-shadow: 10px 10px 10px gray;
 }
@@ -185,9 +186,14 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   cursor: grabbing;
   transition: top 0s, left 0s, box-shadow 0.1s, scale 0.1s;
   scale: 105%;
+  box-shadow: 15px 15px 15px gray;
 }
 
 .dragging:hover {
+  /*
+    repeat box-shadow here to override .draggable:hover, which 
+    overrides .dragging
+  */
   box-shadow: 15px 15px 15px gray;
 }
 
