@@ -29,6 +29,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   --row2Top: calc(var(--colWidth) * 2);
   --dungeonDeckTop: -500px;
   --dungeonDeckLeft: 0;
+  --shadowColor: rgba(0, 0, 0, 0.5);
 }
 
 .board {
@@ -174,27 +175,27 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
 .draggable {
   cursor: grab;
-  box-shadow: 5px 5px 5px gray;
+  box-shadow: 5px 5px 5px var(--shadowColor);
 }
 
 /* TODO don't include hover states on mobile */
 .draggable:hover {
-  box-shadow: 10px 10px 10px gray;
+  box-shadow: 10px 10px 10px var(--shadowColor);
 }
 
 .dragging {
   cursor: grabbing;
   transition: top 0s, left 0s, box-shadow 0.1s, scale 0.1s;
   scale: 105%;
-  box-shadow: 15px 15px 15px gray;
+  box-shadow: 15px 15px 15px var(--shadowColor);
 }
 
 .dragging:hover {
   /*
-    repeat box-shadow here to override .draggable:hover, which 
+    repeat box-shadow here to override .draggable:hover, which
     overrides .dragging
   */
-  box-shadow: 15px 15px 15px gray;
+  box-shadow: 15px 15px 15px var(--shadowColor);
 }
 
 .potentialDropTarget {
