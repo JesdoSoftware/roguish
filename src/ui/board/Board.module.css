@@ -191,11 +191,6 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   box-shadow: 5px 5px 5px var(--shadowColor);
 }
 
-/* TODO don't include hover states on mobile */
-.draggable:hover {
-  box-shadow: 10px 10px 10px var(--shadowColor);
-}
-
 .dragging {
   cursor: grabbing;
   transition: top 0s, left 0s, box-shadow 0.1s, scale 0.1s;
@@ -203,15 +198,21 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   box-shadow: 15px 15px 15px var(--shadowColor);
 }
 
-.dragging:hover {
-  /*
-   * repeat box-shadow here to override .draggable:hover, which
-   * overrides .dragging
-   */
-  box-shadow: 15px 15px 15px var(--shadowColor);
-}
-
 .potentialDropTarget {
   border: 3px dashed gray;
   transform: translate(-1.5px, -1.5px);
+}
+
+@media (hover: hover) {
+  .draggable:hover {
+    box-shadow: 10px 10px 10px var(--shadowColor);
+  }
+
+  .dragging:hover {
+    /*
+   * repeat box-shadow here to override .draggable:hover, which
+   * overrides .dragging
+   */
+    box-shadow: 15px 15px 15px var(--shadowColor);
+  }
 }
