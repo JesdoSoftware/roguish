@@ -48,54 +48,66 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 @keyframes dungeonDeckToCol0 {
   from {
     left: var(--dungeonDeckLeft);
+    box-shadow: 10px 10px 10px var(--shadowColor);
   }
   to {
     left: var(--col0Left);
+    box-shadow: none;
   }
 }
 
 @keyframes dungeonDeckToCol1 {
   from {
     left: var(--dungeonDeckLeft);
+    box-shadow: 10px 10px 10px var(--shadowColor);
   }
   to {
     left: var(--col1Left);
+    box-shadow: none;
   }
 }
 
 @keyframes dungeonDeckToCol2 {
   from {
     left: var(--dungeonDeckLeft);
+    box-shadow: 10px 10px 10px var(--shadowColor);
   }
   to {
     left: var(--col2Left);
+    box-shadow: none;
   }
 }
 
 @keyframes dungeonDeckToRow0 {
   from {
     top: var(--dungeonDeckTop);
+    box-shadow: 10px 10px 10px var(--shadowColor);
   }
   to {
     top: var(--row0Top);
+    box-shadow: none;
   }
 }
 
 @keyframes dungeonDeckToRow1 {
   from {
     top: var(--dungeonDeckTop);
+    box-shadow: 10px 10px 10px var(--shadowColor);
   }
   to {
     top: var(--row1Top);
+    box-shadow: none;
   }
 }
 
 @keyframes dungeonDeckToRow2 {
   from {
     top: var(--dungeonDeckTop);
+    box-shadow: 10px 10px 10px var(--shadowColor);
   }
   to {
     top: var(--row2Top);
+    box-shadow: none;
   }
 }
 
@@ -171,6 +183,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 .discarded {
   top: var(--dungeonDeckTop);
   left: var(--col2Left);
+  box-shadow: 10px 10px 10px var(--shadowColor);
 }
 
 .draggable {
@@ -192,9 +205,9 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
 .dragging:hover {
   /*
-    repeat box-shadow here to override .draggable:hover, which
-    overrides .dragging
-  */
+   * repeat box-shadow here to override .draggable:hover, which
+   * overrides .dragging
+   */
   box-shadow: 15px 15px 15px var(--shadowColor);
 }
 
