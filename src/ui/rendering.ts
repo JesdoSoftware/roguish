@@ -95,6 +95,11 @@ interface Draggable {
 
 interface DropTarget {
   canDrop: (draggableId: string, dropTargetId: string) => boolean;
+  onCanDropHover: (draggableId: string, dropTargetElement: HTMLElement) => void;
+  onCanDropUnhover: (
+    draggableId: string,
+    dropTargetElement: HTMLElement
+  ) => void;
   onDrop: (draggableId: string, dropTargetId: string) => void;
 }
 
@@ -135,9 +140,14 @@ export const endDrag = (id: string): void => {
 export const registerDropTarget = (
   id: string,
   canDrop: (draggableId: string, dropTargetId: string) => boolean,
+  onCanDropHover: (draggableId: string, dropTargetElement: HTMLElement) => void,
+  onCanDropUnhover: (
+    draggableId: string,
+    dropTargetElement: HTMLElement
+  ) => void,
   onDrop: (draggableId: string, dropTargetId: string) => void
 ): void => {
-  dropTargets.set(id, { canDrop, onDrop });
+  dropTargets.set(id, { canDrop, onCanDropHover, onCanDropUnhover, onDrop });
 };
 
 export const canDrop = (draggableId: string, dropTargetId: string): boolean => {
@@ -146,6 +156,28 @@ export const canDrop = (draggableId: string, dropTargetId: string): boolean => {
     return false;
   }
   return dropTarget.canDrop(draggableId, dropTargetId);
+};
+
+export const onCanDropHover = (
+  draggableId: string,
+  dropTargetElement: HTMLElement
+): void => {
+  const dropTarget = dropTargets.get(dropTargetElement.id);
+  if (!dropTarget) {
+    throw new Error("Missing drop target");
+  }
+  dropTarget.onCanDropHover(draggableId, dropTargetElement);
+};
+
+export const onCanDropUnhover = (
+  draggableId: string,
+  dropTargetElement: HTMLElement
+): void => {
+  const dropTarget = dropTargets.get(dropTargetElement.id);
+  if (!dropTarget) {
+    throw new Error("Missing drop target");
+  }
+  dropTarget.onCanDropUnhover(draggableId, dropTargetElement);
 };
 
 export const drop = (draggableId: string, dropTargetId: string): void => {

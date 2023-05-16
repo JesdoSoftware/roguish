@@ -29,9 +29,10 @@ import {
   removeStyleProperties,
   startDrag,
   endDrag,
+  onCanDropUnhover,
+  onCanDropHover,
 } from "../rendering";
 import { html } from "../templateLiterals";
-import styles from "./App.module.css";
 
 const CopyrightLicenseSource = (): string => {
   return html`
@@ -61,7 +62,7 @@ const App = (): string => {
   let draggedElem: HTMLElement;
   let draggedElemStartingLeft: number;
   let draggedElemStartingTop: number;
-  let lastHoveredOverDropTarget: HTMLElement | undefined;
+  let hoveredOverDropTarget: HTMLElement | undefined;
 
   const getMatchingElementAtPoint = (
     clientX: number,
@@ -93,31 +94,38 @@ const App = (): string => {
     }
   };
 
-  const onPointerMove = (e: PointerEvent): void => {
-    // calculating from the pointer down X/Y (instead of using
-    // e.movementX and e.movementY) fixes some glitchiness when
-    // the pointer leaves and reenters the window
-    const diffX = e.clientX - pointerDownClientX;
-    const diffY = e.clientY - pointerDownClientY;
+  const changeHoveredOverDropTarget = (
+    draggableId: string,
+    newTarget: HTMLElement | undefined
+  ): void => {
+    if (hoveredOverDropTarget) {
+      onCanDropUnhover(draggableId, hoveredOverDropTarget);
+      hoveredOverDropTarget = undefined;
+    }
+    if (newTarget) {
+      hoveredOverDropTarget = newTarget;
+      onCanDropHover(draggableId, hoveredOverDropTarget);
+    }
+  };
 
+  const onPointerMove = (e: PointerEvent): void => {
     if (isDragging) {
+      // calculating from the pointer down X/Y (instead of using
+      // e.movementX and e.movementY) fixes some glitchiness when
+      // the pointer leaves and reenters the window
+      const diffX = e.clientX - pointerDownClientX;
+      const diffY = e.clientY - pointerDownClientY;
+
       draggedElem.style.left = `${draggedElemStartingLeft + diffX}px`;
       draggedElem.style.top = `${draggedElemStartingTop + diffY}px`;
 
-      const dropTarget = getMatchingElementAtPoint(
+      const newDropTarget = getMatchingElementAtPoint(
         e.clientX,
         e.clientY,
         (elem) => canDrop(draggedElem.id, elem.id)
       );
-      if (
-        lastHoveredOverDropTarget &&
-        lastHoveredOverDropTarget.id !== dropTarget?.id
-      ) {
-        lastHoveredOverDropTarget.classList.remove(styles.activeDropTarget);
-      }
-      if (dropTarget) {
-        lastHoveredOverDropTarget = dropTarget;
-        dropTarget.classList.add(styles.activeDropTarget);
+      if (hoveredOverDropTarget?.id !== newDropTarget?.id) {
+        changeHoveredOverDropTarget(draggedElem.id, newDropTarget);
       }
     }
   };
@@ -128,10 +136,7 @@ const App = (): string => {
 
       removeStyleProperties(draggedElem, ["left", "top"]);
 
-      if (lastHoveredOverDropTarget) {
-        lastHoveredOverDropTarget.classList.remove(styles.activeDropTarget);
-      }
-
+      changeHoveredOverDropTarget(draggedElem.id, undefined);
       endDrag(draggedElem.id);
 
       const dropTarget = getMatchingElementAtPoint(

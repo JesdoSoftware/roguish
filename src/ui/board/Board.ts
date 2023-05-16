@@ -141,6 +141,20 @@ const Board = (boardModel: BoardModel): string => {
     });
   };
 
+  const onCanDropHover = (
+    _draggableId: string,
+    dropTargetElement: HTMLElement
+  ): void => {
+    dropTargetElement.classList.add(styles.activeDropTarget);
+  };
+
+  const onCanDropUnhover = (
+    _draggableId: string,
+    dropTargetElement: HTMLElement
+  ): void => {
+    dropTargetElement.classList.remove(styles.activeDropTarget);
+  };
+
   const onDropCard = (draggableId: string, dropTargetId: string): void => {
     const droppedCard = boardModel.getCardById(draggableId);
     const dropTarget = boardModel.getCardById(dropTargetId);
@@ -176,7 +190,13 @@ const Board = (boardModel: BoardModel): string => {
       onDragCardStart,
       onDragCardEnd
     );
-    registerDropTarget(cardDealt.card.id, canDropCard, onDropCard);
+    registerDropTarget(
+      cardDealt.card.id,
+      canDropCard,
+      onCanDropHover,
+      onCanDropUnhover,
+      onDropCard
+    );
   };
 
   const emptySpaceIds = new Map<string, string>(); // key is position, value is ID
@@ -205,6 +225,8 @@ const Board = (boardModel: BoardModel): string => {
           const movedCard = boardModel.getCardById(draggableId);
           return boardModel.canMoveCardTo(movedCard, spaceLeftEmpty.position);
         },
+        onCanDropHover,
+        onCanDropUnhover,
         (draggableId: string) => {
           const movedCard = boardModel.getCardById(draggableId);
           boardModel.moveCard(movedCard, spaceLeftEmpty.position);
