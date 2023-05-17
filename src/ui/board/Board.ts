@@ -41,11 +41,7 @@ import styles from "./Board.module.css";
 const cardTransitionDurationMs = 500;
 
 const getCardClassNamesForPosition = (position: BoardPosition): string[] => {
-  return [
-    styles.space,
-    styles[`col${position.column}`],
-    styles[`row${position.row}`],
-  ];
+  return [styles[`col${position.column}`], styles[`row${position.row}`]];
 };
 
 interface EventHandler {
@@ -96,21 +92,24 @@ const Board = (boardModel: BoardModel): string => {
       boardModel.getMovableToPositions(draggedCardModel);
     potentialDropPositions.forEach((position) => {
       const card = boardModel.getCardAtPosition(position);
+      let elemId: string | undefined;
       if (card) {
         potentialDropTargetIds.push(card.id);
+        elemId = card.id;
       } else {
         const emptySpaceId = emptySpaceIds.get(
           boardModel.positionToString(position)
         );
         if (emptySpaceId) {
+          elemId = emptySpaceId;
           potentialDropTargetIds.push(emptySpaceId);
         }
       }
-    });
-    potentialDropTargetIds.forEach((potentialDropTargetId) => {
-      const dropTargetElem = document.getElementById(potentialDropTargetId);
-      if (dropTargetElem) {
-        dropTargetElem.classList.add(styles.potentialDropTarget);
+      if (elemId) {
+        const dropTargetElem = document.getElementById(elemId);
+        if (dropTargetElem) {
+          dropTargetElem.classList.add(styles.potentialDropTarget);
+        }
       }
     });
   };
@@ -172,8 +171,7 @@ const Board = (boardModel: BoardModel): string => {
     const row = cardDealt.position.row;
     const classNames = [
       styles.space,
-      styles[`col${column}`],
-      styles[`row${row}`],
+      ...getCardClassNamesForPosition({ column, row }),
       styles[`dealingToPos${column}_${row}`],
     ];
 
@@ -215,8 +213,10 @@ const Board = (boardModel: BoardModel): string => {
         emptySpace,
         EmptySpace(emptySpaceId, [
           styles.space,
-          styles[`col${spaceLeftEmpty.position.column}`],
-          styles[`row${spaceLeftEmpty.position.row}`],
+          ...getCardClassNamesForPosition({
+            column: spaceLeftEmpty.position.column,
+            row: spaceLeftEmpty.position.row,
+          }),
         ])
       );
       registerDropTarget(
@@ -303,6 +303,7 @@ const Board = (boardModel: BoardModel): string => {
       const cardModel = boardModel.getCardAtPosition(position);
       if (cardModel) {
         initialCards += Card(cardModel, [
+          styles.space,
           ...getCardClassNamesForPosition(position),
           styles.draggable,
         ]);

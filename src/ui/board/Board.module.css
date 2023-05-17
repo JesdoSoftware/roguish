@@ -215,9 +215,9 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
   .dragging:hover {
     /*
-   * repeat box-shadow here to override .draggable:hover, which
-   * overrides .dragging
-   */
+     * repeat box-shadow here to override .draggable:hover, which
+     * overrides .dragging
+     */
     box-shadow: 15px 15px 15px var(--shadowColor);
   }
 }

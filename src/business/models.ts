@@ -229,7 +229,7 @@ export class BoardModel {
     return this.canMoveFromTo(cardPosition, toPosition);
   }
 
-  canMoveFromTo(
+  private canMoveFromTo(
     fromPosition: BoardPosition,
     toPosition: BoardPosition
   ): boolean {
