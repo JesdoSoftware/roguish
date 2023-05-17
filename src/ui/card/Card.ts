@@ -18,25 +18,31 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { CardModel, CardSide } from "../../business/models";
+import { addOrUpdateStyleProperties } from "../rendering";
 import { html } from "../templateLiterals";
 import styles from "./Card.module.css";
 
-const getCombinedClassName = (externalClassName: string): string => {
-  return `${styles.card} ${externalClassName}`;
+const getCombinedClassName = (externalClassNames: string[]): string => {
+  return `${styles.card} ${externalClassNames.join(" ")}`;
 };
 
-export const updateCardClassName = (
-  cardId: string,
-  className: string
-): void => {
-  const card = document.getElementById(cardId);
-  if (card) {
-    card.className = getCombinedClassName(className);
+export const updateCardZIndexById = (cardId: string, zIndex: number): void => {
+  const cardElement = document.getElementById(cardId);
+  if (cardElement) {
+    updateCardZIndex(cardElement, zIndex);
   }
 };
 
-const Card = (cardModel: CardModel, className: string): string => {
-  const combinedClassName = getCombinedClassName(className);
+export const updateCardZIndex = (
+  cardElement: HTMLElement,
+  zIndex: number
+): void => {
+  addOrUpdateStyleProperties(cardElement, { "z-index": zIndex.toString() });
+};
+
+const Card = (cardModel: CardModel, classNames: string[]): string => {
+  const combinedClassName = getCombinedClassName(classNames);
+  // TODO move to CSS classes
   const style =
     cardModel.side === CardSide.Back ? "transform: rotateY(180deg);" : "";
 

@@ -17,24 +17,17 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-.card {
-  touch-action: none;
-  border: 1px solid black;
-  aspect-ratio: 2.5 / 3.5;
-  background-color: lightgray;
-  transform-style: preserve-3d;
-  transition: top 0.5s, left 0.5s, box-shadow 0.1s, scale 0.1s;
-  user-select: none;
-}
+import { html } from "../templateLiterals";
+import styles from "./EmptySpace.module.css";
 
-.cardSide {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
-}
+const getCombinedClassName = (externalClassNames: string[]): string => {
+  return `${styles.emptySpace} ${externalClassNames.join(" ")}`;
+};
 
-.back {
-  background-color: gray;
-  transform: rotateY(180deg);
-}
+const EmptySpace = (id: string, classNames: string[]): string => {
+  return html`
+    <div id="${id}" class="${getCombinedClassName(classNames)}"></div>
+  `;
+};
+
+export default EmptySpace;

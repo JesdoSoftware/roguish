@@ -18,8 +18,18 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 :root {
-  --card-width: 30%;
-  --gutter-width: 5%;
+  --spaceWidth: 30%;
+  --gutterWidth: 5%;
+  --colWidth: calc(var(--spaceWidth) + var(--gutterWidth));
+  --col0Left: 0;
+  --col1Left: var(--colWidth);
+  --col2Left: calc(var(--colWidth) * 2);
+  --row0Top: 0;
+  --row1Top: var(--colWidth);
+  --row2Top: calc(var(--colWidth) * 2);
+  --dungeonDeckTop: -500px;
+  --dungeonDeckLeft: 0;
+  --shadowColor: rgba(0, 0, 0, 0.5);
 }
 
 .board {
@@ -30,42 +40,184 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   aspect-ratio: 2.5 / 3.5;
 }
 
-.board .card {
-  width: var(--card-width);
+.space {
+  width: var(--spaceWidth);
+  position: absolute;
 }
 
-.board .atDeck {
-  position: absolute;
-  top: -500px;
-  left: 0;
+@keyframes dungeonDeckToCol0 {
+  from {
+    left: var(--dungeonDeckLeft);
+    box-shadow: 10px 10px 10px var(--shadowColor);
+  }
+  to {
+    left: var(--col0Left);
+    box-shadow: none;
+  }
 }
 
-.board .col0 {
-  position: absolute;
-  left: 0;
+@keyframes dungeonDeckToCol1 {
+  from {
+    left: var(--dungeonDeckLeft);
+    box-shadow: 10px 10px 10px var(--shadowColor);
+  }
+  to {
+    left: var(--col1Left);
+    box-shadow: none;
+  }
 }
 
-.board .col1 {
-  position: absolute;
-  left: calc(var(--card-width) + var(--gutter-width));
+@keyframes dungeonDeckToCol2 {
+  from {
+    left: var(--dungeonDeckLeft);
+    box-shadow: 10px 10px 10px var(--shadowColor);
+  }
+  to {
+    left: var(--col2Left);
+    box-shadow: none;
+  }
 }
 
-.board .col2 {
-  position: absolute;
-  left: calc((var(--card-width) + var(--gutter-width)) * 2);
+@keyframes dungeonDeckToRow0 {
+  from {
+    top: var(--dungeonDeckTop);
+    box-shadow: 10px 10px 10px var(--shadowColor);
+  }
+  to {
+    top: var(--row0Top);
+    box-shadow: none;
+  }
 }
 
-.board .row0 {
-  position: absolute;
-  top: 0;
+@keyframes dungeonDeckToRow1 {
+  from {
+    top: var(--dungeonDeckTop);
+    box-shadow: 10px 10px 10px var(--shadowColor);
+  }
+  to {
+    top: var(--row1Top);
+    box-shadow: none;
+  }
 }
 
-.board .row1 {
-  position: absolute;
-  top: calc(var(--card-width) + var(--gutter-width));
+@keyframes dungeonDeckToRow2 {
+  from {
+    top: var(--dungeonDeckTop);
+    box-shadow: 10px 10px 10px var(--shadowColor);
+  }
+  to {
+    top: var(--row2Top);
+    box-shadow: none;
+  }
 }
 
-.board .row2 {
-  position: absolute;
-  top: calc((var(--card-width) + var(--gutter-width)) * 2);
+.dealingToPos0_0 {
+  animation-name: dungeonDeckToCol0, dungeonDeckToRow0;
+  animation-duration: 0.5s;
+}
+
+.dealingToPos0_1 {
+  animation-name: dungeonDeckToCol0, dungeonDeckToRow1;
+  animation-duration: 0.5s;
+}
+
+.dealingToPos0_2 {
+  animation-name: dungeonDeckToCol0, dungeonDeckToRow2;
+  animation-duration: 0.5s;
+}
+
+.dealingToPos1_0 {
+  animation-name: dungeonDeckToCol1, dungeonDeckToRow0;
+  animation-duration: 0.5s;
+}
+
+.dealingToPos1_1 {
+  animation-name: dungeonDeckToCol1, dungeonDeckToRow1;
+  animation-duration: 0.5s;
+}
+
+.dealingToPos1_2 {
+  animation-name: dungeonDeckToCol1, dungeonDeckToRow2;
+  animation-duration: 0.5s;
+}
+
+.dealingToPos2_0 {
+  animation-name: dungeonDeckToCol2, dungeonDeckToRow0;
+  animation-duration: 0.5s;
+}
+
+.dealingToPos2_1 {
+  animation-name: dungeonDeckToCol2, dungeonDeckToRow1;
+  animation-duration: 0.5s;
+}
+
+.dealingToPos2_2 {
+  animation-name: dungeonDeckToCol2, dungeonDeckToRow2;
+  animation-duration: 0.5s;
+}
+
+.col0 {
+  left: var(--col0Left);
+}
+
+.col1 {
+  left: var(--col1Left);
+}
+
+.col2 {
+  left: var(--col2Left);
+}
+
+.row0 {
+  top: var(--row0Top);
+}
+
+.row1 {
+  top: var(--row1Top);
+}
+
+.row2 {
+  top: var(--row2Top);
+}
+
+.discarded {
+  top: var(--dungeonDeckTop);
+  left: var(--col2Left);
+  box-shadow: 10px 10px 10px var(--shadowColor);
+}
+
+.draggable {
+  cursor: grab;
+  box-shadow: 5px 5px 5px var(--shadowColor);
+}
+
+.dragging {
+  cursor: grabbing;
+  transition: top 0s, left 0s, box-shadow 0.1s, scale 0.1s;
+  scale: 105%;
+  box-shadow: 15px 15px 15px var(--shadowColor);
+}
+
+.potentialDropTarget {
+  border: 3px dashed gray;
+  transform: translate(-1.5px, -1.5px);
+}
+
+.activeDropTarget {
+  border: 5px solid blue;
+  transform: translate(-4px, -4px);
+}
+
+@media (hover: hover) {
+  .draggable:hover {
+    box-shadow: 10px 10px 10px var(--shadowColor);
+  }
+
+  .dragging:hover {
+    /*
+     * repeat box-shadow here to override .draggable:hover, which
+     * overrides .dragging
+     */
+    box-shadow: 15px 15px 15px var(--shadowColor);
+  }
 }

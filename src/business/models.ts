@@ -17,14 +17,16 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import bindPrototypeMethods from "./bindPrototypeMethods";
+import bindPrototypeMethods from "../bindPrototypeMethods";
 import { CardDto, DeckDto } from "./dtos";
 
-export const MaxBoardColumns = 3;
-export const MaxBoardRows = 3;
+export const maxBoardColumns = 3;
+export const maxBoardRows = 3;
+
+const playerCardId = "cardPlayer";
 
 export class EventDispatcher<T> {
-  private listeners: ((e: T) => void)[] = [];
+  private readonly listeners: ((e: T) => void)[] = [];
 
   constructor() {
     bindPrototypeMethods(this);
@@ -62,15 +64,34 @@ export interface CardModel {
   side: CardSide;
 }
 
-let NextCardId = 1;
+let nextId = 1;
+
+export const createId = (prefix?: string): string => {
+  return `${prefix}${nextId++}`;
+};
 
 export const cardDtoToModel = (cardDto: CardDto): CardModel => {
   return {
-    id: `card${NextCardId++}`,
+    id: createId("card"),
     name: cardDto.name,
     strength: cardDto.strength,
     side: CardSide.Front,
   };
+};
+
+const shuffleCards = (cardModels: CardModel[]): CardModel[] => {
+  // Fisher-Yates shuffle algorithm
+
+  let temp: CardModel;
+
+  for (let i = cardModels.length - 1; i > 0; --i) {
+    const j = Math.floor(Math.random() * i);
+    temp = cardModels[j];
+    cardModels[j] = cardModels[i];
+    cardModels[i] = temp;
+  }
+
+  return cardModels;
 };
 
 export interface DeckModel {
@@ -90,123 +111,196 @@ export const deckDtoToModel = (deckDto: DeckDto): DeckModel => {
   };
 };
 
-export interface CardDealtEventArgs {
-  card: CardModel;
+export interface BoardPosition {
   column: number;
   row: number;
 }
 
-// TODO add event args for other events
+export interface CardDealtEventArgs {
+  card: CardModel;
+  position: BoardPosition;
+}
+
+export interface CardMovedEventArgs {
+  card: CardModel;
+  fromPosition: BoardPosition;
+  toPosition: BoardPosition;
+}
+
+export interface CardDiscardedEventArgs {
+  card: CardModel;
+}
+
+export interface SpaceLeftEmptyEventArgs {
+  position: BoardPosition;
+}
 
 export class BoardModel {
-  private _deck: DeckModel;
-  private _playerCard: CardModel;
-  private columns: (CardModel | undefined)[][] = [[], [], []];
-  private _onCardDealt: EventDispatcher<CardDealtEventArgs> =
-    new EventDispatcher<CardDealtEventArgs>();
-  private _onCardDiscarded: EventDispatcher<CardModel> =
-    new EventDispatcher<CardModel>();
-  private _onCardMoved: EventDispatcher<CardModel> =
-    new EventDispatcher<CardModel>();
+  readonly deck: DeckModel;
+  readonly discarded: CardModel[] = [];
+  readonly onCardDealt = new EventDispatcher<CardDealtEventArgs>();
+  readonly onCardMoved = new EventDispatcher<CardMovedEventArgs>();
+  readonly onCardDiscarded = new EventDispatcher<CardDiscardedEventArgs>();
+  readonly onSpaceLeftEmpty = new EventDispatcher<SpaceLeftEmptyEventArgs>();
+
+  private readonly cards = new Map<string, CardModel>();
 
   constructor(deck: DeckModel) {
     bindPrototypeMethods(this);
-    this._deck = deck;
+    this.deck = deck;
+    shuffleCards(this.deck.cards);
 
     const playerCard: CardModel = {
-      id: "cardPlayer",
+      id: playerCardId,
       name: "Player",
       strength: 0,
       side: CardSide.Front,
     };
-    this._playerCard = playerCard;
-    this.columns[1][1] = playerCard;
+    this.cards.set(this.positionToString({ column: 1, row: 1 }), playerCard);
   }
 
-  get deck(): DeckModel {
-    return this._deck;
+  positionToString(position: BoardPosition): string {
+    return `${position.column}:${position.row}`;
   }
 
-  get playerCard(): CardModel {
-    return this._playerCard;
-  }
-
-  get onCardDealt(): EventDispatcher<CardDealtEventArgs> {
-    return this._onCardDealt;
-  }
-
-  get onCardDiscarded(): EventDispatcher<CardModel> {
-    return this._onCardDiscarded;
-  }
-
-  get onCardMoved(): EventDispatcher<CardModel> {
-    return this._onCardMoved;
-  }
-
-  private validateCoordinates(column: number, row: number): void {
-    if (column >= MaxBoardColumns || row >= MaxBoardRows) {
-      throw new Error(`Board coordinates ${column}, ${row} outside range`);
+  private getPositionFromCardKey(cardKey: string): BoardPosition {
+    const matches = cardKey.match(/(\d+):(\d+)/);
+    if (matches) {
+      const column = parseInt(matches[1]);
+      const row = parseInt(matches[2]);
+      return { column, row };
     }
+    throw new Error("No matching position for card key");
   }
 
-  getCard(column: number, row: number): CardModel | undefined {
-    this.validateCoordinates(column, row);
-    return this.columns[column][row];
+  getCardById(cardId: string): CardModel {
+    for (const card of this.cards.values()) {
+      if (card.id === cardId) {
+        return card;
+      }
+    }
+    throw new Error("No card for ID");
   }
 
-  dealCard(card: CardModel, column: number, row: number): void {
-    this.validateCoordinates(column, row);
-    this.columns[column][row] = card;
+  getCardAtPosition(position: BoardPosition): CardModel | undefined {
+    return this.cards.get(this.positionToString(position));
+  }
+
+  getCardPosition(card: CardModel): BoardPosition {
+    for (const [key, other] of this.cards) {
+      if (other.id === card.id) {
+        return this.getPositionFromCardKey(key);
+      }
+    }
+    throw new Error("No position for card");
+  }
+
+  private dealCard(card: CardModel, position: BoardPosition): void {
+    this.cards.set(this.positionToString(position), card);
 
     this.onCardDealt.dispatch({
       card: card,
-      column: column,
-      row: row,
+      position: position,
     });
   }
 
-  discardCard(column: number, row: number): void {
-    const card = this.getCard(column, row);
-    if (!card) {
-      throw new Error("Card missing");
-    }
-
-    this.validateCoordinates(column, row);
-    this.columns[column][row] = undefined;
-
-    this.onCardDiscarded.dispatch(card);
-  }
-
-  moveCard(
-    fromColumn: number,
-    fromRow: number,
-    toColumn: number,
-    toRow: number
-  ): void {
-    this.validateCoordinates(fromColumn, fromRow);
-    this.validateCoordinates(toColumn, toRow);
-
-    const card = this.getCard(fromColumn, fromRow);
-    if (!card) {
-      throw new Error("Card missing");
-    }
-
-    this.columns[toColumn][toRow] = card;
-    this.columns[fromColumn][fromRow] = undefined;
-
-    this.onCardMoved.dispatch(card);
-  }
-
-  dealCardsForEmptySpots(): void {
-    for (let row = 0; row < MaxBoardRows; ++row) {
-      for (let column = 0; column < MaxBoardColumns; ++column) {
-        if (!this.getCard(column, row)) {
-          const card = this._deck.cards.pop();
+  dealCards(): void {
+    for (let row = 0; row < maxBoardRows; ++row) {
+      for (let column = 0; column < maxBoardColumns; ++column) {
+        const position = { column, row };
+        if (!this.getCardAtPosition(position)) {
+          const card = this.deck.cards.pop();
           if (card) {
-            this.dealCard(card, column, row);
+            this.dealCard(card, position);
+          } else {
+            this.onSpaceLeftEmpty.dispatch({ position: position });
           }
         }
       }
+    }
+  }
+
+  canMoveCard(card: CardModel): boolean {
+    return card.id === playerCardId;
+  }
+
+  canMoveCardTo(card: CardModel, toPosition: BoardPosition): boolean {
+    const cardPosition = this.getCardPosition(card);
+    return this.canMoveFromTo(cardPosition, toPosition);
+  }
+
+  private canMoveFromTo(
+    fromPosition: BoardPosition,
+    toPosition: BoardPosition
+  ): boolean {
+    // allow moving one space in any direction (incl. diagonal)
+    const colDiff = Math.abs(toPosition.column - fromPosition.column);
+    const rowDiff = Math.abs(toPosition.row - fromPosition.row);
+
+    return (colDiff > 0 || rowDiff > 0) && colDiff <= 1 && rowDiff <= 1;
+  }
+
+  getMovableToPositions(movedCard: CardModel): BoardPosition[] {
+    const fromPosition = this.getCardPosition(movedCard);
+    const movableToPositions: BoardPosition[] = [];
+
+    for (let column = 0; column < maxBoardColumns; ++column) {
+      for (let row = 0; row < maxBoardRows; ++row) {
+        const toPosition = { column, row };
+        if (this.canMoveFromTo(fromPosition, toPosition)) {
+          movableToPositions.push(toPosition);
+        }
+      }
+    }
+
+    return movableToPositions;
+  }
+
+  moveCard(cardToMove: CardModel, toPosition: BoardPosition): void {
+    // TODO handle card interaction based on card types
+    this.discardCard(toPosition);
+
+    const fromPosition = this.getCardPosition(cardToMove);
+    this.cards.delete(this.positionToString(fromPosition));
+    this.cards.set(this.positionToString(toPosition), cardToMove);
+    this.onCardMoved.dispatch({
+      card: cardToMove,
+      fromPosition,
+      toPosition,
+    });
+
+    const positionBehindColumn =
+      fromPosition.column + (fromPosition.column - toPosition.column);
+    const positionBehindRow =
+      fromPosition.row + (fromPosition.row - toPosition.row);
+    if (
+      positionBehindColumn > -1 &&
+      positionBehindColumn < maxBoardColumns &&
+      positionBehindRow > -1 &&
+      positionBehindRow < maxBoardRows
+    ) {
+      const cardBehind = this.getCardAtPosition({
+        column: positionBehindColumn,
+        row: positionBehindRow,
+      });
+      if (cardBehind) {
+        this.moveCard(cardBehind, fromPosition);
+      }
+    }
+
+    this.dealCards();
+  }
+
+  private discardCard(position: BoardPosition): void {
+    const cardKey = this.positionToString(position);
+    const card = this.cards.get(cardKey);
+    if (card) {
+      this.cards.delete(cardKey);
+      this.discarded.push(card);
+
+      this.onCardDiscarded.dispatch({
+        card: card,
+      });
     }
   }
 }

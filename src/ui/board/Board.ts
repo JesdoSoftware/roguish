@@ -19,73 +19,300 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import {
   BoardModel,
+  BoardPosition,
   CardDealtEventArgs,
-  MaxBoardColumns,
-  MaxBoardRows,
+  maxBoardColumns,
+  maxBoardRows,
+  SpaceLeftEmptyEventArgs,
+  createId,
 } from "../../business/models";
-import { queueAfterRender, renderElement } from "../../business/services";
-import Card, { updateCardClassName } from "../card/Card";
+import EmptySpace from "../emptySpace/EmptySpace";
+import Card, { updateCardZIndex, updateCardZIndexById } from "../card/Card";
+import {
+  runAfterRender,
+  renderElement,
+  registerDraggable,
+  registerDropTarget,
+  getNextZIndex,
+} from "../rendering";
 import { html } from "../templateLiterals";
 import styles from "./Board.module.css";
 
-const CardDealDelayMs = 250;
+const cardTransitionDurationMs = 500;
 
-const getCardClassName = (column: number, row: number): string => {
-  return `${styles.card} ${styles[`col${column}`]} ${styles[`row${row}`]}`;
+const getCardClassNamesForPosition = (position: BoardPosition): string[] => {
+  return [styles[`col${position.column}`], styles[`row${position.row}`]];
 };
+
+interface EventHandler {
+  handle: () => void;
+  delayBeforeMs: number;
+}
 
 const Board = (boardModel: BoardModel): string => {
   const boardId = "board";
 
-  const cardDealQueue: CardDealtEventArgs[] = [];
-  let isDealingCards = false;
+  const eventQueue: EventHandler[] = [];
+  let isHandlingEvents = false;
 
-  const dealNextCard = (): void => {
-    const cardDealt = cardDealQueue.shift();
-    if (cardDealt) {
-      isDealingCards = true;
-
-      const board = document.getElementById(boardId);
-      const card = document.createElement("div");
-      board?.appendChild(card);
-
-      queueAfterRender(() => {
-        setTimeout(() => {
-          updateCardClassName(
-            cardDealt.card.id,
-            getCardClassName(cardDealt.column, cardDealt.row)
-          );
-        }, CardDealDelayMs);
-      });
-
-      const atDeckClassName = `${styles.card} ${styles.atDeck}`;
-      renderElement(card, Card(cardDealt.card, atDeckClassName));
-
-      setTimeout(dealNextCard, CardDealDelayMs);
+  const handleNextEvent = (): void => {
+    const eventHandler = eventQueue.shift();
+    if (eventHandler) {
+      isHandlingEvents = true;
+      setTimeout(() => {
+        eventHandler.handle();
+        handleNextEvent();
+      }, eventHandler.delayBeforeMs);
     } else {
-      isDealingCards = false;
+      isHandlingEvents = false;
     }
   };
 
-  const queueCardToDeal = (cardDealt: CardDealtEventArgs): void => {
-    cardDealQueue.push(cardDealt);
-    if (!isDealingCards) {
-      dealNextCard();
+  const handleEvents = (): void => {
+    if (!isHandlingEvents) {
+      handleNextEvent();
     }
   };
 
-  boardModel.onCardDealt.addListener((e) => {
-    queueCardToDeal(e);
+  const queueEvent = (handle: () => void, delayBeforeMs = 0): void => {
+    eventQueue.push({ handle, delayBeforeMs });
+    handleEvents();
+  };
+
+  const potentialDropTargetIds: string[] = [];
+
+  const onDragCardStart = (draggableId: string): void => {
+    const draggedElem = document.getElementById(draggableId);
+    if (draggedElem) {
+      draggedElem.classList.add(styles.dragging);
+    }
+
+    const draggedCardModel = boardModel.getCardById(draggableId);
+    const potentialDropPositions =
+      boardModel.getMovableToPositions(draggedCardModel);
+    potentialDropPositions.forEach((position) => {
+      const card = boardModel.getCardAtPosition(position);
+      let elemId: string | undefined;
+      if (card) {
+        potentialDropTargetIds.push(card.id);
+        elemId = card.id;
+      } else {
+        const emptySpaceId = emptySpaceIds.get(
+          boardModel.positionToString(position)
+        );
+        if (emptySpaceId) {
+          elemId = emptySpaceId;
+          potentialDropTargetIds.push(emptySpaceId);
+        }
+      }
+      if (elemId) {
+        const dropTargetElem = document.getElementById(elemId);
+        if (dropTargetElem) {
+          dropTargetElem.classList.add(styles.potentialDropTarget);
+        }
+      }
+    });
+  };
+
+  const onDragCardEnd = (draggableId: string): void => {
+    const draggedElem = document.getElementById(draggableId);
+    if (draggedElem) {
+      draggedElem.classList.remove(styles.dragging);
+    }
+
+    potentialDropTargetIds.forEach((id) => {
+      const dropTargetElem = document.getElementById(id);
+      if (dropTargetElem) {
+        dropTargetElem.classList.remove(styles.potentialDropTarget);
+      }
+    });
+    potentialDropTargetIds.splice(0, potentialDropTargetIds.length);
+  };
+
+  const canDropCard = (draggableId: string, dropTargetId: string): boolean => {
+    const draggedCard = boardModel.getCardById(draggableId);
+    const dropTarget = boardModel.getCardById(dropTargetId);
+    const dropTargetPosition = boardModel.getCardPosition(dropTarget);
+
+    return boardModel.canMoveCardTo(draggedCard, {
+      column: dropTargetPosition.column,
+      row: dropTargetPosition.row,
+    });
+  };
+
+  const onCanDropHover = (
+    _draggableId: string,
+    dropTargetElement: HTMLElement
+  ): void => {
+    dropTargetElement.classList.add(styles.activeDropTarget);
+  };
+
+  const onCanDropUnhover = (
+    _draggableId: string,
+    dropTargetElement: HTMLElement
+  ): void => {
+    dropTargetElement.classList.remove(styles.activeDropTarget);
+  };
+
+  const onDropCard = (draggableId: string, dropTargetId: string): void => {
+    const droppedCard = boardModel.getCardById(draggableId);
+    const dropTarget = boardModel.getCardById(dropTargetId);
+    const dropTargetPosition = boardModel.getCardPosition(dropTarget);
+
+    boardModel.moveCard(droppedCard, dropTargetPosition);
+  };
+
+  const dealCard = (cardDealt: CardDealtEventArgs): void => {
+    const board = document.getElementById(boardId);
+    const card = document.createElement("div");
+    board?.appendChild(card);
+
+    const column = cardDealt.position.column;
+    const row = cardDealt.position.row;
+    const classNames = [
+      styles.space,
+      ...getCardClassNamesForPosition({ column, row }),
+      styles[`dealingToPos${column}_${row}`],
+    ];
+
+    const canDrag = (): boolean => boardModel.canMoveCard(cardDealt.card);
+
+    runAfterRender(() => {
+      updateCardZIndexById(cardDealt.card.id, getNextZIndex());
+    });
+
+    renderElement(card, Card(cardDealt.card, classNames));
+    registerDraggable(
+      cardDealt.card.id,
+      canDrag,
+      onDragCardStart,
+      onDragCardEnd
+    );
+    registerDropTarget(
+      cardDealt.card.id,
+      canDropCard,
+      onCanDropHover,
+      onCanDropUnhover,
+      onDropCard
+    );
+  };
+
+  const emptySpaceIds = new Map<string, string>(); // key is position, value is ID
+
+  const isSpaceMarkedEmpty = (position: BoardPosition): boolean =>
+    emptySpaceIds.has(boardModel.positionToString(position));
+
+  const markEmptySpace = (spaceLeftEmpty: SpaceLeftEmptyEventArgs): void => {
+    if (!isSpaceMarkedEmpty(spaceLeftEmpty.position)) {
+      const board = document.getElementById(boardId);
+      const emptySpace = document.createElement("div");
+      board?.appendChild(emptySpace);
+
+      const emptySpaceId = createId("emptySpace");
+      renderElement(
+        emptySpace,
+        EmptySpace(emptySpaceId, [
+          styles.space,
+          ...getCardClassNamesForPosition({
+            column: spaceLeftEmpty.position.column,
+            row: spaceLeftEmpty.position.row,
+          }),
+        ])
+      );
+      registerDropTarget(
+        emptySpaceId,
+        (draggableId: string) => {
+          const movedCard = boardModel.getCardById(draggableId);
+          return boardModel.canMoveCardTo(movedCard, spaceLeftEmpty.position);
+        },
+        onCanDropHover,
+        onCanDropUnhover,
+        (draggableId: string) => {
+          const movedCard = boardModel.getCardById(draggableId);
+          boardModel.moveCard(movedCard, spaceLeftEmpty.position);
+        }
+      );
+
+      emptySpaceIds.set(
+        boardModel.positionToString(spaceLeftEmpty.position),
+        emptySpaceId
+      );
+    }
+  };
+
+  const unmarkEmptySpace = (position: BoardPosition): void => {
+    const emptySpaceKey = boardModel.positionToString(position);
+    const emptySpaceId = emptySpaceIds.get(emptySpaceKey);
+    if (emptySpaceId) {
+      emptySpaceIds.delete(emptySpaceKey);
+      const emptySpaceElem = document.getElementById(emptySpaceId);
+      if (emptySpaceElem) {
+        emptySpaceElem.parentElement?.removeChild(emptySpaceElem);
+      }
+    }
+  };
+
+  boardModel.onCardDealt.addListener((e) =>
+    queueEvent(() => {
+      dealCard(e);
+    }, 250)
+  );
+
+  boardModel.onCardMoved.addListener((e) => {
+    queueEvent(() => {
+      if (isSpaceMarkedEmpty(e.toPosition)) {
+        unmarkEmptySpace(e.toPosition);
+      }
+      const cardElem = document.getElementById(e.card.id);
+      if (cardElem) {
+        cardElem.classList.remove(
+          ...getCardClassNamesForPosition(e.fromPosition)
+        );
+        cardElem.classList.add(...getCardClassNamesForPosition(e.toPosition));
+        updateCardZIndex(cardElem, getNextZIndex());
+      }
+    });
   });
 
-  queueAfterRender(boardModel.dealCardsForEmptySpots);
+  boardModel.onCardDiscarded.addListener((e) => {
+    queueEvent(() => {
+      const cardElem = document.getElementById(e.card.id);
+      if (cardElem) {
+        cardElem.classList.add(styles.discarded);
+        updateCardZIndex(cardElem, getNextZIndex());
+      }
+      setTimeout(() => {
+        const cardElem = document.getElementById(e.card.id);
+        cardElem?.parentElement?.removeChild(cardElem);
+      }, cardTransitionDurationMs);
+    });
+  });
+
+  boardModel.onSpaceLeftEmpty.addListener((e) => {
+    queueEvent(() => {
+      markEmptySpace(e);
+    });
+  });
+
+  runAfterRender(boardModel.dealCards);
 
   let initialCards = "";
-  for (let column = 0; column < MaxBoardColumns; ++column) {
-    for (let row = 0; row < MaxBoardRows; ++row) {
-      const cardModel = boardModel.getCard(column, row);
+  for (let column = 0; column < maxBoardColumns; ++column) {
+    for (let row = 0; row < maxBoardRows; row = ++row) {
+      const position = { column, row };
+      const cardModel = boardModel.getCardAtPosition(position);
       if (cardModel) {
-        initialCards += Card(cardModel, getCardClassName(column, row));
+        initialCards += Card(cardModel, [
+          styles.space,
+          ...getCardClassNamesForPosition(position),
+          styles.draggable,
+        ]);
+        registerDraggable(
+          cardModel.id,
+          () => boardModel.canMoveCard(cardModel),
+          onDragCardStart,
+          onDragCardEnd
+        );
       }
     }
   }
