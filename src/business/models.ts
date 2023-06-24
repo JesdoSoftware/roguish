@@ -233,11 +233,11 @@ export class BoardModel {
     fromPosition: BoardPosition,
     toPosition: BoardPosition
   ): boolean {
-    // allow moving one space in any direction (incl. diagonal)
+    // allow moving one space in any direction, except diagonal
     const colDiff = Math.abs(toPosition.column - fromPosition.column);
     const rowDiff = Math.abs(toPosition.row - fromPosition.row);
 
-    return (colDiff > 0 || rowDiff > 0) && colDiff <= 1 && rowDiff <= 1;
+    return (colDiff === 1 && rowDiff === 0) || (rowDiff === 1 && colDiff === 0);
   }
 
   getMovableToPositions(movedCard: CardModel): BoardPosition[] {
