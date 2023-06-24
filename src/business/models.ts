@@ -57,11 +57,34 @@ export enum CardSide {
   Back,
 }
 
-export interface CardModel {
-  id: string;
-  name: string;
-  strength: number;
-  side: CardSide;
+export class CardModel {
+  readonly id: string;
+  readonly name: string;
+  readonly strength: number;
+  readonly onCardFlipped = new EventDispatcher<void>();
+
+  private _side: CardSide;
+  get side(): CardSide {
+    return this._side;
+  }
+  set side(newSide) {
+    this._side = newSide;
+    this.onCardFlipped.dispatch();
+  }
+
+  constructor(
+    id: string,
+    name: string,
+    strength: number,
+    side: CardSide = CardSide.Back
+  ) {
+    this.id = id;
+    this.name = name;
+    this.strength = strength;
+    this._side = side;
+
+    bindPrototypeMethods(this);
+  }
 }
 
 let nextId = 1;
@@ -71,12 +94,7 @@ export const createId = (prefix?: string): string => {
 };
 
 export const cardDtoToModel = (cardDto: CardDto): CardModel => {
-  return {
-    id: createId("card"),
-    name: cardDto.name,
-    strength: cardDto.strength,
-    side: CardSide.Front,
-  };
+  return new CardModel(createId("card"), cardDto.name, cardDto.strength);
 };
 
 const shuffleCards = (cardModels: CardModel[]): CardModel[] => {
@@ -146,16 +164,16 @@ export class BoardModel {
   private readonly cards = new Map<string, CardModel>();
 
   constructor(deck: DeckModel) {
-    bindPrototypeMethods(this);
     this.deck = deck;
+    bindPrototypeMethods(this);
     shuffleCards(this.deck.cards);
 
-    const playerCard: CardModel = {
-      id: playerCardId,
-      name: "Player",
-      strength: 0,
-      side: CardSide.Front,
-    };
+    const playerCard: CardModel = new CardModel(
+      playerCardId,
+      "Player",
+      0,
+      CardSide.Front
+    );
     this.cards.set(this.positionToString({ column: 1, row: 1 }), playerCard);
   }
 
