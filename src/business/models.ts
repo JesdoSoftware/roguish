@@ -162,19 +162,18 @@ export class BoardModel {
   readonly onSpaceLeftEmpty = new EventDispatcher<SpaceLeftEmptyEventArgs>();
 
   private readonly cards = new Map<string, CardModel>();
+  private readonly playerCard: CardModel;
 
   constructor(deck: DeckModel) {
     this.deck = deck;
     bindPrototypeMethods(this);
     shuffleCards(this.deck.cards);
 
-    const playerCard: CardModel = new CardModel(
-      playerCardId,
-      "Player",
-      0,
-      CardSide.Front
+    this.playerCard = new CardModel(playerCardId, "Player", 0, CardSide.Front);
+    this.cards.set(
+      this.positionToString({ column: 1, row: 1 }),
+      this.playerCard
     );
-    this.cards.set(this.positionToString({ column: 1, row: 1 }), playerCard);
   }
 
   positionToString(position: BoardPosition): string {
@@ -215,6 +214,10 @@ export class BoardModel {
 
   private dealCard(card: CardModel, position: BoardPosition): void {
     this.cards.set(this.positionToString(position), card);
+
+    if (this.canMoveCardTo(this.playerCard, position)) {
+      card.side = CardSide.Front;
+    }
 
     this.onCardDealt.dispatch({
       card: card,
@@ -305,6 +308,12 @@ export class BoardModel {
         this.moveCard(cardBehind, fromPosition);
       }
     }
+
+    this.cards.forEach((card) => {
+      if (this.canMoveFromTo(toPosition, this.getCardPosition(card))) {
+        card.side = CardSide.Front;
+      }
+    });
 
     this.dealCards();
   }
