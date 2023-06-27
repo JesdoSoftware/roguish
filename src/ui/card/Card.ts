@@ -28,7 +28,7 @@ const getCombinedClassName = (
 ): string => {
   const classNames: string[] = [styles.card, ...externalClassNames];
   if (side === CardSide.Back) {
-    classNames.push(styles.backUp);
+    classNames.push(styles.faceDown);
   }
 
   return classNames.join(" ");
@@ -55,9 +55,9 @@ const Card = (cardModel: CardModel, classNames: string[]): string => {
     const cardElement = document.getElementById(cardModel.id);
     if (cardElement) {
       if (cardModel.side === CardSide.Back) {
-        cardElement.classList.add(styles.backUp);
+        cardElement.classList.add(styles.faceDown);
       } else {
-        cardElement.classList.remove(styles.backUp);
+        cardElement.classList.remove(styles.faceDown);
       }
     }
   });
