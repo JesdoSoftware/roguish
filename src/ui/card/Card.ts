@@ -22,8 +22,16 @@ import { addOrUpdateStyleProperties } from "../rendering";
 import { html } from "../templateLiterals";
 import styles from "./Card.module.css";
 
-const getCombinedClassName = (externalClassNames: string[]): string => {
-  return `${styles.card} ${externalClassNames.join(" ")}`;
+const getCombinedClassName = (
+  externalClassNames: string[],
+  side: CardSide
+): string => {
+  const classNames: string[] = [styles.card, ...externalClassNames];
+  if (side === CardSide.Back) {
+    classNames.push(styles.faceDown);
+  }
+
+  return classNames.join(" ");
 };
 
 export const updateCardZIndexById = (cardId: string, zIndex: number): void => {
@@ -41,13 +49,21 @@ export const updateCardZIndex = (
 };
 
 const Card = (cardModel: CardModel, classNames: string[]): string => {
-  const combinedClassName = getCombinedClassName(classNames);
-  // TODO move to CSS classes
-  const style =
-    cardModel.side === CardSide.Back ? "transform: rotateY(180deg);" : "";
+  const combinedClassName = getCombinedClassName(classNames, cardModel.side);
+
+  cardModel.onCardFlipped.addListener(() => {
+    const cardElement = document.getElementById(cardModel.id);
+    if (cardElement) {
+      if (cardModel.side === CardSide.Back) {
+        cardElement.classList.add(styles.faceDown);
+      } else {
+        cardElement.classList.remove(styles.faceDown);
+      }
+    }
+  });
 
   return html`
-    <div id="${cardModel.id}" class="${combinedClassName}" style="${style}">
+    <div id="${cardModel.id}" class="${combinedClassName}">
       <div class="${styles.cardSide}">
         <p>${cardModel.name}</p>
       </div>

@@ -57,11 +57,37 @@ export enum CardSide {
   Back,
 }
 
-export interface CardModel {
-  id: string;
-  name: string;
-  strength: number;
-  side: CardSide;
+export class CardModel {
+  readonly id: string;
+  readonly name: string;
+  readonly strength: number;
+  readonly onCardFlipped = new EventDispatcher<void>();
+
+  private _side: CardSide;
+  get side(): CardSide {
+    return this._side;
+  }
+  set side(newSide) {
+    const oldSide = this._side;
+    this._side = newSide;
+    if (oldSide !== newSide) {
+      this.onCardFlipped.dispatch();
+    }
+  }
+
+  constructor(
+    id: string,
+    name: string,
+    strength: number,
+    side: CardSide = CardSide.Back
+  ) {
+    this.id = id;
+    this.name = name;
+    this.strength = strength;
+    this._side = side;
+
+    bindPrototypeMethods(this);
+  }
 }
 
 let nextId = 1;
@@ -71,12 +97,7 @@ export const createId = (prefix?: string): string => {
 };
 
 export const cardDtoToModel = (cardDto: CardDto): CardModel => {
-  return {
-    id: createId("card"),
-    name: cardDto.name,
-    strength: cardDto.strength,
-    side: CardSide.Front,
-  };
+  return new CardModel(createId("card"), cardDto.name, cardDto.strength);
 };
 
 const shuffleCards = (cardModels: CardModel[]): CardModel[] => {
@@ -144,19 +165,18 @@ export class BoardModel {
   readonly onSpaceLeftEmpty = new EventDispatcher<SpaceLeftEmptyEventArgs>();
 
   private readonly cards = new Map<string, CardModel>();
+  private readonly playerCard: CardModel;
 
   constructor(deck: DeckModel) {
-    bindPrototypeMethods(this);
     this.deck = deck;
+    bindPrototypeMethods(this);
     shuffleCards(this.deck.cards);
 
-    const playerCard: CardModel = {
-      id: playerCardId,
-      name: "Player",
-      strength: 0,
-      side: CardSide.Front,
-    };
-    this.cards.set(this.positionToString({ column: 1, row: 1 }), playerCard);
+    this.playerCard = new CardModel(playerCardId, "Player", 0, CardSide.Front);
+    this.cards.set(
+      this.positionToString({ column: 1, row: 1 }),
+      this.playerCard
+    );
   }
 
   positionToString(position: BoardPosition): string {
@@ -198,6 +218,10 @@ export class BoardModel {
   private dealCard(card: CardModel, position: BoardPosition): void {
     this.cards.set(this.positionToString(position), card);
 
+    if (this.canMoveCardTo(this.playerCard, position)) {
+      card.side = CardSide.Front;
+    }
+
     this.onCardDealt.dispatch({
       card: card,
       position: position,
@@ -233,11 +257,11 @@ export class BoardModel {
     fromPosition: BoardPosition,
     toPosition: BoardPosition
   ): boolean {
-    // allow moving one space in any direction (incl. diagonal)
+    // allow moving one space in any direction, except diagonal
     const colDiff = Math.abs(toPosition.column - fromPosition.column);
     const rowDiff = Math.abs(toPosition.row - fromPosition.row);
 
-    return (colDiff > 0 || rowDiff > 0) && colDiff <= 1 && rowDiff <= 1;
+    return (colDiff === 1 && rowDiff === 0) || (rowDiff === 1 && colDiff === 0);
   }
 
   getMovableToPositions(movedCard: CardModel): BoardPosition[] {
@@ -287,6 +311,12 @@ export class BoardModel {
         this.moveCard(cardBehind, fromPosition);
       }
     }
+
+    this.cards.forEach((card) => {
+      if (this.canMoveFromTo(toPosition, this.getCardPosition(card))) {
+        card.side = CardSide.Front;
+      }
+    });
 
     this.dealCards();
   }
