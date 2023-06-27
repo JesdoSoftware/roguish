@@ -111,6 +111,15 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+@keyframes backToFront {
+  from {
+    transform: rotateY(180deg);
+  }
+  to {
+    transform: rotateY(0deg);
+  }
+}
+
 .dealingToPos0_0 {
   animation-name: dungeonDeckToCol0, dungeonDeckToRow0;
   animation-duration: 0.5s;
@@ -153,6 +162,51 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
 .dealingToPos2_2 {
   animation-name: dungeonDeckToCol2, dungeonDeckToRow2;
+  animation-duration: 0.5s;
+}
+
+.dealingToPos0_0Flipping {
+  animation-name: dungeonDeckToCol0, dungeonDeckToRow0, backToFront;
+  animation-duration: 0.5s;
+}
+
+.dealingToPos0_1Flipping {
+  animation-name: dungeonDeckToCol0, dungeonDeckToRow1, backToFront;
+  animation-duration: 0.5s;
+}
+
+.dealingToPos0_2Flipping {
+  animation-name: dungeonDeckToCol0, dungeonDeckToRow2, backToFront;
+  animation-duration: 0.5s;
+}
+
+.dealingToPos1_0Flipping {
+  animation-name: dungeonDeckToCol1, dungeonDeckToRow0, backToFront;
+  animation-duration: 0.5s;
+}
+
+.dealingToPos1_1Flipping {
+  animation-name: dungeonDeckToCol1, dungeonDeckToRow1, backToFront;
+  animation-duration: 0.5s;
+}
+
+.dealingToPos1_2Flipping {
+  animation-name: dungeonDeckToCol1, dungeonDeckToRow2, backToFront;
+  animation-duration: 0.5s;
+}
+
+.dealingToPos2_0Flipping {
+  animation-name: dungeonDeckToCol2, dungeonDeckToRow0, backToFront;
+  animation-duration: 0.5s;
+}
+
+.dealingToPos2_1Flipping {
+  animation-name: dungeonDeckToCol2, dungeonDeckToRow1, backToFront;
+  animation-duration: 0.5s;
+}
+
+.dealingToPos2_2Flipping {
+  animation-name: dungeonDeckToCol2, dungeonDeckToRow2, backToFront;
   animation-duration: 0.5s;
 }
 

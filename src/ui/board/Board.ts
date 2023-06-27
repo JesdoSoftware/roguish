@@ -25,6 +25,7 @@ import {
   maxBoardRows,
   SpaceLeftEmptyEventArgs,
   createId,
+  CardSide,
 } from "../../business/models";
 import EmptySpace from "../emptySpace/EmptySpace";
 import Card, { updateCardZIndex, updateCardZIndexById } from "../card/Card";
@@ -169,10 +170,14 @@ const Board = (boardModel: BoardModel): string => {
 
     const column = cardDealt.position.column;
     const row = cardDealt.position.row;
+    const isFlipping = cardDealt.card.side === CardSide.Front;
+    const dealingClass = `dealingToPos${column}_${row}${
+      isFlipping ? "Flipping" : ""
+    }`;
     const classNames = [
       styles.space,
       ...getCardClassNamesForPosition({ column, row }),
-      styles[`dealingToPos${column}_${row}`],
+      styles[dealingClass],
     ];
 
     const canDrag = (): boolean => boardModel.canMoveCard(cardDealt.card);

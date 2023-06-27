@@ -68,8 +68,11 @@ export class CardModel {
     return this._side;
   }
   set side(newSide) {
+    const oldSide = this._side;
     this._side = newSide;
-    this.onCardFlipped.dispatch();
+    if (oldSide !== newSide) {
+      this.onCardFlipped.dispatch();
+    }
   }
 
   constructor(
