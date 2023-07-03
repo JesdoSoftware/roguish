@@ -93,7 +93,7 @@ export class CardModel {
 let nextId = 1;
 
 export const createId = (prefix?: string): string => {
-  return `${prefix}${nextId++}`;
+  return `${prefix ? prefix : ""}${nextId++}`;
 };
 
 export const cardDtoToModel = (cardDto: CardDto): CardModel => {
@@ -351,5 +351,14 @@ export class GameModel {
       }
     });
     this.board = new BoardModel(cardModels);
+
+    this.addInitialHandCards();
+  }
+
+  private addInitialHandCards(): void {
+    this.hand.addCard(new CardModel(createId(), "Mace", 1, CardSide.Front));
+    this.hand.addCard(
+      new CardModel(createId(), "Leather Armor", 1, CardSide.Front)
+    );
   }
 }
