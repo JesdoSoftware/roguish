@@ -115,23 +115,6 @@ const shuffleCards = (cardModels: CardModel[]): CardModel[] => {
   return cardModels;
 };
 
-export interface DeckModel {
-  cards: CardModel[];
-}
-
-export const deckDtoToModel = (deckDto: DeckDto): DeckModel => {
-  return {
-    cards: deckDto.cards.flatMap((cardDto) => {
-      const cardModels: CardModel[] = [];
-      for (let i = 0; i < cardDto.quantity; ++i) {
-        cardModels.push(cardDtoToModel(cardDto));
-      }
-
-      return cardModels;
-    }),
-  };
-};
-
 export interface BoardPosition {
   column: number;
   row: number;
@@ -157,7 +140,7 @@ export interface SpaceLeftEmptyEventArgs {
 }
 
 export class BoardModel {
-  readonly deck: DeckModel;
+  readonly dungeonDeck: CardModel[];
   readonly discarded: CardModel[] = [];
   readonly onCardDealt = new EventDispatcher<CardDealtEventArgs>();
   readonly onCardMoved = new EventDispatcher<CardMovedEventArgs>();
@@ -167,10 +150,10 @@ export class BoardModel {
   private readonly cards = new Map<string, CardModel>();
   private readonly playerCard: CardModel;
 
-  constructor(deck: DeckModel) {
-    this.deck = deck;
+  constructor(dungeonDeck: CardModel[]) {
+    this.dungeonDeck = dungeonDeck;
     bindPrototypeMethods(this);
-    shuffleCards(this.deck.cards);
+    shuffleCards(this.dungeonDeck);
 
     this.playerCard = new CardModel(playerCardId, "Player", 0, CardSide.Front);
     this.cards.set(
@@ -233,7 +216,7 @@ export class BoardModel {
       for (let column = 0; column < maxBoardColumns; ++column) {
         const position = { column, row };
         if (!this.getCardAtPosition(position)) {
-          const card = this.deck.cards.pop();
+          const card = this.dungeonDeck.pop();
           if (card) {
             this.dealCard(card, position);
           } else {
@@ -332,5 +315,41 @@ export class BoardModel {
         card: card,
       });
     }
+  }
+}
+
+export class HandModel {
+  readonly cards: CardModel[] = [];
+
+  constructor() {
+    bindPrototypeMethods(this);
+  }
+
+  addCard(card: CardModel): void {
+    this.cards.push(card);
+  }
+
+  removeCard(cardId: string): CardModel {
+    const index = this.cards.findIndex((c) => c.id === cardId);
+    const spliced = this.cards.splice(index, 1);
+
+    return spliced[0];
+  }
+}
+
+export class GameModel {
+  readonly board: BoardModel;
+  readonly hand: HandModel = new HandModel();
+
+  constructor(deckDto: DeckDto) {
+    bindPrototypeMethods(this);
+
+    const cardModels: CardModel[] = [];
+    deckDto.cards.forEach((cardDto) => {
+      for (let i = 0; i < cardDto.quantity; ++i) {
+        cardModels.push(cardDtoToModel(cardDto));
+      }
+    });
+    this.board = new BoardModel(cardModels);
   }
 }

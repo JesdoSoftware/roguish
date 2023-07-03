@@ -18,6 +18,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { loadDeck } from "../../business/dataAccess";
+import { GameModel } from "../../business/models";
 import Board from "../board/Board";
 import {
   canDrag,
@@ -159,8 +160,9 @@ const App = (): string => {
   });
 
   onElementAdded(boardId, (board) => {
-    loadDeck().then((boardModel) => {
-      board.outerHTML = Board(boardModel);
+    loadDeck().then((deckDto) => {
+      const gameModel = new GameModel(deckDto);
+      board.outerHTML = Board(gameModel.board);
     });
   });
 

@@ -18,9 +18,8 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { DeckDto } from "./dtos";
-import { BoardModel, deckDtoToModel } from "./models";
 
-export const loadDeck = async (): Promise<BoardModel> => {
+export const loadDeck = async (): Promise<DeckDto> => {
   const decksUrl = `${process.env.API_BASE_URL}/decks/deck.json`;
   const response = await fetch(decksUrl);
   if (!response.ok) {
@@ -30,7 +29,5 @@ export const loadDeck = async (): Promise<BoardModel> => {
   }
 
   const deckDto = (await response.json()) as DeckDto;
-  const deckModel = deckDtoToModel(deckDto);
-
-  return new BoardModel(deckModel);
+  return deckDto;
 };
