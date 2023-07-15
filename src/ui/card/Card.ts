@@ -34,13 +34,6 @@ const getCombinedClassName = (
   return classNames.join(" ");
 };
 
-export const updateCardZIndexById = (cardId: string, zIndex: number): void => {
-  const cardElement = document.getElementById(cardId);
-  if (cardElement) {
-    updateCardZIndex(cardElement, zIndex);
-  }
-};
-
 export const updateCardZIndex = (
   cardElement: HTMLElement,
   zIndex: number

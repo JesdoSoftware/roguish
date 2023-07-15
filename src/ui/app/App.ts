@@ -20,8 +20,6 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 import { loadDeck } from "../../business/dataAccess";
 import Board from "../board/Board";
 import {
-  runAfterRender,
-  renderElement,
   canDrag,
   canDrop,
   drop,
@@ -31,6 +29,7 @@ import {
   endDrag,
   onCanDropUnhover,
   onCanDropHover,
+  onElementAdded,
 } from "../rendering";
 import { html } from "../templateLiterals";
 
@@ -153,21 +152,15 @@ const App = (): string => {
   const appId = "app";
   const boardId = "board";
 
-  runAfterRender(() => {
-    const app = document.getElementById(appId);
-    if (!app) {
-      throw new Error("Missing app element");
-    }
+  onElementAdded(appId, (app) => {
     app.addEventListener("pointerdown", onPointerDown);
     app.addEventListener("pointermove", onPointerMove);
     app.addEventListener("pointerup", onPointerUp);
+  });
 
+  onElementAdded(boardId, (board) => {
     loadDeck().then((boardModel) => {
-      const board = document.getElementById(boardId);
-      if (!board) {
-        throw new Error("Missing board element");
-      }
-      renderElement(board, Board(boardModel));
+      board.outerHTML = Board(boardModel);
     });
   });
 

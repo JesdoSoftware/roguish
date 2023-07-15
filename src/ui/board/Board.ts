@@ -28,13 +28,12 @@ import {
   CardSide,
 } from "../../business/models";
 import EmptySpace from "../emptySpace/EmptySpace";
-import Card, { updateCardZIndex, updateCardZIndexById } from "../card/Card";
+import Card, { updateCardZIndex } from "../card/Card";
 import {
-  runAfterRender,
-  renderElement,
   registerDraggable,
   registerDropTarget,
   getNextZIndex,
+  onElementAdded,
 } from "../rendering";
 import { html } from "../templateLiterals";
 import styles from "./Board.module.css";
@@ -182,11 +181,11 @@ const Board = (boardModel: BoardModel): string => {
 
     const canDrag = (): boolean => boardModel.canMoveCard(cardDealt.card);
 
-    runAfterRender(() => {
-      updateCardZIndexById(cardDealt.card.id, getNextZIndex());
+    onElementAdded(cardDealt.card.id, (card) => {
+      updateCardZIndex(card, getNextZIndex());
     });
 
-    renderElement(card, Card(cardDealt.card, classNames));
+    card.outerHTML = Card(cardDealt.card, classNames);
     registerDraggable(
       cardDealt.card.id,
       canDrag,
@@ -214,16 +213,13 @@ const Board = (boardModel: BoardModel): string => {
       board?.appendChild(emptySpace);
 
       const emptySpaceId = createId("emptySpace");
-      renderElement(
-        emptySpace,
-        EmptySpace(emptySpaceId, [
-          styles.space,
-          ...getCardClassNamesForPosition({
-            column: spaceLeftEmpty.position.column,
-            row: spaceLeftEmpty.position.row,
-          }),
-        ])
-      );
+      emptySpace.outerHTML = EmptySpace(emptySpaceId, [
+        styles.space,
+        ...getCardClassNamesForPosition({
+          column: spaceLeftEmpty.position.column,
+          row: spaceLeftEmpty.position.row,
+        }),
+      ]);
       registerDropTarget(
         emptySpaceId,
         (draggableId: string) => {
@@ -299,7 +295,7 @@ const Board = (boardModel: BoardModel): string => {
     });
   });
 
-  runAfterRender(boardModel.dealCards);
+  onElementAdded(boardId, () => boardModel.dealCards());
 
   let initialCards = "";
   for (let column = 0; column < maxBoardColumns; ++column) {
