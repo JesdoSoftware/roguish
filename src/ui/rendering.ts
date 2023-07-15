@@ -17,24 +17,19 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-const runAfterRenderQueue: (() => void)[] = [];
-
-export const runAfterRender = (callback: () => void): void => {
-  runAfterRenderQueue.push(callback);
-};
-
-const flushRunAfterRenderQueue = (): void => {
-  while (runAfterRenderQueue.length) {
-    const callback = runAfterRenderQueue.shift();
-    if (callback) {
-      callback();
+export const onElementAdded = (
+  id: string,
+  callback: (element: HTMLElement) => void
+): void => {
+  const observer = new MutationObserver(() => {
+    const element = document.getElementById(id);
+    if (element) {
+      observer.disconnect();
+      callback(element);
+      return;
     }
-  }
-};
-
-export const renderElement = (element: Element, outerHtml: string): void => {
-  element.outerHTML = outerHtml;
-  flushRunAfterRenderQueue();
+  });
+  observer.observe(document.getRootNode(), { subtree: true, childList: true });
 };
 
 export interface Style {
