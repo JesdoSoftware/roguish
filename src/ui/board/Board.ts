@@ -50,7 +50,7 @@ interface EventHandler {
 }
 
 const Board = (boardModel: BoardModel): string => {
-  const boardId = "board";
+  const boardId = createId();
 
   const eventQueue: EventHandler[] = [];
   let isHandlingEvents = false;
@@ -212,7 +212,7 @@ const Board = (boardModel: BoardModel): string => {
       const emptySpace = document.createElement("div");
       board?.appendChild(emptySpace);
 
-      const emptySpaceId = createId("emptySpace");
+      const emptySpaceId = createId();
       emptySpace.outerHTML = EmptySpace(emptySpaceId, [
         styles.space,
         ...getCardClassNamesForPosition({

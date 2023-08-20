@@ -23,7 +23,13 @@ import { CardDto, DeckDto } from "./dtos";
 export const maxBoardColumns = 3;
 export const maxBoardRows = 3;
 
-const playerCardId = "cardPlayer";
+let nextId = 1;
+
+export const createId = (): string => {
+  return `${nextId++}`;
+};
+
+const playerCardId = createId();
 
 export class EventDispatcher<T> {
   private readonly listeners: ((e: T) => void)[] = [];
@@ -90,14 +96,8 @@ export class CardModel {
   }
 }
 
-let nextId = 1;
-
-export const createId = (prefix?: string): string => {
-  return `${prefix ? prefix : ""}${nextId++}`;
-};
-
 export const cardDtoToModel = (cardDto: CardDto): CardModel => {
-  return new CardModel(createId("card"), cardDto.name, cardDto.strength);
+  return new CardModel(createId(), cardDto.name, cardDto.strength);
 };
 
 const shuffleCards = (cardModels: CardModel[]): CardModel[] => {

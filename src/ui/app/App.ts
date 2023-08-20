@@ -18,7 +18,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { loadDeck } from "../../business/dataAccess";
-import { GameModel } from "../../business/models";
+import { GameModel, createId } from "../../business/models";
 import Board from "../board/Board";
 import {
   canDrag,
@@ -150,15 +150,14 @@ const App = (): string => {
     }
   };
 
-  const appId = "app";
-  const boardId = "board";
-
+  const appId = createId();
   onElementAdded(appId, (app) => {
     app.addEventListener("pointerdown", onPointerDown);
     app.addEventListener("pointermove", onPointerMove);
     app.addEventListener("pointerup", onPointerUp);
   });
 
+  const boardId = createId();
   onElementAdded(boardId, (board) => {
     loadDeck().then((deckDto) => {
       const gameModel = new GameModel(deckDto);

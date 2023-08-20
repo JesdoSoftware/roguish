@@ -26,7 +26,6 @@ export const onElementAdded = (
     if (element) {
       observer.disconnect();
       callback(element);
-      return;
     }
   });
   observer.observe(document.getRootNode(), { subtree: true, childList: true });
