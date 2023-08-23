@@ -34,6 +34,7 @@ import {
   onElementAdded,
 } from "../rendering";
 import { html } from "../templateLiterals";
+import styles from "./App.module.css";
 
 const CopyrightLicenseSource = (): string => {
   return html`
@@ -185,7 +186,7 @@ const App = (): string => {
     <div id="${appId}">
       <div id="${boardId}">Loading deck&hellip;</div>
       <button id="${openHandDialogButtonId}">Hand</button>
-      <dialog id=${handDialogId}></dialog>
+      <dialog id=${handDialogId} class="${styles.handDialog}"></dialog>
       <hr />
       ${CopyrightLicenseSource()}
     </div>

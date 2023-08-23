@@ -17,19 +17,7 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { HandModel } from "../../business/models";
-import Card from "../card/Card";
-import { html } from "../templateLiterals";
-import styles from "./Hand.module.css";
-
-const Hand = (handModel: HandModel): string => {
-  return html`<div>
-    <ul class="${styles.cards}">
-      ${handModel.cards
-        .map((cardModel) => html`<li>${Card(cardModel, [styles.card])}</li>`)
-        .join("")}
-    </ul>
-  </div>`;
-};
-
-export default Hand;
+.handDialog {
+  width: 50vw;
+  height: 80vh;
+}

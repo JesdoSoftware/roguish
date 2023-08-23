@@ -17,19 +17,16 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { HandModel } from "../../business/models";
-import Card from "../card/Card";
-import { html } from "../templateLiterals";
-import styles from "./Hand.module.css";
+ul.cards {
+  list-style: none;
+  padding-left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+  gap: 10px;
+}
 
-const Hand = (handModel: HandModel): string => {
-  return html`<div>
-    <ul class="${styles.cards}">
-      ${handModel.cards
-        .map((cardModel) => html`<li>${Card(cardModel, [styles.card])}</li>`)
-        .join("")}
-    </ul>
-  </div>`;
-};
-
-export default Hand;
+.cards li {
+  width: 25%;
+}
