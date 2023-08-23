@@ -20,6 +20,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 import { loadDeck } from "../../business/dataAccess";
 import { GameModel, createId } from "../../business/models";
 import Board from "../board/Board";
+import Hand from "../hand/Hand";
 import {
   canDrag,
   canDrop,
@@ -157,17 +158,34 @@ const App = (): string => {
     app.addEventListener("pointerup", onPointerUp);
   });
 
+  const openHandDialogButtonId = createId();
+  const handDialogId = createId();
+
   const boardId = createId();
   onElementAdded(boardId, (board) => {
     loadDeck().then((deckDto) => {
       const gameModel = new GameModel(deckDto);
       board.outerHTML = Board(gameModel.board);
+
+      onElementAdded(openHandDialogButtonId, (button) => {
+        button.addEventListener("click", (): void => {
+          const handDialog = document.getElementById(
+            handDialogId
+          ) as HTMLDialogElement;
+          if (handDialog) {
+            handDialog.innerHTML = Hand(gameModel.hand);
+          }
+          handDialog.showModal();
+        });
+      });
     });
   });
 
   return html`
     <div id="${appId}">
       <div id="${boardId}">Loading deck&hellip;</div>
+      <button id="${openHandDialogButtonId}">Hand</button>
+      <dialog id=${handDialogId}></dialog>
       <hr />
       ${CopyrightLicenseSource()}
     </div>
