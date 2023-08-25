@@ -48,14 +48,23 @@ const getCardClassNamesForPosition = (position: BoardPosition): string[] => {
   ];
 };
 
+export const moveCardToBoard = (
+  boardId: string,
+  cardElement: HTMLElement
+): void => {
+  const board = document.getElementById(boardId);
+  if (board) {
+    board.appendChild(cardElement);
+    cardElement.classList.add(boardStyles.space);
+  }
+};
+
 interface EventHandler {
   handle: () => void;
   delayBeforeMs: number;
 }
 
-const Board = (boardModel: BoardModel): string => {
-  const boardId = createId();
-
+const Board = (id: string, boardModel: BoardModel): string => {
   const eventQueue: EventHandler[] = [];
   let isHandlingEvents = false;
 
@@ -167,7 +176,7 @@ const Board = (boardModel: BoardModel): string => {
   };
 
   const dealCard = (cardDealt: CardDealtEventArgs): void => {
-    const board = document.getElementById(boardId);
+    const board = document.getElementById(id);
     const card = document.createElement("div");
     board?.appendChild(card);
 
@@ -212,7 +221,7 @@ const Board = (boardModel: BoardModel): string => {
 
   const markEmptySpace = (spaceLeftEmpty: SpaceLeftEmptyEventArgs): void => {
     if (!isSpaceMarkedEmpty(spaceLeftEmpty.position)) {
-      const board = document.getElementById(boardId);
+      const board = document.getElementById(id);
       const emptySpace = document.createElement("div");
       board?.appendChild(emptySpace);
 
@@ -299,7 +308,7 @@ const Board = (boardModel: BoardModel): string => {
     });
   });
 
-  onElementAdded(boardId, () => boardModel.dealCards());
+  onElementAdded(id, () => boardModel.dealCards());
 
   let initialCards = "";
   for (let column = 0; column < maxBoardColumns; ++column) {
@@ -322,7 +331,7 @@ const Board = (boardModel: BoardModel): string => {
     }
   }
 
-  return html`<div id="${boardId}" class="${boardStyles.board}">
+  return html`<div id="${id}" class="${boardStyles.board}">
     ${initialCards}
   </div>`;
 };

@@ -19,7 +19,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import { loadDeck } from "../../business/dataAccess";
 import { GameModel, createId } from "../../business/models";
-import Board from "../board/Board";
+import Board, { moveCardToBoard } from "../board/Board";
 import Hand from "../hand/Hand";
 import {
   canDrag,
@@ -166,7 +166,7 @@ const App = (): string => {
   onElementAdded(boardId, (board) => {
     loadDeck().then((deckDto) => {
       const gameModel = new GameModel(deckDto);
-      board.outerHTML = Board(gameModel.board);
+      board.outerHTML = Board(boardId, gameModel.board);
 
       onElementAdded(openHandDialogButtonId, (button) => {
         button.addEventListener("click", (): void => {
@@ -174,7 +174,10 @@ const App = (): string => {
             handDialogId
           ) as HTMLDialogElement;
           if (handDialog) {
-            handDialog.innerHTML = Hand(gameModel.hand);
+            handDialog.innerHTML = Hand(gameModel.hand, (cardElement) => {
+              moveCardToBoard(boardId, cardElement);
+              handDialog.close();
+            });
           }
           handDialog.showModal();
         });

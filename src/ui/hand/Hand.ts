@@ -24,27 +24,30 @@ import { html } from "../templateLiterals";
 import commonStyles from "../common.module.css";
 import handStyles from "./Hand.module.css";
 
-const Hand = (handModel: HandModel): string => {
+const Hand = (
+  handModel: HandModel,
+  moveCardOut: (cardElement: HTMLElement) => void
+): string => {
+  const onDragStart = (draggableId: string): void => {
+    const draggable = document.getElementById(draggableId);
+    if (draggable) {
+      draggable.classList.add(commonStyles.dragging);
+      moveCardOut(draggable);
+    }
+  };
+
+  const onDragEnd = (draggableId: string): void => {
+    const draggable = document.getElementById(draggableId);
+    if (draggable) {
+      draggable.classList.remove(commonStyles.dragging);
+    }
+  };
+
   return html`<div>
     <ul class="${handStyles.cards}">
       ${handModel.cards
         .map((cardModel) => {
-          registerDraggable(
-            cardModel.id,
-            () => true,
-            (draggableId) => {
-              const draggable = document.getElementById(draggableId);
-              if (draggable) {
-                draggable.classList.add(commonStyles.dragging);
-              }
-            },
-            (draggableId) => {
-              const draggable = document.getElementById(draggableId);
-              if (draggable) {
-                draggable.classList.remove(commonStyles.dragging);
-              }
-            }
-          );
+          registerDraggable(cardModel.id, () => true, onDragStart, onDragEnd);
           return html`<li>
             ${Card(cardModel, [handStyles.card, commonStyles.draggable])}
           </li>`;
