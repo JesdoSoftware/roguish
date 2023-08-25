@@ -36,12 +36,16 @@ import {
   onElementAdded,
 } from "../rendering";
 import { html } from "../templateLiterals";
-import styles from "./Board.module.css";
+import commonStyles from "../common.module.css";
+import boardStyles from "./Board.module.css";
 
 const cardTransitionDurationMs = 500;
 
 const getCardClassNamesForPosition = (position: BoardPosition): string[] => {
-  return [styles[`col${position.column}`], styles[`row${position.row}`]];
+  return [
+    boardStyles[`col${position.column}`],
+    boardStyles[`row${position.row}`],
+  ];
 };
 
 interface EventHandler {
@@ -84,7 +88,7 @@ const Board = (boardModel: BoardModel): string => {
   const onDragCardStart = (draggableId: string): void => {
     const draggedElem = document.getElementById(draggableId);
     if (draggedElem) {
-      draggedElem.classList.add(styles.dragging);
+      draggedElem.classList.add(commonStyles.dragging);
     }
 
     const draggedCardModel = boardModel.getCardById(draggableId);
@@ -108,7 +112,7 @@ const Board = (boardModel: BoardModel): string => {
       if (elemId) {
         const dropTargetElem = document.getElementById(elemId);
         if (dropTargetElem) {
-          dropTargetElem.classList.add(styles.potentialDropTarget);
+          dropTargetElem.classList.add(boardStyles.potentialDropTarget);
         }
       }
     });
@@ -117,13 +121,13 @@ const Board = (boardModel: BoardModel): string => {
   const onDragCardEnd = (draggableId: string): void => {
     const draggedElem = document.getElementById(draggableId);
     if (draggedElem) {
-      draggedElem.classList.remove(styles.dragging);
+      draggedElem.classList.remove(commonStyles.dragging);
     }
 
     potentialDropTargetIds.forEach((id) => {
       const dropTargetElem = document.getElementById(id);
       if (dropTargetElem) {
-        dropTargetElem.classList.remove(styles.potentialDropTarget);
+        dropTargetElem.classList.remove(boardStyles.potentialDropTarget);
       }
     });
     potentialDropTargetIds.splice(0, potentialDropTargetIds.length);
@@ -144,14 +148,14 @@ const Board = (boardModel: BoardModel): string => {
     _draggableId: string,
     dropTargetElement: HTMLElement
   ): void => {
-    dropTargetElement.classList.add(styles.activeDropTarget);
+    dropTargetElement.classList.add(boardStyles.activeDropTarget);
   };
 
   const onCanDropUnhover = (
     _draggableId: string,
     dropTargetElement: HTMLElement
   ): void => {
-    dropTargetElement.classList.remove(styles.activeDropTarget);
+    dropTargetElement.classList.remove(boardStyles.activeDropTarget);
   };
 
   const onDropCard = (draggableId: string, dropTargetId: string): void => {
@@ -174,9 +178,9 @@ const Board = (boardModel: BoardModel): string => {
       isFlipping ? "Flipping" : ""
     }`;
     const classNames = [
-      styles.space,
+      boardStyles.space,
       ...getCardClassNamesForPosition({ column, row }),
-      styles[dealingClass],
+      boardStyles[dealingClass],
     ];
 
     const canDrag = (): boolean => boardModel.canMoveCard(cardDealt.card);
@@ -214,7 +218,7 @@ const Board = (boardModel: BoardModel): string => {
 
       const emptySpaceId = createId();
       emptySpace.outerHTML = EmptySpace(emptySpaceId, [
-        styles.space,
+        boardStyles.space,
         ...getCardClassNamesForPosition({
           column: spaceLeftEmpty.position.column,
           row: spaceLeftEmpty.position.row,
@@ -279,7 +283,7 @@ const Board = (boardModel: BoardModel): string => {
     queueEvent(() => {
       const cardElem = document.getElementById(e.card.id);
       if (cardElem) {
-        cardElem.classList.add(styles.discarded);
+        cardElem.classList.add(boardStyles.discarded);
         updateCardZIndex(cardElem, getNextZIndex());
       }
       setTimeout(() => {
@@ -304,9 +308,9 @@ const Board = (boardModel: BoardModel): string => {
       const cardModel = boardModel.getCardAtPosition(position);
       if (cardModel) {
         initialCards += Card(cardModel, [
-          styles.space,
+          boardStyles.space,
           ...getCardClassNamesForPosition(position),
-          styles.draggable,
+          commonStyles.draggable,
         ]);
         registerDraggable(
           cardModel.id,
@@ -318,7 +322,7 @@ const Board = (boardModel: BoardModel): string => {
     }
   }
 
-  return html`<div id="${boardId}" class="${styles.board}">
+  return html`<div id="${boardId}" class="${boardStyles.board}">
     ${initialCards}
   </div>`;
 };

@@ -19,14 +19,36 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import { HandModel } from "../../business/models";
 import Card from "../card/Card";
+import { registerDraggable } from "../rendering";
 import { html } from "../templateLiterals";
-import styles from "./Hand.module.css";
+import commonStyles from "../common.module.css";
+import handStyles from "./Hand.module.css";
 
 const Hand = (handModel: HandModel): string => {
   return html`<div>
-    <ul class="${styles.cards}">
+    <ul class="${handStyles.cards}">
       ${handModel.cards
-        .map((cardModel) => html`<li>${Card(cardModel, [styles.card])}</li>`)
+        .map((cardModel) => {
+          registerDraggable(
+            cardModel.id,
+            () => true,
+            (draggableId) => {
+              const draggable = document.getElementById(draggableId);
+              if (draggable) {
+                draggable.classList.add(commonStyles.dragging);
+              }
+            },
+            (draggableId) => {
+              const draggable = document.getElementById(draggableId);
+              if (draggable) {
+                draggable.classList.remove(commonStyles.dragging);
+              }
+            }
+          );
+          return html`<li>
+            ${Card(cardModel, [handStyles.card, commonStyles.draggable])}
+          </li>`;
+        })
         .join("")}
     </ul>
   </div>`;

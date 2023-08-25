@@ -17,20 +17,32 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-ul.cards {
-  list-style: none;
-  padding-left: 0;
-  width: 100%;
-  display: flex;
-  justify-content: space-evenly;
-  flex-wrap: wrap;
-  gap: 10px;
+:root {
+  --shadowColor: rgba(0, 0, 0, 0.5);
 }
 
-.cards > li {
-  width: 25%;
+.draggable {
+  cursor: grab;
+  box-shadow: 5px 5px 5px var(--shadowColor);
 }
 
-.card {
-  position: relative;
+.dragging {
+  cursor: grabbing;
+  transition: top 0s, left 0s, box-shadow 0.1s, scale 0.1s;
+  scale: 105%;
+  box-shadow: 15px 15px 15px var(--shadowColor);
+}
+
+@media (hover: hover) {
+  .draggable:hover {
+    box-shadow: 10px 10px 10px var(--shadowColor);
+  }
+
+  .dragging:hover {
+    /*
+     * repeat box-shadow here to override .draggable:hover, which
+     * overrides .dragging
+     */
+    box-shadow: 15px 15px 15px var(--shadowColor);
+  }
 }
