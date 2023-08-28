@@ -19,7 +19,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import { loadDeck } from "../../business/dataAccess";
 import { GameModel, createId } from "../../business/models";
-import Board, { moveCardToBoard } from "../board/Board";
+import Board, { dragCardToBoard } from "../board/Board";
 import Hand from "../hand/Hand";
 import {
   canDrag,
@@ -175,7 +175,7 @@ const App = (): string => {
           ) as HTMLDialogElement;
           if (handDialog) {
             handDialog.innerHTML = Hand(gameModel.hand, (cardElement) => {
-              moveCardToBoard(boardId, cardElement);
+              dragCardToBoard(boardId, cardElement);
               handDialog.close();
             });
           }

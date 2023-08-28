@@ -48,7 +48,7 @@ const getCardClassNamesForPosition = (position: BoardPosition): string[] => {
   ];
 };
 
-export const moveCardToBoard = (
+export const dragCardToBoard = (
   boardId: string,
   cardElement: HTMLElement
 ): void => {

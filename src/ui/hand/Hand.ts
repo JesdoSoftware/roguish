@@ -26,13 +26,13 @@ import handStyles from "./Hand.module.css";
 
 const Hand = (
   handModel: HandModel,
-  moveCardOut: (cardElement: HTMLElement) => void
+  dragCardOut: (cardElement: HTMLElement) => void
 ): string => {
   const onDragStart = (draggableId: string): void => {
     const draggable = document.getElementById(draggableId);
     if (draggable) {
       draggable.classList.add(commonStyles.dragging);
-      moveCardOut(draggable);
+      dragCardOut(draggable);
     }
   };
 
@@ -48,9 +48,7 @@ const Hand = (
       ${handModel.cards
         .map((cardModel) => {
           registerDraggable(cardModel.id, () => true, onDragStart, onDragEnd);
-          return html`<li>
-            ${Card(cardModel, [handStyles.card, commonStyles.draggable])}
-          </li>`;
+          return html`<li>${Card(cardModel, [commonStyles.draggable])}</li>`;
         })
         .join("")}
     </ul>
