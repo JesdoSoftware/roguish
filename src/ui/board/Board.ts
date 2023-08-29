@@ -29,7 +29,7 @@ import {
 } from "../../business/models";
 import EmptySpace from "../emptySpace/EmptySpace";
 import Card, { updateCardZIndex } from "../card/Card";
-import { getNextZIndex, onElementAdded } from "../rendering";
+import { getElementById, getNextZIndex, onElementAdded } from "../rendering";
 import { registerDraggable, registerDropTarget } from "../dragDrop";
 import { html } from "../templateLiterals";
 import commonStyles from "../common.module.css";
@@ -48,11 +48,9 @@ export const dragCardToBoard = (
   boardId: string,
   cardElement: HTMLElement
 ): void => {
-  const board = document.getElementById(boardId);
-  if (board) {
-    board.appendChild(cardElement);
-    cardElement.classList.add(boardStyles.space);
-  }
+  const board = getElementById(boardId);
+  board.appendChild(cardElement);
+  cardElement.classList.add(boardStyles.space);
 };
 
 interface EventHandler {
@@ -91,10 +89,8 @@ const Board = (id: string, boardModel: BoardModel): string => {
   const potentialDropTargetIds: string[] = [];
 
   const onDragCardStart = (draggableId: string): void => {
-    const draggedElem = document.getElementById(draggableId);
-    if (draggedElem) {
-      draggedElem.classList.add(commonStyles.dragging);
-    }
+    const draggedElem = getElementById(draggableId);
+    draggedElem.classList.add(commonStyles.dragging);
 
     const draggedCardModel = boardModel.getCardById(draggableId);
     const potentialDropPositions =
@@ -115,25 +111,19 @@ const Board = (id: string, boardModel: BoardModel): string => {
         }
       }
       if (elemId) {
-        const dropTargetElem = document.getElementById(elemId);
-        if (dropTargetElem) {
-          dropTargetElem.classList.add(boardStyles.potentialDropTarget);
-        }
+        const dropTargetElem = getElementById(elemId);
+        dropTargetElem.classList.add(boardStyles.potentialDropTarget);
       }
     });
   };
 
   const onDragCardEnd = (draggableId: string): void => {
-    const draggedElem = document.getElementById(draggableId);
-    if (draggedElem) {
-      draggedElem.classList.remove(commonStyles.dragging);
-    }
+    const draggedElem = getElementById(draggableId);
+    draggedElem.classList.remove(commonStyles.dragging);
 
     potentialDropTargetIds.forEach((id) => {
-      const dropTargetElem = document.getElementById(id);
-      if (dropTargetElem) {
-        dropTargetElem.classList.remove(boardStyles.potentialDropTarget);
-      }
+      const dropTargetElem = getElementById(id);
+      dropTargetElem.classList.remove(boardStyles.potentialDropTarget);
     });
     potentialDropTargetIds.splice(0, potentialDropTargetIds.length);
   };
@@ -172,9 +162,9 @@ const Board = (id: string, boardModel: BoardModel): string => {
   };
 
   const dealCard = (cardDealt: CardDealtEventArgs): void => {
-    const board = document.getElementById(id);
+    const board = getElementById(id);
     const card = document.createElement("div");
-    board?.appendChild(card);
+    board.appendChild(card);
 
     const column = cardDealt.position.column;
     const row = cardDealt.position.row;
@@ -218,9 +208,9 @@ const Board = (id: string, boardModel: BoardModel): string => {
 
   const markEmptySpace = (spaceLeftEmpty: SpaceLeftEmptyEventArgs): void => {
     if (!isSpaceMarkedEmpty(spaceLeftEmpty.position)) {
-      const board = document.getElementById(id);
+      const board = getElementById(id);
       const emptySpace = document.createElement("div");
-      board?.appendChild(emptySpace);
+      board.appendChild(emptySpace);
 
       const emptySpaceId = createId();
       emptySpace.outerHTML = EmptySpace(emptySpaceId, [
@@ -256,10 +246,8 @@ const Board = (id: string, boardModel: BoardModel): string => {
     const emptySpaceId = emptySpaceIds.get(emptySpaceKey);
     if (emptySpaceId) {
       emptySpaceIds.delete(emptySpaceKey);
-      const emptySpaceElem = document.getElementById(emptySpaceId);
-      if (emptySpaceElem) {
-        emptySpaceElem.parentElement?.removeChild(emptySpaceElem);
-      }
+      const emptySpaceElem = getElementById(emptySpaceId);
+      emptySpaceElem.parentElement?.removeChild(emptySpaceElem);
     }
   };
 
@@ -274,27 +262,24 @@ const Board = (id: string, boardModel: BoardModel): string => {
       if (isSpaceMarkedEmpty(e.toPosition)) {
         unmarkEmptySpace(e.toPosition);
       }
-      const cardElem = document.getElementById(e.card.id);
-      if (cardElem) {
-        cardElem.classList.remove(
-          ...getCardClassNamesForPosition(e.fromPosition)
-        );
-        cardElem.classList.add(...getCardClassNamesForPosition(e.toPosition));
-        updateCardZIndex(cardElem, getNextZIndex());
-      }
+      const cardElem = getElementById(e.card.id);
+      cardElem.classList.remove(
+        ...getCardClassNamesForPosition(e.fromPosition)
+      );
+      cardElem.classList.add(...getCardClassNamesForPosition(e.toPosition));
+      updateCardZIndex(cardElem, getNextZIndex());
     });
   });
 
   boardModel.onCardDiscarded.addListener((e) => {
     queueEvent(() => {
-      const cardElem = document.getElementById(e.card.id);
-      if (cardElem) {
-        cardElem.classList.add(boardStyles.discarded);
-        updateCardZIndex(cardElem, getNextZIndex());
-      }
+      const cardElem = getElementById(e.card.id);
+      cardElem.classList.add(boardStyles.discarded);
+      updateCardZIndex(cardElem, getNextZIndex());
+
       setTimeout(() => {
-        const cardElem = document.getElementById(e.card.id);
-        cardElem?.parentElement?.removeChild(cardElem);
+        const cardElem = getElementById(e.card.id);
+        cardElem.parentElement?.removeChild(cardElem);
       }, cardTransitionDurationMs);
     });
   });

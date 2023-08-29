@@ -21,7 +21,7 @@ import { loadDeck } from "../../business/dataAccess";
 import { GameModel, createId } from "../../business/models";
 import Board, { dragCardToBoard } from "../board/Board";
 import Hand from "../hand/Hand";
-import { onElementAdded } from "../rendering";
+import { getElementById, onElementAdded } from "../rendering";
 import { html } from "../templateLiterals";
 import styles from "./App.module.css";
 
@@ -58,15 +58,11 @@ const App = (): string => {
 
       onElementAdded(openHandDialogButtonId, (button) => {
         button.addEventListener("click", (): void => {
-          const handDialog = document.getElementById(
-            handDialogId
-          ) as HTMLDialogElement;
-          if (handDialog) {
-            handDialog.innerHTML = Hand(gameModel.hand, (cardElement) => {
-              dragCardToBoard(boardId, cardElement);
-              handDialog.close();
-            });
-          }
+          const handDialog = getElementById(handDialogId) as HTMLDialogElement;
+          handDialog.innerHTML = Hand(gameModel.hand, (cardElement) => {
+            dragCardToBoard(boardId, cardElement);
+            handDialog.close();
+          });
           handDialog.showModal();
         });
       });

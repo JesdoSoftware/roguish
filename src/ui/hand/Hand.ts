@@ -23,25 +23,21 @@ import { registerDraggable } from "../dragDrop";
 import { html } from "../templateLiterals";
 import commonStyles from "../common.module.css";
 import handStyles from "./Hand.module.css";
-import { onElementAdded } from "../rendering";
+import { getElementById, onElementAdded } from "../rendering";
 
 const Hand = (
   handModel: HandModel,
   dragCardOut: (cardElement: HTMLElement) => void
 ): string => {
   const onDragStart = (draggableId: string): void => {
-    const draggable = document.getElementById(draggableId);
-    if (draggable) {
-      draggable.classList.add(commonStyles.dragging);
-      dragCardOut(draggable);
-    }
+    const draggable = getElementById(draggableId);
+    draggable.classList.add(commonStyles.dragging);
+    dragCardOut(draggable);
   };
 
   const onDragEnd = (draggableId: string): void => {
-    const draggable = document.getElementById(draggableId);
-    if (draggable) {
-      draggable.classList.remove(commonStyles.dragging);
-    }
+    const draggable = getElementById(draggableId);
+    draggable.classList.remove(commonStyles.dragging);
   };
 
   return html`<div>

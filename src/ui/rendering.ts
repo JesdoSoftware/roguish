@@ -17,16 +17,22 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
+export const getElementById = (id: string): HTMLElement => {
+  const element = document.getElementById(id);
+  if (!element) {
+    throw new Error(`Element with ID ${id} not found`);
+  }
+  return element;
+};
+
 export const onElementAdded = (
   id: string,
   callback: (element: HTMLElement) => void
 ): void => {
   const observer = new MutationObserver(() => {
-    const element = document.getElementById(id);
-    if (element) {
-      observer.disconnect();
-      callback(element);
-    }
+    const element = getElementById(id);
+    observer.disconnect();
+    callback(element);
   });
   observer.observe(document.getRootNode(), { subtree: true, childList: true });
 };

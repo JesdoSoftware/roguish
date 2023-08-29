@@ -55,7 +55,9 @@ export const registerDraggable = (
 ): void => {
   const element = document.getElementById(id);
   if (!element) {
-    throw new Error("Draggable element missing");
+    throw new Error(
+      `Cannot register missing element with ID ${id} as draggable`
+    );
   }
   element.addEventListener("pointerdown", (e) => {
     if (!isDragging && canDrag(element.id)) {

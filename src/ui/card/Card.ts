@@ -18,7 +18,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { CardModel, CardSide } from "../../business/models";
-import { addOrUpdateStyleProperties } from "../rendering";
+import { addOrUpdateStyleProperties, getElementById } from "../rendering";
 import { html } from "../templateLiterals";
 import styles from "./Card.module.css";
 
@@ -45,13 +45,11 @@ const Card = (cardModel: CardModel, classNames: string[]): string => {
   const combinedClassName = getCombinedClassName(classNames, cardModel.side);
 
   cardModel.onCardFlipped.addListener(() => {
-    const cardElement = document.getElementById(cardModel.id);
-    if (cardElement) {
-      if (cardModel.side === CardSide.Back) {
-        cardElement.classList.add(styles.faceDown);
-      } else {
-        cardElement.classList.remove(styles.faceDown);
-      }
+    const cardElement = getElementById(cardModel.id);
+    if (cardModel.side === CardSide.Back) {
+      cardElement.classList.add(styles.faceDown);
+    } else {
+      cardElement.classList.remove(styles.faceDown);
     }
   });
 
