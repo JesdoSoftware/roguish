@@ -21,16 +21,7 @@ import { loadDeck } from "../../business/dataAccess";
 import { GameModel, createId } from "../../business/models";
 import Board, { dragCardToBoard } from "../board/Board";
 import Hand from "../hand/Hand";
-import { getNextZIndex, onElementAdded } from "../rendering";
-import {
-  canDrag,
-  canDrop,
-  drop,
-  startDrag,
-  endDrag,
-  onCanDropUnhover,
-  onCanDropHover,
-} from "../dragDrop";
+import { onElementAdded } from "../rendering";
 import { html } from "../templateLiterals";
 import styles from "./App.module.css";
 
@@ -56,101 +47,6 @@ const CopyrightLicenseSource = (): string => {
 };
 
 const App = (): string => {
-  let isDragging = false;
-  let pointerDownClientX: number;
-  let pointerDownClientY: number;
-  let draggedElem: HTMLElement;
-  let hoveredOverDropTarget: HTMLElement | undefined;
-
-  const getMatchingElementAtPoint = (
-    clientX: number,
-    clientY: number,
-    predicate: (elem: Element) => boolean
-  ): HTMLElement | undefined => {
-    const elemsAtPoint = document.elementsFromPoint(clientX, clientY);
-    return elemsAtPoint
-      .reverse() // find bottommost matching element
-      .find((elem) => predicate(elem)) as HTMLElement;
-  };
-
-  const onPointerDown = (e: PointerEvent): void => {
-    const draggable = getMatchingElementAtPoint(e.clientX, e.clientY, (elem) =>
-      canDrag(elem.id)
-    );
-    if (draggable) {
-      isDragging = true;
-      pointerDownClientX = e.clientX;
-      pointerDownClientY = e.clientY;
-
-      draggedElem = draggable;
-      draggedElem.style.zIndex = getNextZIndex().toString();
-
-      startDrag(draggable.id);
-    }
-  };
-
-  const changeHoveredOverDropTarget = (
-    draggableId: string,
-    newTarget: HTMLElement | undefined
-  ): void => {
-    if (hoveredOverDropTarget) {
-      onCanDropUnhover(draggableId, hoveredOverDropTarget);
-      hoveredOverDropTarget = undefined;
-    }
-    if (newTarget) {
-      hoveredOverDropTarget = newTarget;
-      onCanDropHover(draggableId, hoveredOverDropTarget);
-    }
-  };
-
-  const onPointerMove = (e: PointerEvent): void => {
-    if (isDragging) {
-      // calculating from the pointer down X/Y (instead of using
-      // e.movementX and e.movementY) fixes some glitchiness when
-      // the pointer leaves and reenters the window
-      const diffX = e.clientX - pointerDownClientX;
-      const diffY = e.clientY - pointerDownClientY;
-
-      draggedElem.style.translate = `${diffX}px ${diffY}px`;
-
-      const newDropTarget = getMatchingElementAtPoint(
-        e.clientX,
-        e.clientY,
-        (elem) => canDrop(draggedElem.id, elem.id)
-      );
-      if (hoveredOverDropTarget?.id !== newDropTarget?.id) {
-        changeHoveredOverDropTarget(draggedElem.id, newDropTarget);
-      }
-    }
-  };
-
-  const onPointerUp = (e: PointerEvent): void => {
-    if (isDragging) {
-      isDragging = false;
-
-      draggedElem.style.translate = "";
-
-      changeHoveredOverDropTarget(draggedElem.id, undefined);
-      endDrag(draggedElem.id);
-
-      const dropTarget = getMatchingElementAtPoint(
-        e.clientX,
-        e.clientY,
-        (elem) => canDrop(draggedElem.id, elem.id)
-      );
-      if (dropTarget) {
-        drop(draggedElem.id, dropTarget.id);
-      }
-    }
-  };
-
-  const appId = createId();
-  onElementAdded(appId, (app) => {
-    app.addEventListener("pointerdown", onPointerDown);
-    app.addEventListener("pointermove", onPointerMove);
-    app.addEventListener("pointerup", onPointerUp);
-  });
-
   const openHandDialogButtonId = createId();
   const handDialogId = createId();
 
@@ -178,7 +74,7 @@ const App = (): string => {
   });
 
   return html`
-    <div id="${appId}">
+    <div>
       <div id="${boardId}">Loading deck&hellip;</div>
       <button id="${openHandDialogButtonId}">Hand</button>
       <dialog id=${handDialogId} class="${styles.handDialog}"></dialog>

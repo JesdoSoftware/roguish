@@ -192,22 +192,23 @@ const Board = (id: string, boardModel: BoardModel): string => {
 
     onElementAdded(cardDealt.card.id, (card) => {
       updateCardZIndex(card, getNextZIndex());
+
+      registerDraggable(
+        cardDealt.card.id,
+        canDrag,
+        onDragCardStart,
+        onDragCardEnd
+      );
+      registerDropTarget(
+        cardDealt.card.id,
+        canDropCard,
+        onCanDropHover,
+        onCanDropUnhover,
+        onDropCard
+      );
     });
 
     card.outerHTML = Card(cardDealt.card, classNames);
-    registerDraggable(
-      cardDealt.card.id,
-      canDrag,
-      onDragCardStart,
-      onDragCardEnd
-    );
-    registerDropTarget(
-      cardDealt.card.id,
-      canDropCard,
-      onCanDropHover,
-      onCanDropUnhover,
-      onDropCard
-    );
   };
 
   const emptySpaceIds = new Map<string, string>(); // key is position, value is ID
@@ -317,12 +318,14 @@ const Board = (id: string, boardModel: BoardModel): string => {
           ...getCardClassNamesForPosition(position),
           commonStyles.draggable,
         ]);
-        registerDraggable(
-          cardModel.id,
-          () => boardModel.canMoveCard(cardModel),
-          onDragCardStart,
-          onDragCardEnd
-        );
+        onElementAdded(cardModel.id, () => {
+          registerDraggable(
+            cardModel.id,
+            () => boardModel.canMoveCard(cardModel),
+            onDragCardStart,
+            onDragCardEnd
+          );
+        });
       }
     }
   }

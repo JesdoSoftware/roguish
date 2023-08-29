@@ -17,11 +17,101 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-interface Draggable {
-  canDrag: (draggableId: string) => boolean;
-  onDragStart?: ((draggableId: string) => void) | undefined;
-  onDragEnd?: ((draggableId: string) => void) | undefined;
-}
+let isDragging = false;
+let pointerDownClientX: number;
+let pointerDownClientY: number;
+let hoveredOverDropTarget: HTMLElement | undefined;
+
+const getMatchingElementAtPoint = (
+  clientX: number,
+  clientY: number,
+  predicate: (elem: Element) => boolean
+): HTMLElement | undefined => {
+  const elemsAtPoint = document.elementsFromPoint(clientX, clientY);
+  return elemsAtPoint
+    .reverse() // find bottommost matching element
+    .find((elem) => predicate(elem)) as HTMLElement;
+};
+
+const changeHoveredOverDropTarget = (
+  draggableId: string,
+  newTarget: HTMLElement | undefined
+): void => {
+  if (hoveredOverDropTarget) {
+    onCanDropUnhover(draggableId, hoveredOverDropTarget);
+    hoveredOverDropTarget = undefined;
+  }
+  if (newTarget) {
+    hoveredOverDropTarget = newTarget;
+    onCanDropHover(draggableId, hoveredOverDropTarget);
+  }
+};
+
+export const registerDraggable = (
+  id: string,
+  canDrag: (draggableId: string) => boolean,
+  onDragStart?: (draggableId: string) => void,
+  onDragEnd?: (draggableId: string) => void
+): void => {
+  const element = document.getElementById(id);
+  if (!element) {
+    throw new Error("Draggable element missing");
+  }
+  element.addEventListener("pointerdown", (e) => {
+    if (!isDragging && canDrag(element.id)) {
+      isDragging = true;
+
+      element.setPointerCapture(e.pointerId);
+      pointerDownClientX = e.clientX;
+      pointerDownClientY = e.clientY;
+
+      // TODO draggedElem.style.zIndex = getNextZIndex().toString();
+      if (onDragStart) {
+        onDragStart(element.id);
+      }
+    }
+  });
+  element.addEventListener("pointermove", (e) => {
+    if (isDragging) {
+      // calculating from the pointer down X/Y (instead of using
+      // e.movementX and e.movementY) fixes some glitchiness when
+      // the pointer leaves and reenters the window
+      const diffX = e.clientX - pointerDownClientX;
+      const diffY = e.clientY - pointerDownClientY;
+
+      element.style.translate = `${diffX}px ${diffY}px`;
+
+      const newDropTarget = getMatchingElementAtPoint(
+        e.clientX,
+        e.clientY,
+        (elem) => canDrop(element.id, elem.id)
+      );
+      if (hoveredOverDropTarget?.id !== newDropTarget?.id) {
+        changeHoveredOverDropTarget(element.id, newDropTarget);
+      }
+    }
+  });
+  element.addEventListener("pointerup", (e) => {
+    if (isDragging) {
+      isDragging = false;
+      element.style.translate = "";
+      changeHoveredOverDropTarget(element.id, undefined);
+
+      if (onDragEnd) {
+        onDragEnd(element.id);
+      }
+
+      const dropTarget = getMatchingElementAtPoint(
+        e.clientX,
+        e.clientY,
+        (elem) => canDrop(element.id, elem.id)
+      );
+      if (dropTarget) {
+        drop(element.id, dropTarget.id);
+      }
+    }
+  });
+};
 
 interface DropTarget {
   canDrop: (draggableId: string, dropTargetId: string) => boolean;
@@ -33,39 +123,7 @@ interface DropTarget {
   onDrop: (draggableId: string, dropTargetId: string) => void;
 }
 
-const draggables = new Map<string, Draggable>();
 const dropTargets = new Map<string, DropTarget>();
-
-export const registerDraggable = (
-  id: string,
-  canDrag: (draggableId: string) => boolean,
-  onDragStart?: (draggableId: string) => void,
-  onDragEnd?: (draggableId: string) => void
-): void => {
-  draggables.set(id, { canDrag, onDragStart, onDragEnd });
-};
-
-export const canDrag = (id: string): boolean => {
-  const draggable = draggables.get(id);
-  if (!draggable) {
-    return false;
-  }
-  return draggable.canDrag(id);
-};
-
-export const startDrag = (id: string): void => {
-  const draggable = draggables.get(id);
-  if (draggable && draggable.onDragStart) {
-    draggable.onDragStart(id);
-  }
-};
-
-export const endDrag = (id: string): void => {
-  const draggable = draggables.get(id);
-  if (draggable && draggable.onDragEnd) {
-    draggable.onDragEnd(id);
-  }
-};
 
 export const registerDropTarget = (
   id: string,

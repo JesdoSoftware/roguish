@@ -23,6 +23,7 @@ import { registerDraggable } from "../dragDrop";
 import { html } from "../templateLiterals";
 import commonStyles from "../common.module.css";
 import handStyles from "./Hand.module.css";
+import { onElementAdded } from "../rendering";
 
 const Hand = (
   handModel: HandModel,
@@ -47,7 +48,9 @@ const Hand = (
     <ul class="${handStyles.cards}">
       ${handModel.cards
         .map((cardModel) => {
-          registerDraggable(cardModel.id, () => true, onDragStart, onDragEnd);
+          onElementAdded(cardModel.id, () => {
+            registerDraggable(cardModel.id, () => true, onDragStart, onDragEnd);
+          });
           return html`<li>${Card(cardModel, [commonStyles.draggable])}</li>`;
         })
         .join("")}
