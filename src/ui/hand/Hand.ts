@@ -19,7 +19,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import { HandModel } from "../../business/models";
 import Card from "../card/Card";
-import { registerDraggable } from "../rendering";
+import { registerDraggable } from "../dragDrop";
 import { html } from "../templateLiterals";
 import commonStyles from "../common.module.css";
 import handStyles from "./Hand.module.css";

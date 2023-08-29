@@ -21,17 +21,16 @@ import { loadDeck } from "../../business/dataAccess";
 import { GameModel, createId } from "../../business/models";
 import Board, { dragCardToBoard } from "../board/Board";
 import Hand from "../hand/Hand";
+import { getNextZIndex, onElementAdded } from "../rendering";
 import {
   canDrag,
   canDrop,
   drop,
-  getNextZIndex,
   startDrag,
   endDrag,
   onCanDropUnhover,
   onCanDropHover,
-  onElementAdded,
-} from "../rendering";
+} from "../dragDrop";
 import { html } from "../templateLiterals";
 import styles from "./App.module.css";
 

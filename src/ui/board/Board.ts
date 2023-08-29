@@ -29,12 +29,8 @@ import {
 } from "../../business/models";
 import EmptySpace from "../emptySpace/EmptySpace";
 import Card, { updateCardZIndex } from "../card/Card";
-import {
-  registerDraggable,
-  registerDropTarget,
-  getNextZIndex,
-  onElementAdded,
-} from "../rendering";
+import { getNextZIndex, onElementAdded } from "../rendering";
+import { registerDraggable, registerDropTarget } from "../dragDrop";
 import { html } from "../templateLiterals";
 import commonStyles from "../common.module.css";
 import boardStyles from "./Board.module.css";
