@@ -48,17 +48,11 @@ const changeHoveredOverDropTarget = (
 };
 
 export const registerDraggable = (
-  id: string,
+  element: HTMLElement,
   canDrag: (draggableId: string) => boolean,
   onDragStart?: (draggableId: string) => void,
   onDragEnd?: (draggableId: string) => void
 ): void => {
-  const element = document.getElementById(id);
-  if (!element) {
-    throw new Error(
-      `Cannot register missing element with ID ${id} as draggable`
-    );
-  }
   element.addEventListener("pointerdown", (e) => {
     if (!isDragging && canDrag(element.id)) {
       isDragging = true;

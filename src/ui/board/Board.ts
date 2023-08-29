@@ -183,12 +183,7 @@ const Board = (id: string, boardModel: BoardModel): string => {
     onElementAdded(cardDealt.card.id, (card) => {
       updateCardZIndex(card, getNextZIndex());
 
-      registerDraggable(
-        cardDealt.card.id,
-        canDrag,
-        onDragCardStart,
-        onDragCardEnd
-      );
+      registerDraggable(card, canDrag, onDragCardStart, onDragCardEnd);
       registerDropTarget(
         cardDealt.card.id,
         canDropCard,
@@ -303,9 +298,9 @@ const Board = (id: string, boardModel: BoardModel): string => {
           ...getCardClassNamesForPosition(position),
           commonStyles.draggable,
         ]);
-        onElementAdded(cardModel.id, () => {
+        onElementAdded(cardModel.id, (card) => {
           registerDraggable(
-            cardModel.id,
+            card,
             () => boardModel.canMoveCard(cardModel),
             onDragCardStart,
             onDragCardEnd

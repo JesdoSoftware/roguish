@@ -44,8 +44,8 @@ const Hand = (
     <ul class="${handStyles.cards}">
       ${handModel.cards
         .map((cardModel) => {
-          onElementAdded(cardModel.id, () => {
-            registerDraggable(cardModel.id, () => true, onDragStart, onDragEnd);
+          onElementAdded(cardModel.id, (card) => {
+            registerDraggable(card, () => true, onDragStart, onDragEnd);
           });
           return html`<li>${Card(cardModel, [commonStyles.draggable])}</li>`;
         })
