@@ -134,7 +134,7 @@ export const registerDropTarget = (
   dropTargets.set(id, { canDrop, onCanDropHover, onCanDropUnhover, onDrop });
 };
 
-export const canDrop = (draggableId: string, dropTargetId: string): boolean => {
+const canDrop = (draggableId: string, dropTargetId: string): boolean => {
   const dropTarget = dropTargets.get(dropTargetId);
   if (!dropTarget) {
     return false;
@@ -142,7 +142,7 @@ export const canDrop = (draggableId: string, dropTargetId: string): boolean => {
   return dropTarget.canDrop(draggableId, dropTargetId);
 };
 
-export const onCanDropHover = (
+const onCanDropHover = (
   draggableId: string,
   dropTargetElement: HTMLElement
 ): void => {
@@ -153,7 +153,7 @@ export const onCanDropHover = (
   dropTarget.onCanDropHover(draggableId, dropTargetElement);
 };
 
-export const onCanDropUnhover = (
+const onCanDropUnhover = (
   draggableId: string,
   dropTargetElement: HTMLElement
 ): void => {
@@ -164,7 +164,7 @@ export const onCanDropUnhover = (
   dropTarget.onCanDropUnhover(draggableId, dropTargetElement);
 };
 
-export const drop = (draggableId: string, dropTargetId: string): void => {
+const drop = (draggableId: string, dropTargetId: string): void => {
   const dropTarget = dropTargets.get(dropTargetId);
   if (!dropTarget) {
     throw new Error("Missing drop target");
