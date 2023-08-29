@@ -26,7 +26,6 @@ import {
   canDrop,
   drop,
   getNextZIndex,
-  removeStyleProperties,
   startDrag,
   endDrag,
   onCanDropUnhover,
@@ -62,8 +61,6 @@ const App = (): string => {
   let pointerDownClientX: number;
   let pointerDownClientY: number;
   let draggedElem: HTMLElement;
-  let draggedElemStartingLeft: number;
-  let draggedElemStartingTop: number;
   let hoveredOverDropTarget: HTMLElement | undefined;
 
   const getMatchingElementAtPoint = (
@@ -87,9 +84,6 @@ const App = (): string => {
       pointerDownClientY = e.clientY;
 
       draggedElem = draggable;
-      const computedStyle = window.getComputedStyle(draggedElem);
-      draggedElemStartingLeft = parseInt(computedStyle.left);
-      draggedElemStartingTop = parseInt(computedStyle.top);
       draggedElem.style.zIndex = getNextZIndex().toString();
 
       startDrag(draggable.id);
@@ -118,8 +112,7 @@ const App = (): string => {
       const diffX = e.clientX - pointerDownClientX;
       const diffY = e.clientY - pointerDownClientY;
 
-      draggedElem.style.left = `${draggedElemStartingLeft + diffX}px`;
-      draggedElem.style.top = `${draggedElemStartingTop + diffY}px`;
+      draggedElem.style.translate = `${diffX}px ${diffY}px`;
 
       const newDropTarget = getMatchingElementAtPoint(
         e.clientX,
@@ -136,7 +129,7 @@ const App = (): string => {
     if (isDragging) {
       isDragging = false;
 
-      removeStyleProperties(draggedElem, ["left", "top"]);
+      draggedElem.style.translate = "";
 
       changeHoveredOverDropTarget(draggedElem.id, undefined);
       endDrag(draggedElem.id);
