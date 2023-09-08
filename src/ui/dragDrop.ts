@@ -47,12 +47,19 @@ const changeHoveredOverDropTarget = (
   }
 };
 
-let globalOnDragStart: (draggable: string) => void | undefined;
+let globalOnDragStart: (draggableId: string) => void | undefined;
+let globalOnDragEnd: (draggableId: string) => void | undefined;
 
 export const setGlobalOnDragStart = (
-  onDragStart: (draggable: string) => void
+  onDragStart: (draggableId: string) => void
 ): void => {
   globalOnDragStart = onDragStart;
+};
+
+export const setGlobalOnDragEnd = (
+  onDragEnd: (draggableId: string) => void
+): void => {
+  globalOnDragEnd = onDragEnd;
 };
 
 export const registerDraggable = (
@@ -103,6 +110,9 @@ export const registerDraggable = (
       element.style.translate = "";
       changeHoveredOverDropTarget(element.id, undefined);
 
+      if (globalOnDragEnd) {
+        globalOnDragEnd(element.id);
+      }
       if (onDragEnd) {
         onDragEnd(element.id);
       }

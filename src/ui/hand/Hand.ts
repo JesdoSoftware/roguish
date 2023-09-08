@@ -31,13 +31,7 @@ const Hand = (
 ): string => {
   const onDragStart = (draggableId: string): void => {
     const draggable = getElementById(draggableId);
-    draggable.classList.add(commonStyles.dragging);
     dragCardOut(draggable);
-  };
-
-  const onDragEnd = (draggableId: string): void => {
-    const draggable = getElementById(draggableId);
-    draggable.classList.remove(commonStyles.dragging);
   };
 
   return html`<div>
@@ -45,7 +39,7 @@ const Hand = (
       ${handModel.cards
         .map((cardModel) => {
           onElementAdded(cardModel.id, (card) => {
-            registerDraggable(card, () => true, onDragStart, onDragEnd);
+            registerDraggable(card, () => true, onDragStart);
           });
           return html`<li>${Card(cardModel, [commonStyles.draggable])}</li>`;
         })

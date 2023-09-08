@@ -20,11 +20,12 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 import { loadDeck } from "../../business/dataAccess";
 import { GameModel, createId } from "../../business/models";
 import Board, { dragCardToBoard } from "../board/Board";
-import { setGlobalOnDragStart } from "../dragDrop";
+import { setGlobalOnDragEnd, setGlobalOnDragStart } from "../dragDrop";
 import Hand from "../hand/Hand";
 import { getElementById, getNextZIndex, onElementAdded } from "../rendering";
 import { html } from "../templateLiterals";
-import styles from "./App.module.css";
+import commonStyles from "../common.module.css";
+import appStyles from "./App.module.css";
 
 const CopyrightLicenseSource = (): string => {
   return html`
@@ -51,6 +52,13 @@ const App = (): string => {
   setGlobalOnDragStart((draggableId) => {
     const draggable = getElementById(draggableId);
     draggable.style.zIndex = getNextZIndex().toString();
+
+    draggable.classList.add(commonStyles.dragging);
+  });
+
+  setGlobalOnDragEnd((draggableId) => {
+    const draggable = getElementById(draggableId);
+    draggable.classList.remove(commonStyles.dragging);
   });
 
   const openHandDialogButtonId = createId();
@@ -79,7 +87,7 @@ const App = (): string => {
     <div>
       <div id="${boardId}">Loading deck&hellip;</div>
       <button id="${openHandDialogButtonId}">Hand</button>
-      <dialog id=${handDialogId} class="${styles.handDialog}"></dialog>
+      <dialog id=${handDialogId} class="${appStyles.handDialog}"></dialog>
       <hr />
       ${CopyrightLicenseSource()}
     </div>
