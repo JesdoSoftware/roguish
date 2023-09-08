@@ -20,8 +20,9 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 import { loadDeck } from "../../business/dataAccess";
 import { GameModel, createId } from "../../business/models";
 import Board, { dragCardToBoard } from "../board/Board";
+import { setGlobalOnDragStart } from "../dragDrop";
 import Hand from "../hand/Hand";
-import { getElementById, onElementAdded } from "../rendering";
+import { getElementById, getNextZIndex, onElementAdded } from "../rendering";
 import { html } from "../templateLiterals";
 import styles from "./App.module.css";
 
@@ -47,6 +48,11 @@ const CopyrightLicenseSource = (): string => {
 };
 
 const App = (): string => {
+  setGlobalOnDragStart((draggableId) => {
+    const draggable = getElementById(draggableId);
+    draggable.style.zIndex = getNextZIndex().toString();
+  });
+
   const openHandDialogButtonId = createId();
   const handDialogId = createId();
 

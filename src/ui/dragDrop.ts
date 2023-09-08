@@ -47,6 +47,14 @@ const changeHoveredOverDropTarget = (
   }
 };
 
+let globalOnDragStart: (draggable: string) => void | undefined;
+
+export const setGlobalOnDragStart = (
+  onDragStart: (draggable: string) => void
+): void => {
+  globalOnDragStart = onDragStart;
+};
+
 export const registerDraggable = (
   element: HTMLElement,
   canDrag: (draggableId: string) => boolean,
@@ -61,7 +69,9 @@ export const registerDraggable = (
       pointerDownClientX = e.clientX;
       pointerDownClientY = e.clientY;
 
-      // TODO draggedElem.style.zIndex = getNextZIndex().toString();
+      if (globalOnDragStart) {
+        globalOnDragStart(element.id);
+      }
       if (onDragStart) {
         onDragStart(element.id);
       }
