@@ -290,6 +290,9 @@ const Board = (id: string, boardModel: BoardModel): string => {
         initialCards += Card(cardModel, [
           boardStyles.space,
           ...getCardClassNamesForPosition(position),
+          // TODO Add global handler for e.g. assigning draggable style on registering
+          // draggable; requires way to dynamically enable/disable draggability
+          // for e.g. non-player cards
           commonStyles.draggable,
         ]);
         onElementAdded(cardModel.id, (card) => {

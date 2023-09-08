@@ -47,8 +47,8 @@ const changeHoveredOverDropTarget = (
   }
 };
 
-let globalOnDragStart: (draggableId: string) => void | undefined;
-let globalOnDragEnd: (draggableId: string) => void | undefined;
+let globalOnDragStart: ((draggableId: string) => void) | undefined;
+let globalOnDragEnd: ((draggableId: string) => void) | undefined;
 
 export const setGlobalOnDragStart = (
   onDragStart: (draggableId: string) => void
