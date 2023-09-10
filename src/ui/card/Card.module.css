@@ -23,13 +23,13 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   aspect-ratio: 2.5 / 3.5;
   background-color: lightgray;
   transform-style: preserve-3d;
-  transition: top 0.5s, left 0.5s, box-shadow 0.1s, scale 0.1s, translate 0.5s,
-    transform 0.5s;
+  transition: top 0.5s, left 0.5s, box-shadow 0.1s, rotate 0.5s, scale 0.1s,
+    translate 0.5s;
   user-select: none;
 }
 
 .faceDown {
-  transform: rotateY(180deg);
+  rotate: y 180deg;
 }
 
 .cardSide {
@@ -41,5 +41,5 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
 .back {
   background-color: gray;
-  transform: rotateY(180deg);
+  rotate: y 180deg;
 }
