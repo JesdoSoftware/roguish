@@ -25,6 +25,10 @@ export const getElementById = (id: string): HTMLElement => {
   return element;
 };
 
+export const getElementByIdIfExists = (id: string): HTMLElement | null => {
+  return document.getElementById(id);
+};
+
 export const onElementAdded = (
   id: string,
   callback: (element: HTMLElement) => void

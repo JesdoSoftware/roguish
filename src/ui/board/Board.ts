@@ -29,7 +29,12 @@ import {
 } from "../../business/models";
 import EmptySpace from "../emptySpace/EmptySpace";
 import Card, { updateCardZIndex } from "../card/Card";
-import { getElementById, getNextZIndex, onElementAdded } from "../rendering";
+import {
+  getElementById,
+  getElementByIdIfExists,
+  getNextZIndex,
+  onElementAdded,
+} from "../rendering";
 import { registerDraggable, registerDropTarget } from "../dragDrop";
 import { html } from "../templateLiterals";
 import commonStyles from "../common.module.css";
@@ -108,8 +113,8 @@ const Board = (id: string, boardModel: BoardModel): string => {
         }
       }
       if (elemId) {
-        const dropTargetElem = getElementById(elemId);
-        dropTargetElem.classList.add(boardStyles.potentialDropTarget);
+        const dropTargetElem = getElementByIdIfExists(elemId);
+        dropTargetElem?.classList.add(boardStyles.potentialDropTarget);
       }
     });
   };
@@ -290,8 +295,8 @@ const Board = (id: string, boardModel: BoardModel): string => {
         initialCards += Card(cardModel, [
           boardStyles.space,
           ...getCardClassNamesForPosition(position),
-          // TODO Add global handler for e.g. assigning draggable style on registering
-          // draggable; requires way to dynamically enable/disable draggability
+          // TODO Add global handler for e.g. assigning draggable style on enabling
+          // draggability; requires way to dynamically enable/disable draggability
           // for e.g. non-player cards
           commonStyles.draggable,
         ]);
