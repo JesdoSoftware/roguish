@@ -34,9 +34,11 @@ export const onElementAdded = (
   callback: (element: HTMLElement) => void
 ): void => {
   const observer = new MutationObserver(() => {
-    const element = getElementById(id);
-    observer.disconnect();
-    callback(element);
+    const element = getElementByIdIfExists(id);
+    if (element) {
+      observer.disconnect();
+      callback(element);
+    }
   });
   observer.observe(document.getRootNode(), { subtree: true, childList: true });
 };
