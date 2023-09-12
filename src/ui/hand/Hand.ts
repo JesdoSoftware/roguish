@@ -19,35 +19,28 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import { HandModel } from "../../business/models";
 import Card from "../card/Card";
-import { registerDraggable } from "../rendering";
+import { registerDraggable } from "../dragDrop";
 import { html } from "../templateLiterals";
 import commonStyles from "../common.module.css";
 import handStyles from "./Hand.module.css";
+import { getElementById, onElementAdded } from "../rendering";
 
 const Hand = (
   handModel: HandModel,
   dragCardOut: (cardElement: HTMLElement) => void
 ): string => {
   const onDragStart = (draggableId: string): void => {
-    const draggable = document.getElementById(draggableId);
-    if (draggable) {
-      draggable.classList.add(commonStyles.dragging);
-      dragCardOut(draggable);
-    }
-  };
-
-  const onDragEnd = (draggableId: string): void => {
-    const draggable = document.getElementById(draggableId);
-    if (draggable) {
-      draggable.classList.remove(commonStyles.dragging);
-    }
+    const draggable = getElementById(draggableId);
+    dragCardOut(draggable);
   };
 
   return html`<div>
     <ul class="${handStyles.cards}">
       ${handModel.cards
         .map((cardModel) => {
-          registerDraggable(cardModel.id, () => true, onDragStart, onDragEnd);
+          onElementAdded(cardModel.id, (card) => {
+            registerDraggable(card, () => true, onDragStart);
+          });
           return html`<li>${Card(cardModel, [commonStyles.draggable])}</li>`;
         })
         .join("")}

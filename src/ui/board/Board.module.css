@@ -241,10 +241,10 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
 .potentialDropTarget {
   border: 3px dashed gray;
-  translate: -1.5px, -1.5px;
+  transform: translate(-1.5px, -1.5px);
 }
 
 .activeDropTarget {
   border: 5px solid blue;
-  translate: -4px, -4px;
+  transform: translate(-4px, -4px);
 }
