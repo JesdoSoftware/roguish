@@ -52,7 +52,6 @@ const App = (): string => {
   setGlobalOnDragStart((draggableId) => {
     const draggable = getElementById(draggableId);
     draggable.style.zIndex = getNextZIndex().toString();
-
     draggable.classList.add(commonStyles.dragging);
   });
 

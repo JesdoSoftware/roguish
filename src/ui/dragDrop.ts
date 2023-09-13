@@ -17,10 +17,6 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-let pointerDownClientX: number;
-let pointerDownClientY: number;
-let hoveredOverDropTarget: HTMLElement | undefined;
-
 const getMatchingElementAtPoint = (
   clientX: number,
   clientY: number,
@@ -30,20 +26,6 @@ const getMatchingElementAtPoint = (
   return elemsAtPoint
     .reverse() // find bottommost matching element
     .find((elem) => predicate(elem)) as HTMLElement;
-};
-
-const changeHoveredOverDropTarget = (
-  draggableId: string,
-  newTarget: HTMLElement | undefined
-): void => {
-  if (hoveredOverDropTarget) {
-    onCanDropUnhover(draggableId, hoveredOverDropTarget);
-    hoveredOverDropTarget = undefined;
-  }
-  if (newTarget) {
-    hoveredOverDropTarget = newTarget;
-    onCanDropHover(draggableId, hoveredOverDropTarget);
-  }
 };
 
 let globalOnDragStart: ((draggableId: string) => void) | undefined;
@@ -68,6 +50,24 @@ export const registerDraggable = (
   onDragEnd?: (draggableId: string) => void
 ): void => {
   let isDragging = false;
+  let pointerDownClientX: number;
+  let pointerDownClientY: number;
+
+  let hoveredOverDropTarget: HTMLElement | undefined;
+
+  const changeHoveredOverDropTarget = (
+    draggableId: string,
+    newTarget: HTMLElement | undefined
+  ): void => {
+    if (hoveredOverDropTarget) {
+      onCanDropUnhover(draggableId, hoveredOverDropTarget);
+      hoveredOverDropTarget = undefined;
+    }
+    if (newTarget) {
+      hoveredOverDropTarget = newTarget;
+      onCanDropHover(draggableId, hoveredOverDropTarget);
+    }
+  };
 
   element.addEventListener("pointerdown", (e) => {
     if (!isDragging && canDrag(element.id)) {
