@@ -17,7 +17,6 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-let isDragging = false;
 let pointerDownClientX: number;
 let pointerDownClientY: number;
 let hoveredOverDropTarget: HTMLElement | undefined;
@@ -68,6 +67,8 @@ export const registerDraggable = (
   onDragStart?: (draggableId: string) => void,
   onDragEnd?: (draggableId: string) => void
 ): void => {
+  let isDragging = false;
+
   element.addEventListener("pointerdown", (e) => {
     if (!isDragging && canDrag(element.id)) {
       isDragging = true;
