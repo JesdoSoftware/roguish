@@ -36,7 +36,7 @@ const Hand = (
 
   return html`<div>
     <ul class="${handStyles.cards}">
-      ${handModel.cards
+      ${Array.from(handModel.cards.values())
         .map((cardModel) => {
           onElementAdded(cardModel.id, (card) => {
             registerDraggable(card, () => true, onDragStart);

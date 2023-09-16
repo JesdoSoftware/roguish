@@ -67,7 +67,7 @@ const App = (): string => {
   onElementAdded(boardId, (board) => {
     loadDeck().then((deckDto) => {
       const gameModel = new GameModel(deckDto);
-      board.outerHTML = Board(boardId, gameModel.board);
+      board.outerHTML = Board(boardId, gameModel.board, gameModel.hand);
 
       onElementAdded(openHandDialogButtonId, (button) => {
         button.addEventListener("click", (): void => {

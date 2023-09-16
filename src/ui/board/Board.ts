@@ -26,6 +26,7 @@ import {
   SpaceLeftEmptyEventArgs,
   createId,
   CardSide,
+  HandModel,
 } from "../../business/models";
 import EmptySpace from "../emptySpace/EmptySpace";
 import Card, { updateCardZIndex } from "../card/Card";
@@ -63,7 +64,11 @@ interface EventHandler {
   delayBeforeMs: number;
 }
 
-const Board = (id: string, boardModel: BoardModel): string => {
+const Board = (
+  id: string,
+  boardModel: BoardModel,
+  handModel: HandModel
+): string => {
   const eventQueue: EventHandler[] = [];
   let isHandlingEvents = false;
 
@@ -128,14 +133,21 @@ const Board = (id: string, boardModel: BoardModel): string => {
   };
 
   const canDropCard = (draggableId: string, dropTargetId: string): boolean => {
-    const draggedCard = boardModel.getCardById(draggableId);
-    const dropTarget = boardModel.getCardById(dropTargetId);
-    const dropTargetPosition = boardModel.getCardPosition(dropTarget);
+    const cardFromBoard = boardModel.getCardByIdIfExists(draggableId);
+    const cardFromHand = handModel.getCardByIdIfExists(draggableId);
 
-    return boardModel.canMoveCardTo(draggedCard, {
-      column: dropTargetPosition.column,
-      row: dropTargetPosition.row,
-    });
+    if (cardFromHand) {
+      return false; // TODO implement
+    } else if (cardFromBoard) {
+      const dropTarget = boardModel.getCardById(dropTargetId);
+      const dropTargetPosition = boardModel.getCardPosition(dropTarget);
+      return boardModel.canMoveCardTo(cardFromBoard, {
+        column: dropTargetPosition.column,
+        row: dropTargetPosition.row,
+      });
+    } else {
+      return false;
+    }
   };
 
   const onCanDropHover = (

@@ -176,13 +176,17 @@ export class BoardModel {
     throw new Error("No matching position for card key");
   }
 
+  getCardByIdIfExists(cardId: string): CardModel | undefined {
+    return this.cards.get(cardId);
+  }
+
   getCardById(cardId: string): CardModel {
     for (const card of this.cards.values()) {
       if (card.id === cardId) {
         return card;
       }
     }
-    throw new Error("No card for ID");
+    throw new Error(`No card for ID ${cardId}`);
   }
 
   getCardAtPosition(position: BoardPosition): CardModel | undefined {
@@ -319,21 +323,30 @@ export class BoardModel {
 }
 
 export class HandModel {
-  readonly cards: CardModel[] = [];
+  readonly cards = new Map<string, CardModel>();
 
   constructor() {
     bindPrototypeMethods(this);
   }
 
-  addCard(card: CardModel): void {
-    this.cards.push(card);
+  getCardByIdIfExists(cardId: string): CardModel | undefined {
+    return this.cards.get(cardId);
   }
 
-  removeCard(cardId: string): CardModel {
-    const index = this.cards.findIndex((c) => c.id === cardId);
-    const spliced = this.cards.splice(index, 1);
+  getCardById(cardId: string): CardModel {
+    const card = this.getCardByIdIfExists(cardId);
+    if (card) {
+      return card;
+    }
+    throw new Error(`No card for ID ${cardId}`);
+  }
 
-    return spliced[0];
+  addCard(card: CardModel): void {
+    this.cards.set(card.id, card);
+  }
+
+  removeCard(cardId: string): void {
+    this.cards.delete(cardId);
   }
 }
 
