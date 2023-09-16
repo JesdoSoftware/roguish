@@ -177,14 +177,18 @@ export class BoardModel {
   }
 
   getCardByIdIfExists(cardId: string): CardModel | undefined {
-    return this.cards.get(cardId);
-  }
-
-  getCardById(cardId: string): CardModel {
     for (const card of this.cards.values()) {
       if (card.id === cardId) {
         return card;
       }
+    }
+    return undefined;
+  }
+
+  getCardById(cardId: string): CardModel {
+    const card = this.getCardByIdIfExists(cardId);
+    if (card) {
+      return card;
     }
     throw new Error(`No card for ID ${cardId}`);
   }
