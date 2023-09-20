@@ -52,11 +52,30 @@ const getCardClassNamesForPosition = (position: BoardPosition): string[] => {
 
 export const dragCardToBoard = (
   boardId: string,
-  cardElement: HTMLElement
+  cardElement: HTMLElement,
+  pointerEvent: PointerEvent
 ): void => {
+  const cardRect = cardElement.getBoundingClientRect();
+
+  // changing the element's parent messes up the pointer capture, so we
+  // explicitly unset it and reset it
+  cardElement.releasePointerCapture(pointerEvent.pointerId);
+
   const board = getElementById(boardId);
   board.appendChild(cardElement);
   cardElement.classList.add(boardStyles.space);
+
+  const boardRect = board.getBoundingClientRect();
+  cardElement.style.left = `${
+    pointerEvent.clientX -
+    boardRect.left -
+    (pointerEvent.clientX - cardRect.left)
+  }px`;
+  cardElement.style.top = `${
+    pointerEvent.clientY - boardRect.top - (pointerEvent.clientY - cardRect.top)
+  }px`;
+
+  cardElement.setPointerCapture(pointerEvent.pointerId);
 };
 
 interface EventHandler {
@@ -133,8 +152,8 @@ const Board = (
   };
 
   const canDropCard = (draggableId: string, dropTargetId: string): boolean => {
-    const cardFromBoard = boardModel.getCardByIdIfExists(draggableId);
     const cardFromHand = handModel.getCardByIdIfExists(draggableId);
+    const cardFromBoard = boardModel.getCardByIdIfExists(draggableId);
 
     if (cardFromHand) {
       return false; // TODO implement

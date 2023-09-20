@@ -27,11 +27,14 @@ import { getElementById, onElementAdded } from "../rendering";
 
 const Hand = (
   handModel: HandModel,
-  dragCardOut: (cardElement: HTMLElement) => void
+  dragCardOut: (cardElement: HTMLElement, pointerEvent: PointerEvent) => void
 ): string => {
-  const onDragStart = (draggableId: string): void => {
+  const onDragStart = (
+    draggableId: string,
+    pointerEvent: PointerEvent
+  ): void => {
     const draggable = getElementById(draggableId);
-    dragCardOut(draggable);
+    dragCardOut(draggable, pointerEvent);
   };
 
   return html`<div>

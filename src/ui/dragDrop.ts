@@ -46,7 +46,7 @@ export const setGlobalOnDragEnd = (
 export const registerDraggable = (
   element: HTMLElement,
   canDrag: (draggableId: string) => boolean,
-  onDragStart?: (draggableId: string) => void,
+  onDragStart?: (draggableId: string, pointerEvent: PointerEvent) => void,
   onDragEnd?: (draggableId: string) => void
 ): void => {
   let isDragging = false;
@@ -81,7 +81,7 @@ export const registerDraggable = (
         globalOnDragStart(element.id);
       }
       if (onDragStart) {
-        onDragStart(element.id);
+        onDragStart(element.id, e);
       }
     }
   });

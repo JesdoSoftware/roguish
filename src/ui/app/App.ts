@@ -72,10 +72,13 @@ const App = (): string => {
       onElementAdded(openHandDialogButtonId, (button) => {
         button.addEventListener("click", (): void => {
           const handDialog = getElementById(handDialogId) as HTMLDialogElement;
-          handDialog.innerHTML = Hand(gameModel.hand, (cardElement) => {
-            dragCardToBoard(boardId, cardElement);
-            handDialog.close();
-          });
+          handDialog.innerHTML = Hand(
+            gameModel.hand,
+            (cardElement, pointerEvent) => {
+              dragCardToBoard(boardId, cardElement, pointerEvent);
+              handDialog.close();
+            }
+          );
           handDialog.showModal();
         });
       });
