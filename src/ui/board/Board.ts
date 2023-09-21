@@ -78,6 +78,16 @@ export const dragCardToBoard = (
   cardElement.setPointerCapture(pointerEvent.pointerId);
 };
 
+export const returnCardFromBoard = (cardElement: HTMLElement): void => {
+  cardElement.style.left = "";
+  cardElement.style.top = "";
+
+  setTimeout(
+    () => cardElement.parentElement?.removeChild(cardElement),
+    cardTransitionDurationMs
+  );
+};
+
 interface EventHandler {
   handle: () => void;
   delayBeforeMs: number;

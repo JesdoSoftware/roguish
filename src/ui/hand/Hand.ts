@@ -27,7 +27,8 @@ import { getElementById, onElementAdded } from "../rendering";
 
 const Hand = (
   handModel: HandModel,
-  dragCardOut: (cardElement: HTMLElement, pointerEvent: PointerEvent) => void
+  dragCardOut: (cardElement: HTMLElement, pointerEvent: PointerEvent) => void,
+  returnCard: (cardElement: HTMLElement) => void
 ): string => {
   const onDragStart = (
     draggableId: string,
@@ -38,8 +39,7 @@ const Hand = (
   };
   const onDragEnd = (draggableId: string): void => {
     const draggable = getElementById(draggableId);
-    draggable.style.left = "";
-    draggable.style.top = "";
+    returnCard(draggable);
   };
 
   return html`<div>

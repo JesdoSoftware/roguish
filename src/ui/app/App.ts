@@ -19,7 +19,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import { loadDeck } from "../../business/dataAccess";
 import { GameModel, createId } from "../../business/models";
-import Board, { dragCardToBoard } from "../board/Board";
+import Board, { dragCardToBoard, returnCardFromBoard } from "../board/Board";
 import { setGlobalOnDragEnd, setGlobalOnDragStart } from "../dragDrop";
 import Hand from "../hand/Hand";
 import { getElementById, getNextZIndex, onElementAdded } from "../rendering";
@@ -77,7 +77,8 @@ const App = (): string => {
             (cardElement, pointerEvent) => {
               dragCardToBoard(boardId, cardElement, pointerEvent);
               handDialog.close();
-            }
+            },
+            returnCardFromBoard
           );
           handDialog.showModal();
         });
