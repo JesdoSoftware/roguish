@@ -63,7 +63,7 @@ export const dragCardToBoard = (
 
   const board = getElementById(boardId);
   board.appendChild(cardElement);
-  cardElement.classList.add(boardStyles.space);
+  cardElement.classList.add(boardStyles.space, boardStyles.inHand);
 
   const boardRect = board.getBoundingClientRect();
   cardElement.style.left = `${

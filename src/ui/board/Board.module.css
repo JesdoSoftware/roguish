@@ -29,6 +29,8 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   --row2Top: calc(var(--colWidth) * 2);
   --dungeonDeckTop: -500px;
   --dungeonDeckLeft: 0;
+  --handTop: 105vh;
+  --handLeft: 50%;
 }
 
 .board {
@@ -237,6 +239,11 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   top: var(--dungeonDeckTop);
   left: var(--col2Left);
   box-shadow: 10px 10px 10px var(--shadowColor);
+}
+
+.inHand {
+  top: var(--handTop);
+  left: var(--handLeft);
 }
 
 .potentialDropTarget {
