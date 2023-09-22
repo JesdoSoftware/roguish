@@ -23,7 +23,13 @@ import { CardDto, DeckDto } from "./dtos";
 export const maxBoardColumns = 3;
 export const maxBoardRows = 3;
 
-const playerCardId = "cardPlayer";
+let nextId = 1;
+
+export const createId = (): string => {
+  return `${nextId++}`;
+};
+
+const playerCardId = createId();
 
 export class EventDispatcher<T> {
   private readonly listeners: ((e: T) => void)[] = [];
@@ -90,14 +96,8 @@ export class CardModel {
   }
 }
 
-let nextId = 1;
-
-export const createId = (prefix?: string): string => {
-  return `${prefix}${nextId++}`;
-};
-
 export const cardDtoToModel = (cardDto: CardDto): CardModel => {
-  return new CardModel(createId("card"), cardDto.name, cardDto.strength);
+  return new CardModel(createId(), cardDto.name, cardDto.strength);
 };
 
 const shuffleCards = (cardModels: CardModel[]): CardModel[] => {
@@ -113,23 +113,6 @@ const shuffleCards = (cardModels: CardModel[]): CardModel[] => {
   }
 
   return cardModels;
-};
-
-export interface DeckModel {
-  cards: CardModel[];
-}
-
-export const deckDtoToModel = (deckDto: DeckDto): DeckModel => {
-  return {
-    cards: deckDto.cards.flatMap((cardDto) => {
-      const cardModels: CardModel[] = [];
-      for (let i = 0; i < cardDto.quantity; ++i) {
-        cardModels.push(cardDtoToModel(cardDto));
-      }
-
-      return cardModels;
-    }),
-  };
 };
 
 export interface BoardPosition {
@@ -157,7 +140,7 @@ export interface SpaceLeftEmptyEventArgs {
 }
 
 export class BoardModel {
-  readonly deck: DeckModel;
+  readonly dungeonDeck: CardModel[];
   readonly discarded: CardModel[] = [];
   readonly onCardDealt = new EventDispatcher<CardDealtEventArgs>();
   readonly onCardMoved = new EventDispatcher<CardMovedEventArgs>();
@@ -167,10 +150,10 @@ export class BoardModel {
   private readonly cards = new Map<string, CardModel>();
   private readonly playerCard: CardModel;
 
-  constructor(deck: DeckModel) {
-    this.deck = deck;
+  constructor(dungeonDeck: CardModel[]) {
+    this.dungeonDeck = dungeonDeck;
     bindPrototypeMethods(this);
-    shuffleCards(this.deck.cards);
+    shuffleCards(this.dungeonDeck);
 
     this.playerCard = new CardModel(playerCardId, "Player", 0, CardSide.Front);
     this.cards.set(
@@ -193,13 +176,21 @@ export class BoardModel {
     throw new Error("No matching position for card key");
   }
 
-  getCardById(cardId: string): CardModel {
+  getCardByIdIfExists(cardId: string): CardModel | undefined {
     for (const card of this.cards.values()) {
       if (card.id === cardId) {
         return card;
       }
     }
-    throw new Error("No card for ID");
+    return undefined;
+  }
+
+  getCardById(cardId: string): CardModel {
+    const card = this.getCardByIdIfExists(cardId);
+    if (card) {
+      return card;
+    }
+    throw new Error(`No card for ID ${cardId}`);
   }
 
   getCardAtPosition(position: BoardPosition): CardModel | undefined {
@@ -233,7 +224,7 @@ export class BoardModel {
       for (let column = 0; column < maxBoardColumns; ++column) {
         const position = { column, row };
         if (!this.getCardAtPosition(position)) {
-          const card = this.deck.cards.pop();
+          const card = this.dungeonDeck.pop();
           if (card) {
             this.dealCard(card, position);
           } else {
@@ -331,6 +322,61 @@ export class BoardModel {
       this.onCardDiscarded.dispatch({
         card: card,
       });
+    }
+  }
+}
+
+export class HandModel {
+  readonly cards = new Map<string, CardModel>();
+
+  constructor() {
+    bindPrototypeMethods(this);
+  }
+
+  getCardByIdIfExists(cardId: string): CardModel | undefined {
+    return this.cards.get(cardId);
+  }
+
+  getCardById(cardId: string): CardModel {
+    const card = this.getCardByIdIfExists(cardId);
+    if (card) {
+      return card;
+    }
+    throw new Error(`No card for ID ${cardId}`);
+  }
+
+  addCard(card: CardModel): void {
+    this.cards.set(card.id, card);
+  }
+
+  removeCard(cardId: string): void {
+    this.cards.delete(cardId);
+  }
+}
+
+export class GameModel {
+  readonly board: BoardModel;
+  readonly hand: HandModel = new HandModel();
+
+  constructor(dungeonDeckDto: DeckDto) {
+    bindPrototypeMethods(this);
+
+    const dungeonCards: CardModel[] = [];
+    dungeonDeckDto.cards.forEach((cardDto) => {
+      for (let i = 0; i < cardDto.quantity; ++i) {
+        dungeonCards.push(cardDtoToModel(cardDto));
+      }
+    });
+    this.board = new BoardModel(dungeonCards);
+
+    this.addInitialHandCards();
+  }
+
+  private addInitialHandCards(): void {
+    for (let i = 0; i < 10; ++i) {
+      this.hand.addCard(
+        new CardModel(createId(), `Item${i}`, 1, CardSide.Front)
+      );
     }
   }
 }

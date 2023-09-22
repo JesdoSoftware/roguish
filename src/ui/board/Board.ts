@@ -26,22 +26,66 @@ import {
   SpaceLeftEmptyEventArgs,
   createId,
   CardSide,
+  HandModel,
 } from "../../business/models";
 import EmptySpace from "../emptySpace/EmptySpace";
 import Card, { updateCardZIndex } from "../card/Card";
 import {
-  registerDraggable,
-  registerDropTarget,
+  getElementById,
+  getElementByIdIfExists,
   getNextZIndex,
   onElementAdded,
 } from "../rendering";
+import { registerDraggable, registerDropTarget } from "../dragDrop";
 import { html } from "../templateLiterals";
-import styles from "./Board.module.css";
+import commonStyles from "../common.module.css";
+import boardStyles from "./Board.module.css";
 
 const cardTransitionDurationMs = 500;
 
 const getCardClassNamesForPosition = (position: BoardPosition): string[] => {
-  return [styles[`col${position.column}`], styles[`row${position.row}`]];
+  return [
+    boardStyles[`col${position.column}`],
+    boardStyles[`row${position.row}`],
+  ];
+};
+
+export const dragCardToBoard = (
+  boardId: string,
+  cardElement: HTMLElement,
+  pointerEvent: PointerEvent
+): void => {
+  const cardRect = cardElement.getBoundingClientRect();
+
+  // changing the element's parent messes up the pointer capture, so we
+  // explicitly unset it and reset it
+  cardElement.releasePointerCapture(pointerEvent.pointerId);
+
+  const board = getElementById(boardId);
+  board.appendChild(cardElement);
+  cardElement.classList.add(boardStyles.space, boardStyles.inHand);
+
+  const boardRect = board.getBoundingClientRect();
+  cardElement.style.left = `${
+    pointerEvent.clientX -
+    boardRect.left -
+    (pointerEvent.clientX - cardRect.left)
+  }px`;
+  cardElement.style.top = `${
+    pointerEvent.clientY - boardRect.top - (pointerEvent.clientY - cardRect.top)
+  }px`;
+
+  cardElement.setPointerCapture(pointerEvent.pointerId);
+};
+
+export const returnCardFromBoard = (cardElement: HTMLElement): void => {
+  cardElement.style.left = "";
+  cardElement.style.top = "";
+
+  setTimeout(
+    () => cardElement.parentElement?.removeChild(cardElement),
+    cardTransitionDurationMs
+  );
 };
 
 interface EventHandler {
@@ -49,9 +93,11 @@ interface EventHandler {
   delayBeforeMs: number;
 }
 
-const Board = (boardModel: BoardModel): string => {
-  const boardId = "board";
-
+const Board = (
+  id: string,
+  boardModel: BoardModel,
+  handModel: HandModel
+): string => {
   const eventQueue: EventHandler[] = [];
   let isHandlingEvents = false;
 
@@ -82,11 +128,6 @@ const Board = (boardModel: BoardModel): string => {
   const potentialDropTargetIds: string[] = [];
 
   const onDragCardStart = (draggableId: string): void => {
-    const draggedElem = document.getElementById(draggableId);
-    if (draggedElem) {
-      draggedElem.classList.add(styles.dragging);
-    }
-
     const draggedCardModel = boardModel.getCardById(draggableId);
     const potentialDropPositions =
       boardModel.getMovableToPositions(draggedCardModel);
@@ -106,52 +147,50 @@ const Board = (boardModel: BoardModel): string => {
         }
       }
       if (elemId) {
-        const dropTargetElem = document.getElementById(elemId);
-        if (dropTargetElem) {
-          dropTargetElem.classList.add(styles.potentialDropTarget);
-        }
+        const dropTargetElem = getElementByIdIfExists(elemId);
+        dropTargetElem?.classList.add(boardStyles.potentialDropTarget);
       }
     });
   };
 
-  const onDragCardEnd = (draggableId: string): void => {
-    const draggedElem = document.getElementById(draggableId);
-    if (draggedElem) {
-      draggedElem.classList.remove(styles.dragging);
-    }
-
+  const onDragCardEnd = (): void => {
     potentialDropTargetIds.forEach((id) => {
-      const dropTargetElem = document.getElementById(id);
-      if (dropTargetElem) {
-        dropTargetElem.classList.remove(styles.potentialDropTarget);
-      }
+      const dropTargetElem = getElementById(id);
+      dropTargetElem.classList.remove(boardStyles.potentialDropTarget);
     });
     potentialDropTargetIds.splice(0, potentialDropTargetIds.length);
   };
 
   const canDropCard = (draggableId: string, dropTargetId: string): boolean => {
-    const draggedCard = boardModel.getCardById(draggableId);
-    const dropTarget = boardModel.getCardById(dropTargetId);
-    const dropTargetPosition = boardModel.getCardPosition(dropTarget);
+    const cardFromBoard = boardModel.getCardByIdIfExists(draggableId);
+    const cardFromHand = handModel.getCardByIdIfExists(draggableId);
 
-    return boardModel.canMoveCardTo(draggedCard, {
-      column: dropTargetPosition.column,
-      row: dropTargetPosition.row,
-    });
+    if (cardFromBoard) {
+      const dropTarget = boardModel.getCardById(dropTargetId);
+      const dropTargetPosition = boardModel.getCardPosition(dropTarget);
+      return boardModel.canMoveCardTo(cardFromBoard, {
+        column: dropTargetPosition.column,
+        row: dropTargetPosition.row,
+      });
+    } else if (cardFromHand) {
+      return false; // TODO implement
+    } else {
+      return false;
+    }
   };
 
   const onCanDropHover = (
     _draggableId: string,
     dropTargetElement: HTMLElement
   ): void => {
-    dropTargetElement.classList.add(styles.activeDropTarget);
+    dropTargetElement.classList.add(boardStyles.activeDropTarget);
   };
 
   const onCanDropUnhover = (
     _draggableId: string,
     dropTargetElement: HTMLElement
   ): void => {
-    dropTargetElement.classList.remove(styles.activeDropTarget);
+    dropTargetElement.classList.remove(boardStyles.activeDropTarget);
   };
 
   const onDropCard = (draggableId: string, dropTargetId: string): void => {
@@ -163,9 +202,9 @@ const Board = (boardModel: BoardModel): string => {
   };
 
   const dealCard = (cardDealt: CardDealtEventArgs): void => {
-    const board = document.getElementById(boardId);
+    const board = getElementById(id);
     const card = document.createElement("div");
-    board?.appendChild(card);
+    board.appendChild(card);
 
     const column = cardDealt.position.column;
     const row = cardDealt.position.row;
@@ -174,31 +213,27 @@ const Board = (boardModel: BoardModel): string => {
       isFlipping ? "Flipping" : ""
     }`;
     const classNames = [
-      styles.space,
+      boardStyles.space,
       ...getCardClassNamesForPosition({ column, row }),
-      styles[dealingClass],
+      boardStyles[dealingClass],
     ];
 
     const canDrag = (): boolean => boardModel.canMoveCard(cardDealt.card);
 
     onElementAdded(cardDealt.card.id, (card) => {
       updateCardZIndex(card, getNextZIndex());
+
+      registerDraggable(card, canDrag, onDragCardStart, onDragCardEnd);
+      registerDropTarget(
+        cardDealt.card.id,
+        canDropCard,
+        onCanDropHover,
+        onCanDropUnhover,
+        onDropCard
+      );
     });
 
     card.outerHTML = Card(cardDealt.card, classNames);
-    registerDraggable(
-      cardDealt.card.id,
-      canDrag,
-      onDragCardStart,
-      onDragCardEnd
-    );
-    registerDropTarget(
-      cardDealt.card.id,
-      canDropCard,
-      onCanDropHover,
-      onCanDropUnhover,
-      onDropCard
-    );
   };
 
   const emptySpaceIds = new Map<string, string>(); // key is position, value is ID
@@ -208,13 +243,13 @@ const Board = (boardModel: BoardModel): string => {
 
   const markEmptySpace = (spaceLeftEmpty: SpaceLeftEmptyEventArgs): void => {
     if (!isSpaceMarkedEmpty(spaceLeftEmpty.position)) {
-      const board = document.getElementById(boardId);
+      const board = getElementById(id);
       const emptySpace = document.createElement("div");
-      board?.appendChild(emptySpace);
+      board.appendChild(emptySpace);
 
-      const emptySpaceId = createId("emptySpace");
+      const emptySpaceId = createId();
       emptySpace.outerHTML = EmptySpace(emptySpaceId, [
-        styles.space,
+        boardStyles.space,
         ...getCardClassNamesForPosition({
           column: spaceLeftEmpty.position.column,
           row: spaceLeftEmpty.position.row,
@@ -246,10 +281,8 @@ const Board = (boardModel: BoardModel): string => {
     const emptySpaceId = emptySpaceIds.get(emptySpaceKey);
     if (emptySpaceId) {
       emptySpaceIds.delete(emptySpaceKey);
-      const emptySpaceElem = document.getElementById(emptySpaceId);
-      if (emptySpaceElem) {
-        emptySpaceElem.parentElement?.removeChild(emptySpaceElem);
-      }
+      const emptySpaceElem = getElementById(emptySpaceId);
+      emptySpaceElem.parentElement?.removeChild(emptySpaceElem);
     }
   };
 
@@ -264,27 +297,24 @@ const Board = (boardModel: BoardModel): string => {
       if (isSpaceMarkedEmpty(e.toPosition)) {
         unmarkEmptySpace(e.toPosition);
       }
-      const cardElem = document.getElementById(e.card.id);
-      if (cardElem) {
-        cardElem.classList.remove(
-          ...getCardClassNamesForPosition(e.fromPosition)
-        );
-        cardElem.classList.add(...getCardClassNamesForPosition(e.toPosition));
-        updateCardZIndex(cardElem, getNextZIndex());
-      }
+      const cardElem = getElementById(e.card.id);
+      cardElem.classList.remove(
+        ...getCardClassNamesForPosition(e.fromPosition)
+      );
+      cardElem.classList.add(...getCardClassNamesForPosition(e.toPosition));
+      updateCardZIndex(cardElem, getNextZIndex());
     });
   });
 
   boardModel.onCardDiscarded.addListener((e) => {
     queueEvent(() => {
-      const cardElem = document.getElementById(e.card.id);
-      if (cardElem) {
-        cardElem.classList.add(styles.discarded);
-        updateCardZIndex(cardElem, getNextZIndex());
-      }
+      const cardElem = getElementById(e.card.id);
+      cardElem.classList.add(boardStyles.discarded);
+      updateCardZIndex(cardElem, getNextZIndex());
+
       setTimeout(() => {
-        const cardElem = document.getElementById(e.card.id);
-        cardElem?.parentElement?.removeChild(cardElem);
+        const cardElem = getElementById(e.card.id);
+        cardElem.parentElement?.removeChild(cardElem);
       }, cardTransitionDurationMs);
     });
   });
@@ -295,7 +325,7 @@ const Board = (boardModel: BoardModel): string => {
     });
   });
 
-  onElementAdded(boardId, () => boardModel.dealCards());
+  onElementAdded(id, () => boardModel.dealCards());
 
   let initialCards = "";
   for (let column = 0; column < maxBoardColumns; ++column) {
@@ -304,21 +334,26 @@ const Board = (boardModel: BoardModel): string => {
       const cardModel = boardModel.getCardAtPosition(position);
       if (cardModel) {
         initialCards += Card(cardModel, [
-          styles.space,
+          boardStyles.space,
           ...getCardClassNamesForPosition(position),
-          styles.draggable,
+          // TODO add global handler for e.g. assigning draggable style on enabling
+          // draggability; requires way to dynamically enable/disable draggability
+          // for e.g. non-player cards
+          commonStyles.draggable,
         ]);
-        registerDraggable(
-          cardModel.id,
-          () => boardModel.canMoveCard(cardModel),
-          onDragCardStart,
-          onDragCardEnd
-        );
+        onElementAdded(cardModel.id, (card) => {
+          registerDraggable(
+            card,
+            () => boardModel.canMoveCard(cardModel),
+            onDragCardStart,
+            onDragCardEnd
+          );
+        });
       }
     }
   }
 
-  return html`<div id="${boardId}" class="${styles.board}">
+  return html`<div id="${id}" class="${boardStyles.board}">
     ${initialCards}
   </div>`;
 };

@@ -29,7 +29,8 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   --row2Top: calc(var(--colWidth) * 2);
   --dungeonDeckTop: -500px;
   --dungeonDeckLeft: 0;
-  --shadowColor: rgba(0, 0, 0, 0.5);
+  --handTop: 105vh;
+  --handLeft: 50%;
 }
 
 .board {
@@ -240,38 +241,17 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   box-shadow: 10px 10px 10px var(--shadowColor);
 }
 
-.draggable {
-  cursor: grab;
-  box-shadow: 5px 5px 5px var(--shadowColor);
-}
-
-.dragging {
-  cursor: grabbing;
-  transition: top 0s, left 0s, box-shadow 0.1s, scale 0.1s;
-  scale: 105%;
-  box-shadow: 15px 15px 15px var(--shadowColor);
+.inHand {
+  top: var(--handTop);
+  left: var(--handLeft);
 }
 
 .potentialDropTarget {
   border: 3px dashed gray;
-  translate: -1.5px, -1.5px;
+  transform: translate(-1.5px, -1.5px);
 }
 
 .activeDropTarget {
   border: 5px solid blue;
-  translate: -4px, -4px;
-}
-
-@media (hover: hover) {
-  .draggable:hover {
-    box-shadow: 10px 10px 10px var(--shadowColor);
-  }
-
-  .dragging:hover {
-    /*
-     * repeat box-shadow here to override .draggable:hover, which
-     * overrides .dragging
-     */
-    box-shadow: 15px 15px 15px var(--shadowColor);
-  }
+  transform: translate(-4px, -4px);
 }

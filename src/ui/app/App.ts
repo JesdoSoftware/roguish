@@ -18,20 +18,14 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { loadDeck } from "../../business/dataAccess";
-import Board from "../board/Board";
-import {
-  canDrag,
-  canDrop,
-  drop,
-  getNextZIndex,
-  removeStyleProperties,
-  startDrag,
-  endDrag,
-  onCanDropUnhover,
-  onCanDropHover,
-  onElementAdded,
-} from "../rendering";
+import { GameModel, createId } from "../../business/models";
+import Board, { dragCardToBoard, returnCardFromBoard } from "../board/Board";
+import { setGlobalOnDragEnd, setGlobalOnDragStart } from "../dragDrop";
+import Hand from "../hand/Hand";
+import { getElementById, getNextZIndex, onElementAdded } from "../rendering";
 import { html } from "../templateLiterals";
+import commonStyles from "../common.module.css";
+import appStyles from "./App.module.css";
 
 const CopyrightLicenseSource = (): string => {
   return html`
@@ -55,118 +49,63 @@ const CopyrightLicenseSource = (): string => {
 };
 
 const App = (): string => {
-  let isDragging = false;
-  let pointerDownClientX: number;
-  let pointerDownClientY: number;
-  let draggedElem: HTMLElement;
-  let draggedElemStartingLeft: number;
-  let draggedElemStartingTop: number;
-  let hoveredOverDropTarget: HTMLElement | undefined;
-
-  const getMatchingElementAtPoint = (
-    clientX: number,
-    clientY: number,
-    predicate: (elem: Element) => boolean
-  ): HTMLElement | undefined => {
-    const elemsAtPoint = document.elementsFromPoint(clientX, clientY);
-    return elemsAtPoint
-      .reverse() // find bottommost matching element
-      .find((elem) => predicate(elem)) as HTMLElement;
-  };
-
-  const onPointerDown = (e: PointerEvent): void => {
-    const draggable = getMatchingElementAtPoint(e.clientX, e.clientY, (elem) =>
-      canDrag(elem.id)
-    );
-    if (draggable) {
-      isDragging = true;
-      pointerDownClientX = e.clientX;
-      pointerDownClientY = e.clientY;
-
-      draggedElem = draggable;
-      const computedStyle = window.getComputedStyle(draggedElem);
-      draggedElemStartingLeft = parseInt(computedStyle.left);
-      draggedElemStartingTop = parseInt(computedStyle.top);
-      draggedElem.style.zIndex = getNextZIndex().toString();
-
-      startDrag(draggable.id);
-    }
-  };
-
-  const changeHoveredOverDropTarget = (
-    draggableId: string,
-    newTarget: HTMLElement | undefined
-  ): void => {
-    if (hoveredOverDropTarget) {
-      onCanDropUnhover(draggableId, hoveredOverDropTarget);
-      hoveredOverDropTarget = undefined;
-    }
-    if (newTarget) {
-      hoveredOverDropTarget = newTarget;
-      onCanDropHover(draggableId, hoveredOverDropTarget);
-    }
-  };
-
-  const onPointerMove = (e: PointerEvent): void => {
-    if (isDragging) {
-      // calculating from the pointer down X/Y (instead of using
-      // e.movementX and e.movementY) fixes some glitchiness when
-      // the pointer leaves and reenters the window
-      const diffX = e.clientX - pointerDownClientX;
-      const diffY = e.clientY - pointerDownClientY;
-
-      draggedElem.style.left = `${draggedElemStartingLeft + diffX}px`;
-      draggedElem.style.top = `${draggedElemStartingTop + diffY}px`;
-
-      const newDropTarget = getMatchingElementAtPoint(
-        e.clientX,
-        e.clientY,
-        (elem) => canDrop(draggedElem.id, elem.id)
-      );
-      if (hoveredOverDropTarget?.id !== newDropTarget?.id) {
-        changeHoveredOverDropTarget(draggedElem.id, newDropTarget);
-      }
-    }
-  };
-
-  const onPointerUp = (e: PointerEvent): void => {
-    if (isDragging) {
-      isDragging = false;
-
-      removeStyleProperties(draggedElem, ["left", "top"]);
-
-      changeHoveredOverDropTarget(draggedElem.id, undefined);
-      endDrag(draggedElem.id);
-
-      const dropTarget = getMatchingElementAtPoint(
-        e.clientX,
-        e.clientY,
-        (elem) => canDrop(draggedElem.id, elem.id)
-      );
-      if (dropTarget) {
-        drop(draggedElem.id, dropTarget.id);
-      }
-    }
-  };
-
-  const appId = "app";
-  const boardId = "board";
-
-  onElementAdded(appId, (app) => {
-    app.addEventListener("pointerdown", onPointerDown);
-    app.addEventListener("pointermove", onPointerMove);
-    app.addEventListener("pointerup", onPointerUp);
+  setGlobalOnDragStart((draggableId) => {
+    const draggable = getElementById(draggableId);
+    draggable.style.zIndex = getNextZIndex().toString();
+    draggable.classList.add(commonStyles.dragging);
   });
 
+  setGlobalOnDragEnd((draggableId) => {
+    const draggable = getElementById(draggableId);
+    draggable.classList.remove(commonStyles.dragging);
+  });
+
+  const openHandDialogButtonId = createId();
+  const handDialogId = createId();
+  const closeHandDialogButtonId = createId();
+  const handId = createId();
+
+  const boardId = createId();
   onElementAdded(boardId, (board) => {
-    loadDeck().then((boardModel) => {
-      board.outerHTML = Board(boardModel);
+    loadDeck().then((deckDto) => {
+      const gameModel = new GameModel(deckDto);
+      board.outerHTML = Board(boardId, gameModel.board, gameModel.hand);
+
+      onElementAdded(openHandDialogButtonId, (button) => {
+        button.addEventListener("click", (): void => {
+          const handDialog = getElementById(handDialogId) as HTMLDialogElement;
+          const hand = getElementById(handId);
+          hand.outerHTML = Hand(
+            handId,
+            gameModel.hand,
+            (cardElement, pointerEvent) => {
+              dragCardToBoard(boardId, cardElement, pointerEvent);
+              handDialog.close();
+            },
+            returnCardFromBoard
+          );
+          handDialog.showModal();
+        });
+      });
+      onElementAdded(closeHandDialogButtonId, (button) => {
+        button.addEventListener("click", (): void => {
+          const handDialog = getElementById(handDialogId) as HTMLDialogElement;
+          handDialog.close();
+        });
+      });
     });
   });
 
   return html`
-    <div id="${appId}">
+    <div>
       <div id="${boardId}">Loading deck&hellip;</div>
+      <button id="${openHandDialogButtonId}">Hand</button>
+      <dialog id="${handDialogId}" class="${appStyles.handDialog}">
+        <div class="${appStyles.handDialogHeader}">
+          <button id="${closeHandDialogButtonId}">Close</button>
+        </div>
+        <div id="${handId}"></div>
+      </dialog>
       <hr />
       ${CopyrightLicenseSource()}
     </div>
