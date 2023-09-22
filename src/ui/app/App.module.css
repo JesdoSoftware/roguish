@@ -21,3 +21,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   width: 50vw;
   height: 80vh;
 }
+
+.handDialogHeader {
+  text-align: right;
+}

@@ -62,6 +62,8 @@ const App = (): string => {
 
   const openHandDialogButtonId = createId();
   const handDialogId = createId();
+  const closeHandDialogButtonId = createId();
+  const handDialogContentsId = createId();
 
   const boardId = createId();
   onElementAdded(boardId, (board) => {
@@ -72,7 +74,8 @@ const App = (): string => {
       onElementAdded(openHandDialogButtonId, (button) => {
         button.addEventListener("click", (): void => {
           const handDialog = getElementById(handDialogId) as HTMLDialogElement;
-          handDialog.innerHTML = Hand(
+          const handDialogContents = getElementById(handDialogContentsId);
+          handDialogContents.innerHTML = Hand(
             gameModel.hand,
             (cardElement, pointerEvent) => {
               dragCardToBoard(boardId, cardElement, pointerEvent);
@@ -83,6 +86,12 @@ const App = (): string => {
           handDialog.showModal();
         });
       });
+      onElementAdded(closeHandDialogButtonId, (button) => {
+        button.addEventListener("click", (): void => {
+          const handDialog = getElementById(handDialogId) as HTMLDialogElement;
+          handDialog.close();
+        });
+      });
     });
   });
 
@@ -90,7 +99,12 @@ const App = (): string => {
     <div>
       <div id="${boardId}">Loading deck&hellip;</div>
       <button id="${openHandDialogButtonId}">Hand</button>
-      <dialog id=${handDialogId} class="${appStyles.handDialog}"></dialog>
+      <dialog id="${handDialogId}" class="${appStyles.handDialog}">
+        <div class="${appStyles.handDialogHeader}">
+          <button id="${closeHandDialogButtonId}">Close</button>
+        </div>
+        <div id="${handDialogContentsId}"></div>
+      </dialog>
       <hr />
       ${CopyrightLicenseSource()}
     </div>
