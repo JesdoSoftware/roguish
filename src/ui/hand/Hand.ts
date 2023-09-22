@@ -26,6 +26,7 @@ import handStyles from "./Hand.module.css";
 import { getElementById, onElementAdded } from "../rendering";
 
 const Hand = (
+  id: string,
   handModel: HandModel,
   dragCardOut: (cardElement: HTMLElement, pointerEvent: PointerEvent) => void,
   returnCard: (cardElement: HTMLElement) => void
@@ -42,7 +43,7 @@ const Hand = (
     returnCard(draggable);
   };
 
-  return html`<div>
+  return html`<div id="${id}">
     <ul class="${handStyles.cards}">
       ${Array.from(handModel.cards.values())
         .map((cardModel) => {

@@ -358,16 +358,16 @@ export class GameModel {
   readonly board: BoardModel;
   readonly hand: HandModel = new HandModel();
 
-  constructor(deckDto: DeckDto) {
+  constructor(dungeonDeckDto: DeckDto) {
     bindPrototypeMethods(this);
 
-    const cardModels: CardModel[] = [];
-    deckDto.cards.forEach((cardDto) => {
+    const dungeonCards: CardModel[] = [];
+    dungeonDeckDto.cards.forEach((cardDto) => {
       for (let i = 0; i < cardDto.quantity; ++i) {
-        cardModels.push(cardDtoToModel(cardDto));
+        dungeonCards.push(cardDtoToModel(cardDto));
       }
     });
-    this.board = new BoardModel(cardModels);
+    this.board = new BoardModel(dungeonCards);
 
     this.addInitialHandCards();
   }

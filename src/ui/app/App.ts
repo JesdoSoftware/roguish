@@ -63,7 +63,7 @@ const App = (): string => {
   const openHandDialogButtonId = createId();
   const handDialogId = createId();
   const closeHandDialogButtonId = createId();
-  const handDialogContentsId = createId();
+  const handId = createId();
 
   const boardId = createId();
   onElementAdded(boardId, (board) => {
@@ -74,8 +74,9 @@ const App = (): string => {
       onElementAdded(openHandDialogButtonId, (button) => {
         button.addEventListener("click", (): void => {
           const handDialog = getElementById(handDialogId) as HTMLDialogElement;
-          const handDialogContents = getElementById(handDialogContentsId);
-          handDialogContents.innerHTML = Hand(
+          const hand = getElementById(handId);
+          hand.outerHTML = Hand(
+            handId,
             gameModel.hand,
             (cardElement, pointerEvent) => {
               dragCardToBoard(boardId, cardElement, pointerEvent);
@@ -103,7 +104,7 @@ const App = (): string => {
         <div class="${appStyles.handDialogHeader}">
           <button id="${closeHandDialogButtonId}">Close</button>
         </div>
-        <div id="${handDialogContentsId}"></div>
+        <div id="${handId}"></div>
       </dialog>
       <hr />
       ${CopyrightLicenseSource()}

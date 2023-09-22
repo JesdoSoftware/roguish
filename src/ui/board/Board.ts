@@ -162,18 +162,18 @@ const Board = (
   };
 
   const canDropCard = (draggableId: string, dropTargetId: string): boolean => {
-    const cardFromHand = handModel.getCardByIdIfExists(draggableId);
     const cardFromBoard = boardModel.getCardByIdIfExists(draggableId);
+    const cardFromHand = handModel.getCardByIdIfExists(draggableId);
 
-    if (cardFromHand) {
-      return false; // TODO implement
-    } else if (cardFromBoard) {
+    if (cardFromBoard) {
       const dropTarget = boardModel.getCardById(dropTargetId);
       const dropTargetPosition = boardModel.getCardPosition(dropTarget);
       return boardModel.canMoveCardTo(cardFromBoard, {
         column: dropTargetPosition.column,
         row: dropTargetPosition.row,
       });
+    } else if (cardFromHand) {
+      return false; // TODO implement
     } else {
       return false;
     }
@@ -336,7 +336,7 @@ const Board = (
         initialCards += Card(cardModel, [
           boardStyles.space,
           ...getCardClassNamesForPosition(position),
-          // TODO Add global handler for e.g. assigning draggable style on enabling
+          // TODO add global handler for e.g. assigning draggable style on enabling
           // draggability; requires way to dynamically enable/disable draggability
           // for e.g. non-player cards
           commonStyles.draggable,
