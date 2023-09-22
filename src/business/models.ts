@@ -373,9 +373,10 @@ export class GameModel {
   }
 
   private addInitialHandCards(): void {
-    this.hand.addCard(new CardModel(createId(), "Mace", 1, CardSide.Front));
-    this.hand.addCard(
-      new CardModel(createId(), "Leather Armor", 1, CardSide.Front)
-    );
+    for (let i = 0; i < 10; ++i) {
+      this.hand.addCard(
+        new CardModel(createId(), `Item${i}`, 1, CardSide.Front)
+      );
+    }
   }
 }

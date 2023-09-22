@@ -24,9 +24,10 @@ ul.cards {
   display: flex;
   justify-content: space-evenly;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 25px;
 }
 
 .cards > li {
+  min-width: 150px;
   width: 25%;
 }
