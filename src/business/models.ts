@@ -58,6 +58,8 @@ export class EventDispatcher<T> {
   }
 }
 
+export type CardType = "player" | "monster" | "item";
+
 export enum CardSide {
   Front,
   Back,
@@ -66,6 +68,7 @@ export enum CardSide {
 export class CardModel {
   readonly id: string;
   readonly name: string;
+  readonly cardType: CardType;
   readonly strength: number;
   readonly onCardFlipped = new EventDispatcher<void>();
 
@@ -84,11 +87,13 @@ export class CardModel {
   constructor(
     id: string,
     name: string,
+    cardType: CardType,
     strength: number,
     side: CardSide = CardSide.Back
   ) {
     this.id = id;
     this.name = name;
+    this.cardType = cardType;
     this.strength = strength;
     this._side = side;
 
@@ -97,7 +102,12 @@ export class CardModel {
 }
 
 export const cardDtoToModel = (cardDto: CardDto): CardModel => {
-  return new CardModel(createId(), cardDto.name, cardDto.strength);
+  return new CardModel(
+    createId(),
+    cardDto.name,
+    cardDto.cardType,
+    cardDto.strength
+  );
 };
 
 const shuffleCards = (cardModels: CardModel[]): CardModel[] => {
@@ -155,7 +165,13 @@ export class BoardModel {
     bindPrototypeMethods(this);
     shuffleCards(this.dungeonDeck);
 
-    this.playerCard = new CardModel(playerCardId, "Player", 0, CardSide.Front);
+    this.playerCard = new CardModel(
+      playerCardId,
+      "Player",
+      "player",
+      0,
+      CardSide.Front
+    );
     this.cards.set(
       this.positionToString({ column: 1, row: 1 }),
       this.playerCard
@@ -375,7 +391,7 @@ export class GameModel {
   private addInitialHandCards(): void {
     for (let i = 0; i < 10; ++i) {
       this.hand.addCard(
-        new CardModel(createId(), `Item${i}`, 1, CardSide.Front)
+        new CardModel(createId(), `Item${i}`, "item", 1, CardSide.Front)
       );
     }
   }
