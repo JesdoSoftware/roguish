@@ -300,7 +300,6 @@ export class BoardModel {
         this.onItemCollected.dispatch({
           itemCard: targetCard,
         });
-        this.discardCard(toPosition);
       } else if (targetCard.cardType === "monster") {
         // TODO fight monster
         this.discardCard(toPosition);

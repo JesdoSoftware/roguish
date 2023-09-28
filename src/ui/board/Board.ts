@@ -78,14 +78,15 @@ export const dragCardToBoard = (
   cardElement.setPointerCapture(pointerEvent.pointerId);
 };
 
+const removeElementAfterDuration = (element: HTMLElement, ms: number): void => {
+  setTimeout(() => element.parentElement?.removeChild(element), ms);
+};
+
 export const returnCardFromBoard = (cardElement: HTMLElement): void => {
   cardElement.style.left = "";
   cardElement.style.top = "";
 
-  setTimeout(
-    () => cardElement.parentElement?.removeChild(cardElement),
-    cardTransitionDurationMs
-  );
+  removeElementAfterDuration(cardElement, cardTransitionDurationMs);
 };
 
 interface EventHandler {
@@ -312,16 +313,22 @@ const Board = (
       cardElem.classList.add(boardStyles.discarded);
       updateCardZIndex(cardElem, getNextZIndex());
 
-      setTimeout(() => {
-        const cardElem = getElementById(e.card.id);
-        cardElem.parentElement?.removeChild(cardElem);
-      }, cardTransitionDurationMs);
+      removeElementAfterDuration(cardElem, cardTransitionDurationMs);
     });
   });
 
   boardModel.onSpaceLeftEmpty.addListener((e) => {
     queueEvent(() => {
       markEmptySpace(e);
+    });
+  });
+
+  boardModel.onItemCollected.addListener((e) => {
+    queueEvent(() => {
+      const cardElem = getElementById(e.itemCard.id);
+      cardElem.classList.add(boardStyles.inHand);
+
+      removeElementAfterDuration(cardElem, cardTransitionDurationMs);
     });
   });
 
