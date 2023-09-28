@@ -326,6 +326,7 @@ const Board = (
   boardModel.onItemCollected.addListener((e) => {
     queueEvent(() => {
       const cardElem = getElementById(e.itemCard.id);
+      updateCardZIndex(cardElem, getNextZIndex());
       cardElem.classList.add(boardStyles.inHand);
 
       removeElementAfterDuration(cardElem, cardTransitionDurationMs);
