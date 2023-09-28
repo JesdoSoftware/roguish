@@ -149,13 +149,19 @@ export interface SpaceLeftEmptyEventArgs {
   position: BoardPosition;
 }
 
+export interface ItemCollectedEventArgs {
+  itemCard: CardModel;
+}
+
 export class BoardModel {
   readonly dungeonDeck: CardModel[];
   readonly discarded: CardModel[] = [];
+
   readonly onCardDealt = new EventDispatcher<CardDealtEventArgs>();
   readonly onCardMoved = new EventDispatcher<CardMovedEventArgs>();
   readonly onCardDiscarded = new EventDispatcher<CardDiscardedEventArgs>();
   readonly onSpaceLeftEmpty = new EventDispatcher<SpaceLeftEmptyEventArgs>();
+  readonly onItemCollected = new EventDispatcher<ItemCollectedEventArgs>();
 
   private readonly cards = new Map<string, CardModel>();
   private readonly playerCard: CardModel;
@@ -288,8 +294,20 @@ export class BoardModel {
   }
 
   moveCard(cardToMove: CardModel, toPosition: BoardPosition): void {
-    // TODO handle card interaction based on card types
-    this.discardCard(toPosition);
+    const targetCard = this.getCardAtPosition(toPosition);
+    if (targetCard) {
+      if (targetCard.cardType === "item") {
+        this.onItemCollected.dispatch({
+          itemCard: targetCard,
+        });
+        this.discardCard(toPosition);
+      } else if (targetCard.cardType === "monster") {
+        // TODO fight monster
+        this.discardCard(toPosition);
+      } else {
+        throw new Error("Unexpected card type");
+      }
+    }
 
     const fromPosition = this.getCardPosition(cardToMove);
     this.cards.delete(this.positionToString(fromPosition));
@@ -385,14 +403,19 @@ export class GameModel {
     });
     this.board = new BoardModel(dungeonCards);
 
+    this.board.onItemCollected.addListener((e) => {
+      this.hand.addCard(e.itemCard);
+    });
+
     this.addInitialHandCards();
   }
 
   private addInitialHandCards(): void {
-    for (let i = 0; i < 10; ++i) {
-      this.hand.addCard(
-        new CardModel(createId(), `Item${i}`, "item", 1, CardSide.Front)
-      );
-    }
+    this.hand.addCard(
+      new CardModel(createId(), "Mace", "item", 0, CardSide.Front)
+    );
+    this.hand.addCard(
+      new CardModel(createId(), "Leather Armor", "item", 0, CardSide.Front)
+    );
   }
 }
