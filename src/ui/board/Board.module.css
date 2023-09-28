@@ -29,6 +29,8 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   --row2Top: calc(var(--colWidth) * 2);
   --dungeonDeckTop: -500px;
   --dungeonDeckLeft: 0;
+  --discardedTop: -500px;
+  --discardedLeft: 100%;
   --handTop: 105vh;
   --handLeft: 50%;
 }
@@ -236,8 +238,8 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 }
 
 .discarded {
-  top: var(--dungeonDeckTop);
-  left: var(--col2Left);
+  top: var(--discardedTop);
+  left: var(--discardedLeft);
   box-shadow: 10px 10px 10px var(--shadowColor);
 }
 

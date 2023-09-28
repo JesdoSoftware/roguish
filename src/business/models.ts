@@ -58,6 +58,8 @@ export class EventDispatcher<T> {
   }
 }
 
+export type CardType = "player" | "monster" | "item";
+
 export enum CardSide {
   Front,
   Back,
@@ -66,6 +68,7 @@ export enum CardSide {
 export class CardModel {
   readonly id: string;
   readonly name: string;
+  readonly cardType: CardType;
   readonly strength: number;
   readonly onCardFlipped = new EventDispatcher<void>();
 
@@ -84,11 +87,13 @@ export class CardModel {
   constructor(
     id: string,
     name: string,
+    cardType: CardType,
     strength: number,
     side: CardSide = CardSide.Back
   ) {
     this.id = id;
     this.name = name;
+    this.cardType = cardType;
     this.strength = strength;
     this._side = side;
 
@@ -97,7 +102,12 @@ export class CardModel {
 }
 
 export const cardDtoToModel = (cardDto: CardDto): CardModel => {
-  return new CardModel(createId(), cardDto.name, cardDto.strength);
+  return new CardModel(
+    createId(),
+    cardDto.name,
+    cardDto.cardType,
+    cardDto.strength
+  );
 };
 
 const shuffleCards = (cardModels: CardModel[]): CardModel[] => {
@@ -139,13 +149,19 @@ export interface SpaceLeftEmptyEventArgs {
   position: BoardPosition;
 }
 
+export interface ItemCollectedEventArgs {
+  itemCard: CardModel;
+}
+
 export class BoardModel {
   readonly dungeonDeck: CardModel[];
   readonly discarded: CardModel[] = [];
+
   readonly onCardDealt = new EventDispatcher<CardDealtEventArgs>();
   readonly onCardMoved = new EventDispatcher<CardMovedEventArgs>();
   readonly onCardDiscarded = new EventDispatcher<CardDiscardedEventArgs>();
   readonly onSpaceLeftEmpty = new EventDispatcher<SpaceLeftEmptyEventArgs>();
+  readonly onItemCollected = new EventDispatcher<ItemCollectedEventArgs>();
 
   private readonly cards = new Map<string, CardModel>();
   private readonly playerCard: CardModel;
@@ -155,7 +171,13 @@ export class BoardModel {
     bindPrototypeMethods(this);
     shuffleCards(this.dungeonDeck);
 
-    this.playerCard = new CardModel(playerCardId, "Player", 0, CardSide.Front);
+    this.playerCard = new CardModel(
+      playerCardId,
+      "Player",
+      "player",
+      0,
+      CardSide.Front
+    );
     this.cards.set(
       this.positionToString({ column: 1, row: 1 }),
       this.playerCard
@@ -272,8 +294,19 @@ export class BoardModel {
   }
 
   moveCard(cardToMove: CardModel, toPosition: BoardPosition): void {
-    // TODO handle card interaction based on card types
-    this.discardCard(toPosition);
+    const targetCard = this.getCardAtPosition(toPosition);
+    if (targetCard) {
+      if (targetCard.cardType === "item") {
+        this.onItemCollected.dispatch({
+          itemCard: targetCard,
+        });
+      } else if (targetCard.cardType === "monster") {
+        // TODO fight monster
+        this.discardCard(toPosition);
+      } else {
+        throw new Error("Unexpected card type");
+      }
+    }
 
     const fromPosition = this.getCardPosition(cardToMove);
     this.cards.delete(this.positionToString(fromPosition));
@@ -369,14 +402,19 @@ export class GameModel {
     });
     this.board = new BoardModel(dungeonCards);
 
+    this.board.onItemCollected.addListener((e) => {
+      this.hand.addCard(e.itemCard);
+    });
+
     this.addInitialHandCards();
   }
 
   private addInitialHandCards(): void {
-    for (let i = 0; i < 10; ++i) {
-      this.hand.addCard(
-        new CardModel(createId(), `Item${i}`, 1, CardSide.Front)
-      );
-    }
+    this.hand.addCard(
+      new CardModel(createId(), "Mace", "item", 0, CardSide.Front)
+    );
+    this.hand.addCard(
+      new CardModel(createId(), "Leather Armor", "item", 0, CardSide.Front)
+    );
   }
 }
