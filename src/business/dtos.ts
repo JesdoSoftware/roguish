@@ -17,11 +17,20 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
+export interface MonsterPropertiesDto {
+  cardType: "monster";
+}
+
+export interface ItemPropertiesDto {
+  cardType: "item";
+  equipmentType: "head" | "body" | "held" | null;
+}
+
 export interface CardDto {
   name: string;
-  cardType: "player" | "monster" | "item";
   strength: number;
   quantity: number;
+  cardTypeProperties: MonsterPropertiesDto | ItemPropertiesDto;
 }
 
 export interface DeckDto {

@@ -58,7 +58,23 @@ export class EventDispatcher<T> {
   }
 }
 
-export type CardType = "player" | "monster" | "item";
+export interface PlayerProperties {
+  cardType: "player";
+}
+
+export interface MonsterProperties {
+  cardType: "monster";
+}
+
+export interface ItemProperties {
+  cardType: "item";
+  equipmentType: "head" | "body" | "held" | null;
+}
+
+export type CardTypeProperties =
+  | PlayerProperties
+  | MonsterProperties
+  | ItemProperties;
 
 export enum CardSide {
   Front,
@@ -68,8 +84,8 @@ export enum CardSide {
 export class CardModel {
   readonly id: string;
   readonly name: string;
-  readonly cardType: CardType;
   readonly strength: number;
+  readonly cardTypeProperties: CardTypeProperties;
   readonly onCardFlipped = new EventDispatcher<void>();
 
   private _side: CardSide;
@@ -87,17 +103,21 @@ export class CardModel {
   constructor(
     id: string,
     name: string,
-    cardType: CardType,
     strength: number,
+    cardTypeProperties: CardTypeProperties,
     side: CardSide = CardSide.Back
   ) {
     this.id = id;
     this.name = name;
-    this.cardType = cardType;
     this.strength = strength;
+    this.cardTypeProperties = cardTypeProperties;
     this._side = side;
 
     bindPrototypeMethods(this);
+  }
+
+  get cardType(): string {
+    return this.cardTypeProperties.cardType;
   }
 }
 
@@ -105,8 +125,8 @@ export const cardDtoToModel = (cardDto: CardDto): CardModel => {
   return new CardModel(
     createId(),
     cardDto.name,
-    cardDto.cardType,
-    cardDto.strength
+    cardDto.strength,
+    cardDto.cardTypeProperties
   );
 };
 
@@ -174,8 +194,8 @@ export class BoardModel {
     this.playerCard = new CardModel(
       playerCardId,
       "Player",
-      "player",
       0,
+      { cardType: "player" },
       CardSide.Front
     );
     this.cards.set(
@@ -411,10 +431,22 @@ export class GameModel {
 
   private addInitialHandCards(): void {
     this.hand.addCard(
-      new CardModel(createId(), "Mace", "item", 0, CardSide.Front)
+      new CardModel(
+        createId(),
+        "Mace",
+        0,
+        { cardType: "item", equipmentType: "held" },
+        CardSide.Front
+      )
     );
     this.hand.addCard(
-      new CardModel(createId(), "Leather Armor", "item", 0, CardSide.Front)
+      new CardModel(
+        createId(),
+        "Leather Armor",
+        0,
+        { cardType: "item", equipmentType: "body" },
+        CardSide.Front
+      )
     );
   }
 }
