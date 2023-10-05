@@ -58,17 +58,31 @@ export class EventDispatcher<T> {
   }
 }
 
+export enum CardType {
+  Player = "player",
+  Monster = "monster",
+  Item = "item",
+}
+
 export interface PlayerProperties {
-  cardType: "player";
+  cardType: CardType.Player;
 }
 
 export interface MonsterProperties {
-  cardType: "monster";
+  cardType: CardType.Monster;
+}
+
+export enum EquipmentType {
+  Head = "head",
+  Body = "body",
+  Held = "held",
+  Offhand = "offhand",
+  TwoHanded = "two-handed",
 }
 
 export interface ItemProperties {
-  cardType: "item";
-  equipmentType: "head" | "body" | "held" | null;
+  cardType: CardType.Item;
+  equipmentType?: EquipmentType;
 }
 
 export type CardTypeProperties =
@@ -195,7 +209,7 @@ export class BoardModel {
       playerCardId,
       "Player",
       0,
-      { cardType: "player" },
+      { cardType: CardType.Player },
       CardSide.Front
     );
     this.cards.set(
@@ -435,7 +449,7 @@ export class GameModel {
         createId(),
         "Mace",
         0,
-        { cardType: "item", equipmentType: "held" },
+        { cardType: CardType.Item, equipmentType: EquipmentType.Held },
         CardSide.Front
       )
     );
@@ -444,7 +458,7 @@ export class GameModel {
         createId(),
         "Leather Armor",
         0,
-        { cardType: "item", equipmentType: "body" },
+        { cardType: CardType.Item, equipmentType: EquipmentType.Body },
         CardSide.Front
       )
     );

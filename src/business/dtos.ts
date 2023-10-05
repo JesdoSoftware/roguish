@@ -17,13 +17,26 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
+enum CardType {
+  Monster = "monster",
+  Item = "item",
+}
+
 export interface MonsterPropertiesDto {
-  cardType: "monster";
+  cardType: CardType.Monster;
+}
+
+enum EquipmentType {
+  Head = "head",
+  Body = "body",
+  Held = "held",
+  Offhand = "offhand",
+  TwoHanded = "two-handed",
 }
 
 export interface ItemPropertiesDto {
-  cardType: "item";
-  equipmentType: "head" | "body" | "held" | null;
+  cardType: CardType.Item;
+  equipmentType?: EquipmentType;
 }
 
 export interface CardDto {
