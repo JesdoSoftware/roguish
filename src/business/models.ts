@@ -18,7 +18,12 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import bindPrototypeMethods from "../bindPrototypeMethods";
-import { CardDto, DeckDto } from "./dtos";
+import {
+  CardType as DtoCardType,
+  EquipmentType as DtoEquipmentType,
+  CardDto,
+  DeckDto,
+} from "./dtos";
 
 export const maxBoardColumns = 3;
 export const maxBoardRows = 3;
@@ -65,11 +70,11 @@ export enum CardType {
 }
 
 export interface PlayerProperties {
-  cardType: CardType.Player;
+  strength: number;
 }
 
 export interface MonsterProperties {
-  cardType: CardType.Monster;
+  strength: number;
 }
 
 export enum EquipmentType {
@@ -81,7 +86,6 @@ export enum EquipmentType {
 }
 
 export interface ItemProperties {
-  cardType: CardType.Item;
   equipmentType?: EquipmentType;
 }
 
@@ -98,7 +102,7 @@ export enum CardSide {
 export class CardModel {
   readonly id: string;
   readonly name: string;
-  readonly strength: number;
+  readonly cardType: CardType;
   readonly cardTypeProperties: CardTypeProperties;
   readonly onCardFlipped = new EventDispatcher<void>();
 
@@ -117,29 +121,64 @@ export class CardModel {
   constructor(
     id: string,
     name: string,
-    strength: number,
+    cardType: CardType,
     cardTypeProperties: CardTypeProperties,
     side: CardSide = CardSide.Back
   ) {
     this.id = id;
     this.name = name;
-    this.strength = strength;
+    this.cardType = cardType;
     this.cardTypeProperties = cardTypeProperties;
     this._side = side;
 
     bindPrototypeMethods(this);
   }
-
-  get cardType(): string {
-    return this.cardTypeProperties.cardType;
-  }
 }
 
+const validateCardDto = (cardDto: CardDto): void => {
+  if (!cardDto.name) {
+    throw new Error("Card missing name");
+  }
+  if (!cardDto.quantity) {
+    throw new Error(`Card ${cardDto.name} missing quantity`);
+  }
+  if (!cardDto.cardType) {
+    throw new Error(`Card ${cardDto.name} missing card type`);
+  }
+  if (!Object.values(DtoCardType).includes(cardDto.cardType)) {
+    throw new Error(
+      `Card ${cardDto.name} has unexpected card type ${cardDto.cardType}`
+    );
+  }
+  if (!cardDto.cardTypeProperties) {
+    throw new Error(`Card ${cardDto.name} missing item type properties`);
+  }
+
+  if (cardDto.cardType === DtoCardType.Monster) {
+    const monsterProperties = cardDto.cardTypeProperties as MonsterProperties;
+    if (!monsterProperties.strength) {
+      throw new Error(`Card ${cardDto.name} missing strength`);
+    }
+  } else if (cardDto.cardType === DtoCardType.Item) {
+    const itemProperties = cardDto.cardTypeProperties as ItemProperties;
+    if (
+      itemProperties.equipmentType &&
+      !Object.values(DtoEquipmentType).includes(itemProperties.equipmentType)
+    ) {
+      throw new Error(
+        `Card ${cardDto.name} has unexpected equipment type ${itemProperties.equipmentType}`
+      );
+    }
+  }
+};
+
 export const cardDtoToModel = (cardDto: CardDto): CardModel => {
+  validateCardDto(cardDto);
+
   return new CardModel(
     createId(),
     cardDto.name,
-    cardDto.strength,
+    cardDto.cardType,
     cardDto.cardTypeProperties
   );
 };
@@ -208,8 +247,8 @@ export class BoardModel {
     this.playerCard = new CardModel(
       playerCardId,
       "Player",
-      0,
-      { cardType: CardType.Player },
+      CardType.Player,
+      { strength: 0 },
       CardSide.Front
     );
     this.cards.set(
@@ -448,8 +487,8 @@ export class GameModel {
       new CardModel(
         createId(),
         "Mace",
-        0,
-        { cardType: CardType.Item, equipmentType: EquipmentType.Held },
+        CardType.Item,
+        { equipmentType: EquipmentType.Held },
         CardSide.Front
       )
     );
@@ -457,8 +496,8 @@ export class GameModel {
       new CardModel(
         createId(),
         "Leather Armor",
-        0,
-        { cardType: CardType.Item, equipmentType: EquipmentType.Body },
+        CardType.Item,
+        { equipmentType: EquipmentType.Body },
         CardSide.Front
       )
     );
