@@ -17,7 +17,6 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { loadDeck } from "../../data/dataAccess";
 import { GameModel, createId } from "../../business/models";
 import Board, { dragCardToBoard, returnCardFromBoard } from "../board/Board";
 import { setGlobalOnDragEnd, setGlobalOnDragStart } from "../dragDrop";
@@ -26,6 +25,7 @@ import { getElementById, getNextZIndex, onElementAdded } from "../rendering";
 import { html } from "../templateLiterals";
 import commonStyles from "../common.module.css";
 import appStyles from "./App.module.css";
+import { DeckDto } from "../../data/dtos";
 
 const CopyrightLicenseSource = (): string => {
   return html`
@@ -48,7 +48,7 @@ const CopyrightLicenseSource = (): string => {
   `;
 };
 
-const App = (): string => {
+const App = (loadDeck: () => Promise<DeckDto>): string => {
   setGlobalOnDragStart((draggableId) => {
     const draggable = getElementById(draggableId);
     draggable.style.zIndex = getNextZIndex().toString();
