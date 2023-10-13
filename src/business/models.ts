@@ -155,20 +155,28 @@ const validateCardDto = (cardDto: CardDto): void => {
   }
 
   if (cardDto.cardType === DtoCardType.Monster) {
-    const monsterProperties = cardDto.cardTypeProperties as MonsterProperties;
-    if (!monsterProperties.strength) {
-      throw new Error(`Card ${cardDto.name} missing strength`);
-    }
+    validateMonsterCardDto(cardDto);
   } else if (cardDto.cardType === DtoCardType.Item) {
-    const itemProperties = cardDto.cardTypeProperties as ItemProperties;
-    if (
-      itemProperties.equipmentType &&
-      !Object.values(DtoEquipmentType).includes(itemProperties.equipmentType)
-    ) {
-      throw new Error(
-        `Card ${cardDto.name} has unexpected equipment type ${itemProperties.equipmentType}`
-      );
-    }
+    validateItemCardDto(cardDto);
+  }
+};
+
+const validateMonsterCardDto = (cardDto: CardDto): void => {
+  const monsterProperties = cardDto.cardTypeProperties as MonsterProperties;
+  if (!monsterProperties.strength) {
+    throw new Error(`Card ${cardDto.name} missing strength`);
+  }
+};
+
+const validateItemCardDto = (cardDto: CardDto): void => {
+  const itemProperties = cardDto.cardTypeProperties as ItemProperties;
+  if (
+    itemProperties.equipmentType &&
+    !Object.values(DtoEquipmentType).includes(itemProperties.equipmentType)
+  ) {
+    throw new Error(
+      `Card ${cardDto.name} has unexpected equipment type ${itemProperties.equipmentType}`
+    );
   }
 };
 
