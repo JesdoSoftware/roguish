@@ -23,7 +23,7 @@ import {
   EquipmentType as DtoEquipmentType,
   CardDto,
   DeckDto,
-} from "./dtos";
+} from "../data/dtos";
 
 export const maxBoardColumns = 3;
 export const maxBoardRows = 3;

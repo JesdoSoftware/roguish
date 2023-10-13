@@ -17,7 +17,7 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { loadDeck } from "../../business/dataAccess";
+import { loadDeck } from "../../data/dataAccess";
 import { GameModel, createId } from "../../business/models";
 import Board, { dragCardToBoard, returnCardFromBoard } from "../board/Board";
 import { setGlobalOnDragEnd, setGlobalOnDragStart } from "../dragDrop";
