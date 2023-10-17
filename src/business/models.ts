@@ -19,8 +19,8 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import bindPrototypeMethods from "../bindPrototypeMethods";
 import {
-  CardType as DtoCardType,
-  EquipmentType as DtoEquipmentType,
+  cardTypes as dtoCardTypes,
+  equipmentTypes as dtoEquipmentTypes,
   CardDto,
   DeckDto,
 } from "../data/dtos";
@@ -63,11 +63,8 @@ export class EventDispatcher<T> {
   }
 }
 
-export enum CardType {
-  Player = "player",
-  Monster = "monster",
-  Item = "item",
-}
+export const cardTypes = ["player", "monster", "item"] as const;
+export type CardType = (typeof cardTypes)[number];
 
 export interface PlayerProperties {
   strength: number;
@@ -77,13 +74,14 @@ export interface MonsterProperties {
   strength: number;
 }
 
-export enum EquipmentType {
-  Head = "head",
-  Body = "body",
-  Held = "held",
-  Offhand = "offhand",
-  TwoHanded = "two-handed",
-}
+export const equipmentTypes = [
+  "head",
+  "body",
+  "held",
+  "offhand",
+  "two-handed",
+] as const;
+export type EquipmentType = (typeof equipmentTypes)[number];
 
 export interface ItemProperties {
   equipmentType?: EquipmentType;
@@ -145,7 +143,7 @@ const validateCardDto = (cardDto: CardDto): void => {
   if (!cardDto.cardType) {
     throw new Error(`Card ${cardDto.name} missing card type`);
   }
-  if (!Object.values(DtoCardType).includes(cardDto.cardType)) {
+  if (!Object.values(dtoCardTypes).includes(cardDto.cardType)) {
     throw new Error(
       `Card ${cardDto.name} has unexpected card type ${cardDto.cardType}`
     );
@@ -154,9 +152,9 @@ const validateCardDto = (cardDto: CardDto): void => {
     throw new Error(`Card ${cardDto.name} missing item type properties`);
   }
 
-  if (cardDto.cardType === DtoCardType.Monster) {
+  if (cardDto.cardType === "monster") {
     validateMonsterCardDto(cardDto);
-  } else if (cardDto.cardType === DtoCardType.Item) {
+  } else if (cardDto.cardType === "item") {
     validateItemCardDto(cardDto);
   }
 };
@@ -172,7 +170,7 @@ const validateItemCardDto = (cardDto: CardDto): void => {
   const itemProperties = cardDto.cardTypeProperties as ItemProperties;
   if (
     itemProperties.equipmentType &&
-    !Object.values(DtoEquipmentType).includes(itemProperties.equipmentType)
+    !Object.values(dtoEquipmentTypes).includes(itemProperties.equipmentType)
   ) {
     throw new Error(
       `Card ${cardDto.name} has unexpected equipment type ${itemProperties.equipmentType}`
@@ -255,7 +253,7 @@ export class BoardModel {
     this.playerCard = new CardModel(
       playerCardId,
       "Player",
-      CardType.Player,
+      "player",
       { strength: 0 },
       CardSide.Front
     );
@@ -495,8 +493,8 @@ export class GameModel {
       new CardModel(
         createId(),
         "Mace",
-        CardType.Item,
-        { equipmentType: EquipmentType.Held },
+        "item",
+        { equipmentType: "held" },
         CardSide.Front
       )
     );
@@ -504,8 +502,8 @@ export class GameModel {
       new CardModel(
         createId(),
         "Leather Armor",
-        CardType.Item,
-        { equipmentType: EquipmentType.Body },
+        "item",
+        { equipmentType: "body" },
         CardSide.Front
       )
     );

@@ -17,22 +17,21 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-export enum CardType {
-  Monster = "monster",
-  Item = "item",
-}
+export const cardTypes = ["monster", "item"] as const;
+export type CardType = (typeof cardTypes)[number];
 
 export interface MonsterPropertiesDto {
   strength: number;
 }
 
-export enum EquipmentType {
-  Head = "head",
-  Body = "body",
-  Held = "held",
-  Offhand = "offhand",
-  TwoHanded = "two-handed",
-}
+export const equipmentTypes = [
+  "head",
+  "body",
+  "held",
+  "offhand",
+  "two-handed",
+] as const;
+export type EquipmentType = (typeof equipmentTypes)[number];
 
 export interface ItemPropertiesDto {
   equipmentType?: EquipmentType;
