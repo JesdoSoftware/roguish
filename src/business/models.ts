@@ -94,6 +94,7 @@ export enum CardSide {
 
 export class CardModel {
   readonly id: string;
+  readonly cardDefId: number;
   readonly name: string;
   readonly cardType: CardType;
   readonly cardTypeProperties: CardTypeProperties;
@@ -113,12 +114,14 @@ export class CardModel {
 
   constructor(
     id: string,
+    cardDefId: number,
     name: string,
     cardType: CardType,
     cardTypeProperties: CardTypeProperties,
     side: CardSide = CardSide.Back
   ) {
     this.id = id;
+    this.cardDefId = cardDefId;
     this.name = name;
     this.cardType = cardType;
     this.cardTypeProperties = cardTypeProperties;
@@ -131,6 +134,7 @@ export class CardModel {
 export const cardDtoToModel = (cardDto: CardDto): CardModel => {
   return new CardModel(
     createId(),
+    cardDto.id,
     cardDto.name,
     cardDto.cardType,
     cardDto.cardTypeProperties
@@ -200,6 +204,7 @@ export class BoardModel {
 
     this.playerCard = new CardModel(
       playerCardId,
+      0,
       "Player",
       "player",
       { strength: 0 },
@@ -440,6 +445,7 @@ export class GameModel {
     this.hand.addCard(
       new CardModel(
         createId(),
+        0, // TODO get from loaded deck
         "Mace",
         "item",
         { equipmentType: "held" },
@@ -449,6 +455,7 @@ export class GameModel {
     this.hand.addCard(
       new CardModel(
         createId(),
+        0, // TODO get from loaded deck
         "Leather Armor",
         "item",
         { equipmentType: "body" },

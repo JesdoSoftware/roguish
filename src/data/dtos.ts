@@ -38,6 +38,7 @@ export interface ItemPropertiesDto {
 }
 
 export interface CardDto {
+  id: number;
   name: string;
   quantity: number;
   cardType: CardType;
@@ -49,22 +50,25 @@ export interface DeckDto {
 }
 
 const validateCardDto = (cardDto: CardDto): void => {
+  if (!cardDto.id) {
+    throw new Error(`Card missing ID (name: "${cardDto.name}")`);
+  }
   if (!cardDto.name) {
-    throw new Error("Card missing name");
+    throw new Error(`Card ${cardDto.id} missing name`);
   }
   if (!cardDto.quantity) {
-    throw new Error(`Card ${cardDto.name} missing quantity`);
+    throw new Error(`Card ${cardDto.id} missing quantity`);
   }
   if (!cardDto.cardType) {
-    throw new Error(`Card ${cardDto.name} missing card type`);
+    throw new Error(`Card ${cardDto.id} missing card type`);
   }
   if (!Object.values(cardTypes).includes(cardDto.cardType)) {
     throw new Error(
-      `Card ${cardDto.name} has unexpected card type ${cardDto.cardType}`
+      `Card ${cardDto.id} has unexpected card type ${cardDto.cardType}`
     );
   }
   if (!cardDto.cardTypeProperties) {
-    throw new Error(`Card ${cardDto.name} missing item type properties`);
+    throw new Error(`Card ${cardDto.id} missing item type properties`);
   }
 
   if (cardDto.cardType === "monster") {
@@ -77,7 +81,7 @@ const validateCardDto = (cardDto: CardDto): void => {
 const validateMonsterCardDto = (cardDto: CardDto): void => {
   const monsterProperties = cardDto.cardTypeProperties as MonsterPropertiesDto;
   if (!monsterProperties.strength) {
-    throw new Error(`Card ${cardDto.name} missing strength`);
+    throw new Error(`Card ${cardDto.id} missing strength`);
   }
 };
 
@@ -88,7 +92,7 @@ const validateItemCardDto = (cardDto: CardDto): void => {
     !Object.values(equipmentTypes).includes(itemProperties.equipmentType)
   ) {
     throw new Error(
-      `Card ${cardDto.name} has unexpected equipment type ${itemProperties.equipmentType}`
+      `Card ${cardDto.id} has unexpected equipment type ${itemProperties.equipmentType}`
     );
   }
 };
