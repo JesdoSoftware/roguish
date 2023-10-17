@@ -18,12 +18,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import bindPrototypeMethods from "../bindPrototypeMethods";
-import {
-  cardTypes as dtoCardTypes,
-  equipmentTypes as dtoEquipmentTypes,
-  CardDto,
-  DeckDto,
-} from "../data/dtos";
+import { CardDto, DeckDto } from "../data/dtos";
 
 export const maxBoardColumns = 3;
 export const maxBoardRows = 3;
@@ -133,54 +128,7 @@ export class CardModel {
   }
 }
 
-const validateCardDto = (cardDto: CardDto): void => {
-  if (!cardDto.name) {
-    throw new Error("Card missing name");
-  }
-  if (!cardDto.quantity) {
-    throw new Error(`Card ${cardDto.name} missing quantity`);
-  }
-  if (!cardDto.cardType) {
-    throw new Error(`Card ${cardDto.name} missing card type`);
-  }
-  if (!Object.values(dtoCardTypes).includes(cardDto.cardType)) {
-    throw new Error(
-      `Card ${cardDto.name} has unexpected card type ${cardDto.cardType}`
-    );
-  }
-  if (!cardDto.cardTypeProperties) {
-    throw new Error(`Card ${cardDto.name} missing item type properties`);
-  }
-
-  if (cardDto.cardType === "monster") {
-    validateMonsterCardDto(cardDto);
-  } else if (cardDto.cardType === "item") {
-    validateItemCardDto(cardDto);
-  }
-};
-
-const validateMonsterCardDto = (cardDto: CardDto): void => {
-  const monsterProperties = cardDto.cardTypeProperties as MonsterProperties;
-  if (!monsterProperties.strength) {
-    throw new Error(`Card ${cardDto.name} missing strength`);
-  }
-};
-
-const validateItemCardDto = (cardDto: CardDto): void => {
-  const itemProperties = cardDto.cardTypeProperties as ItemProperties;
-  if (
-    itemProperties.equipmentType &&
-    !Object.values(dtoEquipmentTypes).includes(itemProperties.equipmentType)
-  ) {
-    throw new Error(
-      `Card ${cardDto.name} has unexpected equipment type ${itemProperties.equipmentType}`
-    );
-  }
-};
-
 export const cardDtoToModel = (cardDto: CardDto): CardModel => {
-  validateCardDto(cardDto);
-
   return new CardModel(
     createId(),
     cardDto.name,

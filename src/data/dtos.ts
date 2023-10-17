@@ -47,3 +47,52 @@ export interface CardDto {
 export interface DeckDto {
   cards: CardDto[];
 }
+
+const validateCardDto = (cardDto: CardDto): void => {
+  if (!cardDto.name) {
+    throw new Error("Card missing name");
+  }
+  if (!cardDto.quantity) {
+    throw new Error(`Card ${cardDto.name} missing quantity`);
+  }
+  if (!cardDto.cardType) {
+    throw new Error(`Card ${cardDto.name} missing card type`);
+  }
+  if (!Object.values(cardTypes).includes(cardDto.cardType)) {
+    throw new Error(
+      `Card ${cardDto.name} has unexpected card type ${cardDto.cardType}`
+    );
+  }
+  if (!cardDto.cardTypeProperties) {
+    throw new Error(`Card ${cardDto.name} missing item type properties`);
+  }
+
+  if (cardDto.cardType === "monster") {
+    validateMonsterCardDto(cardDto);
+  } else if (cardDto.cardType === "item") {
+    validateItemCardDto(cardDto);
+  }
+};
+
+const validateMonsterCardDto = (cardDto: CardDto): void => {
+  const monsterProperties = cardDto.cardTypeProperties as MonsterPropertiesDto;
+  if (!monsterProperties.strength) {
+    throw new Error(`Card ${cardDto.name} missing strength`);
+  }
+};
+
+const validateItemCardDto = (cardDto: CardDto): void => {
+  const itemProperties = cardDto.cardTypeProperties as ItemPropertiesDto;
+  if (
+    itemProperties.equipmentType &&
+    !Object.values(equipmentTypes).includes(itemProperties.equipmentType)
+  ) {
+    throw new Error(
+      `Card ${cardDto.name} has unexpected equipment type ${itemProperties.equipmentType}`
+    );
+  }
+};
+
+export const validateDeckDto = (deckDto: DeckDto): void => {
+  deckDto.cards.forEach((cardDto) => validateCardDto(cardDto));
+};

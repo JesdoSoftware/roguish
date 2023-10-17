@@ -17,7 +17,7 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { DeckDto } from "./dtos";
+import { DeckDto, validateDeckDto } from "./dtos";
 
 export const loadDeck = async (): Promise<DeckDto> => {
   const decksUrl = `${process.env.API_BASE_URL}/decks/deck.json`;
@@ -29,5 +29,6 @@ export const loadDeck = async (): Promise<DeckDto> => {
   }
 
   const deckDto = (await response.json()) as DeckDto;
+  validateDeckDto(deckDto);
   return deckDto;
 };
