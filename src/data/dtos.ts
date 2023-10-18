@@ -62,7 +62,7 @@ const validateCardDto = (cardDto: CardDto): void => {
   if (!cardDto.cardType) {
     throw new Error(`Card ${cardDto.id} missing card type`);
   }
-  if (!Object.values(cardTypes).includes(cardDto.cardType)) {
+  if (!cardTypes.includes(cardDto.cardType)) {
     throw new Error(
       `Card ${cardDto.id} has unexpected card type ${cardDto.cardType}`
     );
@@ -89,7 +89,7 @@ const validateItemCardDto = (cardDto: CardDto): void => {
   const itemProperties = cardDto.cardTypeProperties as ItemPropertiesDto;
   if (
     itemProperties.equipmentType &&
-    !Object.values(equipmentTypes).includes(itemProperties.equipmentType)
+    !equipmentTypes.includes(itemProperties.equipmentType)
   ) {
     throw new Error(
       `Card ${cardDto.id} has unexpected equipment type ${itemProperties.equipmentType}`
