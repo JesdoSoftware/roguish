@@ -4,7 +4,7 @@ Roguish (working title) is a traditional roguelike as a card game. It seeks to a
 
 (Note this is not a roguelike deckbuilder like Slay the Spire; in Roguish the deck represents the dungeon, not the player.)
 
-Roguish runs in a web browser, implemented via TypeScript, the browser DOM APIs, and CSS animations. The game's code is free, open-source software licensed under the AGPL; see below. The game's content is proprietary and not contained in this repo.
+Roguish runs in a web browser, implemented via TypeScript, the browser DOM APIs, and CSS animations. The game's source code is free and open-source software licensed under the AGPL; see below. The game's content is proprietary and not contained in this repo.
 
 ## Getting started
 
@@ -28,6 +28,24 @@ SOURCE_URL=https://github.com/JesdoSoftware/roguish
 2. In a command-line terminal, go to the root folder of the repo and run `npm install`.
 3. To run Roguish in a browser, run `npm start`.
 4. To build Roguish for deployment, run `npm run build`.
+
+## Architecture
+
+Roguish runs in a web browser. Rather than running in a canvas, it makes use of the standard DOM, along with CSS transitions and animations. It doesn't use a framework such as React, Vue, or Svelte, but calls the browser DOM APIs directly, with a couple simple libraries to make that easier. The game and display logic code are mostly TypeScript. CSS is packaged into separate CSS modules to manage selector scope.
+
+Roguish has separate layers and modules with different responsibilities:
+
+- Data layer:
+  - src/business/dataAccess.ts: loads the game data from the endpoint defined by the `API_BASE_URL` environment variable
+  - src/business/dtos.ts: data transfer objects representing the loaded data
+- Model (game logic) layer:
+  - src/business/models.ts: model classes representing and allowing manipulation of the state of the game, in a UI-agnostic manner
+- View layer:
+  - src/ui/rendering.ts: general functions for making DOM manipulation easier
+  - src/ui/dragDrop.ts: provides a general way of registering DOM elements for drag and drop as draggables or as drop targets
+  - Various components for displaying the state of the models and handling input, along with their corresponding CSS module, if any; e.g., src/ui/app/App.ts and App.module.css
+
+Roguish employs a model-view architecture, similar to model-view-controller (MVC), but with the view layer handling both display and user input. Views render the initial state of the models, and call operations on the models based on user input. The models emit events to reflect changes to their state; the views subscribe to these events and update their display in response.
 
 ## Copyright and license notices
 
