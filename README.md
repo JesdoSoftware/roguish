@@ -76,7 +76,7 @@ const IncrementButton = (): string => {
   const buttonId = createId();
   onElementAdded(buttonId, (button) => {
     button.addEventListener("click", (): void => {
-      button.textContent = `Click count: ${count}`;
+      button.textContent = `Click count: ${++count}`;
     });
   });
 
@@ -91,7 +91,7 @@ const Container = (name: string): string => {
   return html`
     ${Hello(name)}
     <p>Please click the button.</p>
-    ${IncrementButton(){
+    ${IncrementButton()}
   `;
 };
 ```
