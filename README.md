@@ -36,8 +36,8 @@ Roguish runs in a web browser. Rather than running in a canvas, it makes use of 
 Roguish has separate layers and modules with different responsibilities:
 
 - Data layer:
-  - `src/business/dataAccess.ts`: loads the game data from the endpoint defined by the `API_BASE_URL` environment variable
-  - `src/business/dtos.ts`: data transfer objects representing the loaded data
+  - `src/data/dataAccess.ts`: loads the game data from the endpoint defined by the `API_BASE_URL` environment variable
+  - `src/data/dtos.ts`: data transfer objects representing the loaded data
 - Model (game logic) layer:
   - `src/business/models.ts`: model classes representing and allowing manipulation of the state of the game, in a UI-agnostic manner
 - View layer:
