@@ -18,7 +18,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import bindPrototypeMethods from "../bindPrototypeMethods";
-import { CardDto, DeckDto } from "../data/dtos";
+import { CardDto, DeckDto, MonsterPropertiesDto } from "../data/dtos";
 
 export const maxBoardColumns = 3;
 export const maxBoardRows = 3;
@@ -61,13 +61,23 @@ export class EventDispatcher<T> {
 export const cardTypes = ["player", "monster", "item"] as const;
 export type CardType = (typeof cardTypes)[number];
 
-export interface PlayerProperties {
-  strength: number;
+export class MonsterProperties {
+  readonly strength: number;
+  readonly equipped: Map<EquipmentType, CardModel>;
+
+  constructor(strength: number) {
+    bindPrototypeMethods(this);
+
+    this.strength = strength;
+    this.equipped = new Map<EquipmentType, CardModel>();
+  }
 }
 
-export interface MonsterProperties {
-  strength: number;
-}
+const monsterPropertiesDtoToModel = (
+  dto: MonsterPropertiesDto
+): MonsterProperties => {
+  return new MonsterProperties(dto.strength);
+};
 
 export const equipmentTypes = [
   "head",
@@ -82,10 +92,7 @@ export interface ItemProperties {
   equipmentType?: EquipmentType;
 }
 
-export type CardTypeProperties =
-  | PlayerProperties
-  | MonsterProperties
-  | ItemProperties;
+export type CardTypeProperties = MonsterProperties | ItemProperties;
 
 export enum CardSide {
   Front,
@@ -120,14 +127,14 @@ export class CardModel {
     cardTypeProperties: CardTypeProperties,
     side: CardSide = CardSide.Back
   ) {
+    bindPrototypeMethods(this);
+
     this.id = id;
     this.cardDefId = cardDefId;
     this.name = name;
     this.cardType = cardType;
     this.cardTypeProperties = cardTypeProperties;
     this._side = side;
-
-    bindPrototypeMethods(this);
   }
 }
 
@@ -137,7 +144,9 @@ export const cardDtoToModel = (cardDto: CardDto): CardModel => {
     cardDto.id,
     cardDto.name,
     cardDto.cardType,
-    cardDto.cardTypeProperties
+    monsterPropertiesDtoToModel(
+      cardDto.cardTypeProperties as MonsterPropertiesDto
+    )
   );
 };
 
@@ -198,8 +207,9 @@ export class BoardModel {
   private readonly playerCard: CardModel;
 
   constructor(dungeonDeck: CardModel[]) {
-    this.dungeonDeck = dungeonDeck;
     bindPrototypeMethods(this);
+
+    this.dungeonDeck = dungeonDeck;
     shuffleCards(this.dungeonDeck);
 
     this.playerCard = new CardModel(
@@ -207,7 +217,7 @@ export class BoardModel {
       0,
       "Player",
       "player",
-      { strength: 0 },
+      new MonsterProperties(1),
       CardSide.Front
     );
     this.cards.set(
