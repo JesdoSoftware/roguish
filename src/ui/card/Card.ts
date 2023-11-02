@@ -41,7 +41,7 @@ export const updateCardZIndex = (
   addOrUpdateStyleProperties(cardElement, { "z-index": zIndex.toString() });
 };
 
-const Card = (cardModel: CardModel, classNames: string[]): string => {
+const Card = (cardModel: CardModel, classNames: string[] = []): string => {
   const combinedClassName = getCombinedClassName(classNames, cardModel.side);
 
   cardModel.onCardFlipped.addListener(() => {

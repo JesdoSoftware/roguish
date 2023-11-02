@@ -26,6 +26,7 @@ import { html } from "../templateLiterals";
 import commonStyles from "../common.module.css";
 import appStyles from "./App.module.css";
 import { DeckDto } from "../../data/dtos";
+import Equipment from "../equipment/Equipment";
 
 const CopyrightLicenseSource = (): string => {
   return html`
@@ -65,6 +66,10 @@ const App = (loadDeck: () => Promise<DeckDto>): string => {
   const closeHandDialogButtonId = createId();
   const handId = createId();
 
+  const openEquipmentDialogButtonId = createId();
+  const equipmentDialogId = createId();
+  const equipmentId = createId();
+
   const boardId = createId();
   onElementAdded(boardId, (board) => {
     loadDeck().then((deckDto) => {
@@ -93,6 +98,21 @@ const App = (loadDeck: () => Promise<DeckDto>): string => {
           handDialog.close();
         });
       });
+
+      onElementAdded(openEquipmentDialogButtonId, (button) => {
+        button.addEventListener("click", (): void => {
+          const equipmentDialog = getElementById(
+            equipmentDialogId
+          ) as HTMLDialogElement;
+          const equipment = getElementById(equipmentId);
+          equipment.outerHTML = Equipment(
+            equipmentId,
+            gameModel.board.playerCard
+          );
+
+          equipmentDialog.showModal();
+        });
+      });
     });
   });
 
@@ -100,11 +120,15 @@ const App = (loadDeck: () => Promise<DeckDto>): string => {
     <div>
       <div id="${boardId}">Loading deck&hellip;</div>
       <button id="${openHandDialogButtonId}">Hand</button>
+      <button id="${openEquipmentDialogButtonId}">Equipment</button>
       <dialog id="${handDialogId}" class="${appStyles.handDialog}">
         <div class="${appStyles.handDialogHeader}">
           <button id="${closeHandDialogButtonId}">Close</button>
         </div>
         <div id="${handId}"></div>
+      </dialog>
+      <dialog id="${equipmentDialogId}">
+        <div id="${equipmentId}"></div>
       </dialog>
       <hr />
       ${CopyrightLicenseSource()}

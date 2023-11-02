@@ -58,7 +58,7 @@ export class EventDispatcher<T> {
   }
 }
 
-export const cardTypes = ["player", "monster", "item"] as const;
+export const cardTypes = ["monster", "item"] as const;
 export type CardType = (typeof cardTypes)[number];
 
 export class MonsterProperties {
@@ -197,6 +197,8 @@ export class BoardModel {
   readonly dungeonDeck: CardModel[];
   readonly discarded: CardModel[] = [];
 
+  readonly playerCard: CardModel;
+
   readonly onCardDealt = new EventDispatcher<CardDealtEventArgs>();
   readonly onCardMoved = new EventDispatcher<CardMovedEventArgs>();
   readonly onCardDiscarded = new EventDispatcher<CardDiscardedEventArgs>();
@@ -204,7 +206,6 @@ export class BoardModel {
   readonly onItemCollected = new EventDispatcher<ItemCollectedEventArgs>();
 
   private readonly cards = new Map<string, CardModel>();
-  private readonly playerCard: CardModel;
 
   constructor(dungeonDeck: CardModel[]) {
     bindPrototypeMethods(this);
@@ -216,7 +217,7 @@ export class BoardModel {
       playerCardId,
       0,
       "Player",
-      "player",
+      "monster",
       new MonsterProperties(1),
       CardSide.Front
     );
