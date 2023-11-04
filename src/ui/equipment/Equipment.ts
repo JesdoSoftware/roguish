@@ -17,11 +17,7 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import {
-  CardModel,
-  MonsterProperties,
-  equipmentTypes,
-} from "../../business/models";
+import { CardModel, MonsterProperties } from "../../business/models";
 import Card from "../card/Card";
 import { html } from "../templateLiterals";
 
@@ -32,22 +28,27 @@ const Equipment = (id: string, cardModel: CardModel): string => {
     );
   }
   const monsterProperties = cardModel.cardTypeProperties as MonsterProperties;
+  const heldOrTwoHanded = monsterProperties.held || monsterProperties.twoHanded;
 
   return html`
     <div id="${id}">
       <dl>
-        ${equipmentTypes
-          .map((equipmentType) => {
-            const equipmentCardModel =
-              monsterProperties.equipped.get(equipmentType);
-            return html`
-              <dt>${equipmentType}</dt>
-              <dd>
-                ${equipmentCardModel ? Card(equipmentCardModel) : "empty"}
-              </dd>
-            `;
-          })
-          .join("")}
+        <dt>"Head"</dt>
+        <dd>
+          ${monsterProperties.head ? Card(monsterProperties.head) : "empty"}
+        </dd>
+        <dt>"Body"</dt>
+        <dd>
+          ${monsterProperties.body ? Card(monsterProperties.body) : "empty"}
+        </dd>
+        <dt>"Held"</dt>
+        <dd>${heldOrTwoHanded ? Card(heldOrTwoHanded) : "empty"}</dd>
+        <dt>"Offhand"</dt>
+        <dd>
+          ${monsterProperties.offhand
+            ? Card(monsterProperties.offhand)
+            : "empty"}
+        </dd>
       </dl>
     </div>
   `;

@@ -63,13 +63,87 @@ export type CardType = (typeof cardTypes)[number];
 
 export class MonsterProperties {
   readonly strength: number;
-  readonly equipped: Map<EquipmentType, CardModel>;
+  readonly equipmentChanged: EventDispatcher<EquipmentType> =
+    new EventDispatcher<EquipmentType>();
+
+  private _head: CardModel | null;
+  get head(): CardModel | null {
+    return this._head;
+  }
+  set head(value) {
+    if (this.head !== value) {
+      this._head = value;
+      this.equipmentChanged.dispatch("head");
+    }
+  }
+
+  private _body: CardModel | null;
+  get body(): CardModel | null {
+    return this._body;
+  }
+  set body(value) {
+    if (this.body !== value) {
+      this._body = value;
+      this.equipmentChanged.dispatch("body");
+    }
+  }
+
+  private _held: CardModel | null;
+  get held(): CardModel | null {
+    return this._held;
+  }
+  set held(value) {
+    if (this.held !== value) {
+      if (value && this.twoHanded) {
+        this.twoHanded = null;
+      }
+
+      this._held = value;
+      this.equipmentChanged.dispatch("held");
+    }
+  }
+
+  private _offhand: CardModel | null;
+  get offhand(): CardModel | null {
+    return this._offhand;
+  }
+  set offhand(value) {
+    if (this.offhand !== value) {
+      if (value && this.twoHanded) {
+        this.twoHanded = null;
+      }
+      this._offhand = value;
+      this.equipmentChanged.dispatch("offhand");
+    }
+  }
+
+  private _twoHanded: CardModel | null;
+  get twoHanded(): CardModel | null {
+    return this._twoHanded;
+  }
+  set twoHanded(value) {
+    if (this.twoHanded !== value) {
+      if (value && this.held) {
+        this.held = null;
+      }
+      if (value && this.offhand) {
+        this.offhand = null;
+      }
+
+      this._twoHanded = value;
+      this.equipmentChanged.dispatch("two-handed");
+    }
+  }
 
   constructor(strength: number) {
     bindPrototypeMethods(this);
 
     this.strength = strength;
-    this.equipped = new Map<EquipmentType, CardModel>();
+    this._head = null;
+    this._body = null;
+    this._held = null;
+    this._offhand = null;
+    this._twoHanded = null;
   }
 }
 
@@ -105,7 +179,7 @@ export class CardModel {
   readonly name: string;
   readonly cardType: CardType;
   readonly cardTypeProperties: CardTypeProperties;
-  readonly onCardFlipped = new EventDispatcher<void>();
+  readonly cardFlipped = new EventDispatcher<void>();
 
   private _side: CardSide;
   get side(): CardSide {
@@ -115,7 +189,7 @@ export class CardModel {
     const oldSide = this._side;
     this._side = newSide;
     if (oldSide !== newSide) {
-      this.onCardFlipped.dispatch();
+      this.cardFlipped.dispatch();
     }
   }
 
@@ -199,11 +273,11 @@ export class BoardModel {
 
   readonly playerCard: CardModel;
 
-  readonly onCardDealt = new EventDispatcher<CardDealtEventArgs>();
-  readonly onCardMoved = new EventDispatcher<CardMovedEventArgs>();
-  readonly onCardDiscarded = new EventDispatcher<CardDiscardedEventArgs>();
-  readonly onSpaceLeftEmpty = new EventDispatcher<SpaceLeftEmptyEventArgs>();
-  readonly onItemCollected = new EventDispatcher<ItemCollectedEventArgs>();
+  readonly cardDealt = new EventDispatcher<CardDealtEventArgs>();
+  readonly cardMoved = new EventDispatcher<CardMovedEventArgs>();
+  readonly cardDiscarded = new EventDispatcher<CardDiscardedEventArgs>();
+  readonly spaceLeftEmpty = new EventDispatcher<SpaceLeftEmptyEventArgs>();
+  readonly itemCollected = new EventDispatcher<ItemCollectedEventArgs>();
 
   private readonly cards = new Map<string, CardModel>();
 
@@ -278,7 +352,7 @@ export class BoardModel {
       card.side = CardSide.Front;
     }
 
-    this.onCardDealt.dispatch({
+    this.cardDealt.dispatch({
       card: card,
       position: position,
     });
@@ -293,7 +367,7 @@ export class BoardModel {
           if (card) {
             this.dealCard(card, position);
           } else {
-            this.onSpaceLeftEmpty.dispatch({ position: position });
+            this.spaceLeftEmpty.dispatch({ position: position });
           }
         }
       }
@@ -340,7 +414,7 @@ export class BoardModel {
     const targetCard = this.getCardAtPosition(toPosition);
     if (targetCard) {
       if (targetCard.cardType === "item") {
-        this.onItemCollected.dispatch({
+        this.itemCollected.dispatch({
           itemCard: targetCard,
         });
       } else if (targetCard.cardType === "monster") {
@@ -354,7 +428,7 @@ export class BoardModel {
     const fromPosition = this.getCardPosition(cardToMove);
     this.cards.delete(this.positionToString(fromPosition));
     this.cards.set(this.positionToString(toPosition), cardToMove);
-    this.onCardMoved.dispatch({
+    this.cardMoved.dispatch({
       card: cardToMove,
       fromPosition,
       toPosition,
@@ -395,7 +469,7 @@ export class BoardModel {
       this.cards.delete(cardKey);
       this.discarded.push(card);
 
-      this.onCardDiscarded.dispatch({
+      this.cardDiscarded.dispatch({
         card: card,
       });
     }
@@ -445,7 +519,7 @@ export class GameModel {
     });
     this.board = new BoardModel(dungeonCards);
 
-    this.board.onItemCollected.addListener((e) => {
+    this.board.itemCollected.addListener((e) => {
       this.hand.addCard(e.itemCard);
     });
 

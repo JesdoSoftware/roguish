@@ -287,13 +287,13 @@ const Board = (
     }
   };
 
-  boardModel.onCardDealt.addListener((e) =>
+  boardModel.cardDealt.addListener((e) =>
     queueEvent(() => {
       dealCard(e);
     }, 250)
   );
 
-  boardModel.onCardMoved.addListener((e) => {
+  boardModel.cardMoved.addListener((e) => {
     queueEvent(() => {
       if (isSpaceMarkedEmpty(e.toPosition)) {
         unmarkEmptySpace(e.toPosition);
@@ -307,7 +307,7 @@ const Board = (
     });
   });
 
-  boardModel.onCardDiscarded.addListener((e) => {
+  boardModel.cardDiscarded.addListener((e) => {
     queueEvent(() => {
       const cardElem = getElementById(e.card.id);
       cardElem.classList.add(boardStyles.discarded);
@@ -317,13 +317,13 @@ const Board = (
     });
   });
 
-  boardModel.onSpaceLeftEmpty.addListener((e) => {
+  boardModel.spaceLeftEmpty.addListener((e) => {
     queueEvent(() => {
       markEmptySpace(e);
     });
   });
 
-  boardModel.onItemCollected.addListener((e) => {
+  boardModel.itemCollected.addListener((e) => {
     queueEvent(() => {
       const cardElem = getElementById(e.itemCard.id);
       updateCardZIndex(cardElem, getNextZIndex());
