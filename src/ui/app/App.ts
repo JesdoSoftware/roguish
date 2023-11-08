@@ -24,9 +24,9 @@ import Hand from "../hand/Hand";
 import { getElementById, getNextZIndex, onElementAdded } from "../rendering";
 import { html } from "../templateLiterals";
 import commonStyles from "../common.module.css";
-import appStyles from "./App.module.css";
 import { DeckDto } from "../../data/dtos";
 import Equipment from "../equipment/Equipment";
+import Dialog from "../dialog/Dialog";
 
 const CopyrightLicenseSource = (): string => {
   return html`
@@ -61,45 +61,32 @@ const App = (loadDeck: () => Promise<DeckDto>): string => {
     draggable.classList.remove(commonStyles.dragging);
   });
 
-  const openHandDialogButtonId = createId();
-  const handDialogId = createId();
-  const closeHandDialogButtonId = createId();
-  const handId = createId();
-
-  const openEquipmentDialogButtonId = createId();
-  const equipmentDialogId = createId();
-  const equipmentId = createId();
-
-  const boardId = createId();
-  onElementAdded(boardId, (board) => {
+  const gameId = createId();
+  onElementAdded(gameId, (game) => {
     loadDeck().then((deckDto) => {
       const gameModel = new GameModel(deckDto);
-      board.outerHTML = Board(boardId, gameModel.board, gameModel.hand);
+      const boardId = createId();
 
-      onElementAdded(openHandDialogButtonId, (button) => {
-        button.addEventListener("click", (): void => {
-          const handDialog = getElementById(handDialogId) as HTMLDialogElement;
-          const hand = getElementById(handId);
-          hand.outerHTML = Hand(
-            handId,
-            gameModel.hand,
-            (cardElement, pointerEvent) => {
-              dragCardToBoard(boardId, cardElement, pointerEvent);
-              handDialog.close();
-            },
-            returnCardFromBoard
-          );
-          handDialog.showModal();
-        });
-      });
-      onElementAdded(closeHandDialogButtonId, (button) => {
-        button.addEventListener("click", (): void => {
-          const handDialog = getElementById(handDialogId) as HTMLDialogElement;
-          handDialog.close();
-        });
+      const handDialog = Dialog(() =>
+        Hand(
+          gameModel.hand,
+          (cardElement, pointerEvent) => {
+            dragCardToBoard(boardId, cardElement, pointerEvent);
+            handDialog.close();
+          },
+          returnCardFromBoard
+        )
+      );
+
+      const openHandButtonId = createId();
+      onElementAdded(openHandButtonId, (openHandButton) => {
+        openHandButton.addEventListener("click", () => handDialog.showModal());
       });
 
-      onElementAdded(openEquipmentDialogButtonId, (button) => {
+      const openEquipmentButtonId = createId();
+      const equipmentDialogId = createId();
+      const equipmentId = createId();
+      onElementAdded(openEquipmentButtonId, (button) => {
         button.addEventListener("click", (): void => {
           const equipmentDialog = getElementById(
             equipmentDialogId
@@ -113,23 +100,22 @@ const App = (loadDeck: () => Promise<DeckDto>): string => {
           equipmentDialog.showModal();
         });
       });
+
+      game.outerHTML = html`
+        ${Board(boardId, gameModel.board, gameModel.hand)}
+        <button id="${openHandButtonId}">Hand</button>
+        <button id="${openEquipmentButtonId}">Equipment</button>
+        ${handDialog.markup}
+        <dialog id="${equipmentDialogId}">
+          <div id="${equipmentId}"></div>
+        </dialog>
+      `;
     });
   });
 
   return html`
     <div>
-      <div id="${boardId}">Loading deck&hellip;</div>
-      <button id="${openHandDialogButtonId}">Hand</button>
-      <button id="${openEquipmentDialogButtonId}">Equipment</button>
-      <dialog id="${handDialogId}" class="${appStyles.handDialog}">
-        <div class="${appStyles.handDialogHeader}">
-          <button id="${closeHandDialogButtonId}">Close</button>
-        </div>
-        <div id="${handId}"></div>
-      </dialog>
-      <dialog id="${equipmentDialogId}">
-        <div id="${equipmentId}"></div>
-      </dialog>
+      <div id="${gameId}">Loading deck&hellip;</div>
       <hr />
       ${CopyrightLicenseSource()}
     </div>

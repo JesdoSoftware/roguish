@@ -26,7 +26,6 @@ import handStyles from "./Hand.module.css";
 import { getElementById, onElementAdded } from "../rendering";
 
 const Hand = (
-  id: string,
   handModel: HandModel,
   dragCardOut: (cardElement: HTMLElement, pointerEvent: PointerEvent) => void,
   returnCard: (cardElement: HTMLElement) => void
@@ -43,18 +42,20 @@ const Hand = (
     returnCard(draggable);
   };
 
-  return html`<div id="${id}">
-    <ul class="${handStyles.cards}">
-      ${Array.from(handModel.cards.values())
-        .map((cardModel) => {
-          onElementAdded(cardModel.id, (card) => {
-            registerDraggable(card, () => true, onDragStart, onDragEnd);
-          });
-          return html`<li>${Card(cardModel, [commonStyles.draggable])}</li>`;
-        })
-        .join("")}
-    </ul>
-  </div>`;
+  return html`
+    <div>
+      <ul class="${handStyles.cards}">
+        ${Array.from(handModel.cards.values())
+          .map((cardModel) => {
+            onElementAdded(cardModel.id, (cardElem) => {
+              registerDraggable(cardElem, () => true, onDragStart, onDragEnd);
+            });
+            return html`<li>${Card(cardModel, [commonStyles.draggable])}</li>`;
+          })
+          .join("")}
+      </ul>
+    </div>
+  `;
 };
 
 export default Hand;

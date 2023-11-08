@@ -17,11 +17,11 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-.handDialog {
+.dialog {
   width: 50vw;
   height: 80vh;
 }
 
-.handDialogHeader {
+.dialogHeader {
   text-align: right;
 }
