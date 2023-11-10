@@ -43,19 +43,29 @@ const EquipmentSlot = (
       equipmentType
   );
 
-  const cardPickerDialog = Dialog(() =>
-    CardPicker(availableEquipment, () => {
-      console.log("picked");
-    })
-  );
+  const cardPickerDialog = availableEquipment.length
+    ? Dialog(() =>
+        CardPicker(availableEquipment, () => {
+          console.log("picked");
+          cardPickerDialog?.close();
+        })
+      )
+    : null;
   const chooseEquipmentButtonId = createId();
-  onElementAdded(chooseEquipmentButtonId, (button) => {
-    button.addEventListener("click", () => cardPickerDialog.showModal());
-  });
+  if (cardPickerDialog) {
+    onElementAdded(chooseEquipmentButtonId, (button) => {
+      button.addEventListener("click", () => cardPickerDialog.showModal());
+    });
+  }
 
   return html`
-    <button id="${chooseEquipmentButtonId}">Choose</button>
-    ${cardPickerDialog.markup}
+    <button
+      id="${chooseEquipmentButtonId}"
+      ${!cardPickerDialog ? "disabled" : ""}
+    >
+      ${cardPickerDialog ? "Choose" : "None available"}
+    </button>
+    ${cardPickerDialog ? cardPickerDialog.markup : ""}
   `;
 };
 
@@ -72,15 +82,15 @@ const Equipment = (
   return html`
     <div>
       <dl>
-        <dt>"Head"</dt>
+        <dt>Head</dt>
         <dd>${EquipmentSlot("head", monsterCardModel, handModel)}</dd>
-        <dt>"Body"</dt>
+        <dt>Body</dt>
         <dd>
         <dd>${EquipmentSlot("body", monsterCardModel, handModel)}</dd>
         </dd>
-        <dt>"Held"</dt>
+        <dt>Held</dt>
         <dd>${EquipmentSlot("held", monsterCardModel, handModel)}</dd>
-        <dt>"Offhand"</dt>
+        <dt>Offhand</dt>
         <dd>
         <dd>${EquipmentSlot("offhand", monsterCardModel, handModel)}</dd>
         </dd>
