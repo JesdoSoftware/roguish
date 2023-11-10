@@ -77,38 +77,24 @@ const App = (loadDeck: () => Promise<DeckDto>): string => {
           returnCardFromBoard
         )
       );
-
       const openHandButtonId = createId();
       onElementAdded(openHandButtonId, (openHandButton) => {
         openHandButton.addEventListener("click", () => handDialog.showModal());
       });
 
+      const equipmentDialog = Dialog(() =>
+        Equipment(gameModel.board.playerCard)
+      );
       const openEquipmentButtonId = createId();
-      const equipmentDialogId = createId();
-      const equipmentId = createId();
       onElementAdded(openEquipmentButtonId, (button) => {
-        button.addEventListener("click", (): void => {
-          const equipmentDialog = getElementById(
-            equipmentDialogId
-          ) as HTMLDialogElement;
-          const equipment = getElementById(equipmentId);
-          equipment.outerHTML = Equipment(
-            equipmentId,
-            gameModel.board.playerCard
-          );
-
-          equipmentDialog.showModal();
-        });
+        button.addEventListener("click", () => equipmentDialog.showModal());
       });
 
       game.outerHTML = html`
         ${Board(boardId, gameModel.board, gameModel.hand)}
         <button id="${openHandButtonId}">Hand</button>
         <button id="${openEquipmentButtonId}">Equipment</button>
-        ${handDialog.markup}
-        <dialog id="${equipmentDialogId}">
-          <div id="${equipmentId}"></div>
-        </dialog>
+        ${handDialog.markup} ${equipmentDialog.markup}
       `;
     });
   });

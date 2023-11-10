@@ -21,7 +21,7 @@ import { CardModel, MonsterProperties } from "../../business/models";
 import Card from "../card/Card";
 import { html } from "../templateLiterals";
 
-const Equipment = (id: string, cardModel: CardModel): string => {
+const Equipment = (cardModel: CardModel): string => {
   if (cardModel.cardType !== "monster") {
     throw new Error(
       `Displaying equipment for unsupported card type ${cardModel.cardType}`
@@ -31,7 +31,7 @@ const Equipment = (id: string, cardModel: CardModel): string => {
   const heldOrTwoHanded = monsterProperties.held || monsterProperties.twoHanded;
 
   return html`
-    <div id="${id}">
+    <div>
       <dl>
         <dt>"Head"</dt>
         <dd>
