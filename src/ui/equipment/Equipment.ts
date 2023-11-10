@@ -17,37 +17,72 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { CardModel, MonsterProperties } from "../../business/models";
-import Card from "../card/Card";
+import {
+  CardModel,
+  EquipmentType,
+  HandModel,
+  ItemProperties,
+  MonsterProperties,
+  createId,
+} from "../../business/models";
+import CardPicker from "../cardPicker/CardPicker";
+import Dialog from "../dialog/Dialog";
+import { onElementAdded } from "../rendering";
 import { html } from "../templateLiterals";
 
-const Equipment = (cardModel: CardModel): string => {
-  if (cardModel.cardType !== "monster") {
+const EquipmentSlot = (
+  equipmentType: EquipmentType,
+  monsterCardModel: CardModel,
+  handModel: HandModel
+): string => {
+  const monsterProperties =
+    monsterCardModel.cardTypeProperties as MonsterProperties;
+  const availableEquipment = Array.from(handModel.cards.values()).filter(
+    (card) =>
+      (card.cardTypeProperties as ItemProperties).equipmentType ===
+      equipmentType
+  );
+
+  const cardPickerDialog = Dialog(() =>
+    CardPicker(availableEquipment, () => {
+      console.log("picked");
+    })
+  );
+  const chooseEquipmentButtonId = createId();
+  onElementAdded(chooseEquipmentButtonId, (button) => {
+    button.addEventListener("click", () => cardPickerDialog.showModal());
+  });
+
+  return html`
+    <button id="${chooseEquipmentButtonId}">Choose</button>
+    ${cardPickerDialog.markup}
+  `;
+};
+
+const Equipment = (
+  monsterCardModel: CardModel,
+  handModel: HandModel
+): string => {
+  if (monsterCardModel.cardType !== "monster") {
     throw new Error(
-      `Displaying equipment for unsupported card type ${cardModel.cardType}`
+      `Displaying equipment for unsupported card type ${monsterCardModel.cardType}`
     );
   }
-  const monsterProperties = cardModel.cardTypeProperties as MonsterProperties;
-  const heldOrTwoHanded = monsterProperties.held || monsterProperties.twoHanded;
 
   return html`
     <div>
       <dl>
         <dt>"Head"</dt>
-        <dd>
-          ${monsterProperties.head ? Card(monsterProperties.head) : "empty"}
-        </dd>
+        <dd>${EquipmentSlot("head", monsterCardModel, handModel)}</dd>
         <dt>"Body"</dt>
         <dd>
-          ${monsterProperties.body ? Card(monsterProperties.body) : "empty"}
+        <dd>${EquipmentSlot("body", monsterCardModel, handModel)}</dd>
         </dd>
         <dt>"Held"</dt>
-        <dd>${heldOrTwoHanded ? Card(heldOrTwoHanded) : "empty"}</dd>
+        <dd>${EquipmentSlot("held", monsterCardModel, handModel)}</dd>
         <dt>"Offhand"</dt>
         <dd>
-          ${monsterProperties.offhand
-            ? Card(monsterProperties.offhand)
-            : "empty"}
+        <dd>${EquipmentSlot("offhand", monsterCardModel, handModel)}</dd>
         </dd>
       </dl>
     </div>

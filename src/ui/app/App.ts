@@ -83,7 +83,7 @@ const App = (loadDeck: () => Promise<DeckDto>): string => {
       });
 
       const equipmentDialog = Dialog(() =>
-        Equipment(gameModel.board.playerCard)
+        Equipment(gameModel.board.playerCard, gameModel.hand)
       );
       const openEquipmentButtonId = createId();
       onElementAdded(openEquipmentButtonId, (button) => {
