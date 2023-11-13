@@ -66,84 +66,42 @@ export class MonsterProperties {
   readonly equipmentChanged: EventDispatcher<EquipmentType> =
     new EventDispatcher<EquipmentType>();
 
-  private _head: CardModel | null;
-  get head(): CardModel | null {
-    return this._head;
-  }
-  set head(value) {
-    if (this.head !== value) {
-      this._head = value;
-      this.equipmentChanged.dispatch("head");
-    }
-  }
-
-  private _body: CardModel | null;
-  get body(): CardModel | null {
-    return this._body;
-  }
-  set body(value) {
-    if (this.body !== value) {
-      this._body = value;
-      this.equipmentChanged.dispatch("body");
-    }
-  }
-
-  private _held: CardModel | null;
-  get held(): CardModel | null {
-    return this._held;
-  }
-  set held(value) {
-    if (this.held !== value) {
-      if (value && this.twoHanded) {
-        this.twoHanded = null;
-      }
-
-      this._held = value;
-      this.equipmentChanged.dispatch("held");
-    }
-  }
-
-  private _offhand: CardModel | null;
-  get offhand(): CardModel | null {
-    return this._offhand;
-  }
-  set offhand(value) {
-    if (this.offhand !== value) {
-      if (value && this.twoHanded) {
-        this.twoHanded = null;
-      }
-      this._offhand = value;
-      this.equipmentChanged.dispatch("offhand");
-    }
-  }
-
-  private _twoHanded: CardModel | null;
-  get twoHanded(): CardModel | null {
-    return this._twoHanded;
-  }
-  set twoHanded(value) {
-    if (this.twoHanded !== value) {
-      if (value && this.held) {
-        this.held = null;
-      }
-      if (value && this.offhand) {
-        this.offhand = null;
-      }
-
-      this._twoHanded = value;
-      this.equipmentChanged.dispatch("two-handed");
-    }
-  }
+  private readonly equipment: CardModel[] = [];
 
   constructor(strength: number) {
     bindPrototypeMethods(this);
 
     this.strength = strength;
-    this._head = null;
-    this._body = null;
-    this._held = null;
-    this._offhand = null;
-    this._twoHanded = null;
+  }
+
+  setEquipment(equipmentCard: CardModel): void {
+    if (equipmentCard.cardType !== "item") {
+      throw new Error(
+        `Equipping unsupported card type ${equipmentCard.cardType}`
+      );
+    }
+
+    const itemProperties = equipmentCard.cardTypeProperties as ItemProperties;
+    const equipmentTypes = itemProperties.equipmentTypes;
+    if (!equipmentTypes) {
+      throw new Error("Equipping item with no equipment type");
+    }
+
+    equipmentTypes.forEach((equipmentType) => {
+      this.equipment.forEach((equippedItem, i) => {
+        const equippedItemProperties =
+          equippedItem.cardTypeProperties as ItemProperties;
+        if (equippedItemProperties.equipmentTypes?.includes(equipmentType)) {
+          this.equipment.splice(i, 1);
+        }
+      });
+    });
+
+    this.equipment.push(equipmentCard);
+
+    equipmentTypes.forEach((equipmentType) => {
+      this.equipmentChanged.dispatch(equipmentType);
+    });
   }
 }
 
@@ -153,17 +111,11 @@ const monsterPropertiesDtoToModel = (
   return new MonsterProperties(dto.strength);
 };
 
-export const equipmentTypes = [
-  "head",
-  "body",
-  "held",
-  "offhand",
-  "two-handed",
-] as const;
+export const equipmentTypes = ["head", "body", "held", "offhand"] as const;
 export type EquipmentType = (typeof equipmentTypes)[number];
 
 export interface ItemProperties {
-  equipmentType?: EquipmentType;
+  equipmentTypes?: EquipmentType[];
 }
 
 export type CardTypeProperties = MonsterProperties | ItemProperties;
@@ -533,7 +485,7 @@ export class GameModel {
         0, // TODO get from loaded deck
         "Mace",
         "item",
-        { equipmentType: "held" },
+        { equipmentTypes: ["held"] },
         CardSide.Front
       )
     );
@@ -543,7 +495,7 @@ export class GameModel {
         0, // TODO get from loaded deck
         "Leather Armor",
         "item",
-        { equipmentType: "body" },
+        { equipmentTypes: ["body"] },
         CardSide.Front
       )
     );

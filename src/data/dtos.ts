@@ -34,7 +34,7 @@ export const equipmentTypes = [
 export type EquipmentType = (typeof equipmentTypes)[number];
 
 export interface ItemPropertiesDto {
-  equipmentType?: EquipmentType;
+  equipmentTypes?: EquipmentType[];
 }
 
 export interface CardDto {
@@ -87,13 +87,14 @@ const validateMonsterCardDto = (cardDto: CardDto): void => {
 
 const validateItemCardDto = (cardDto: CardDto): void => {
   const itemProperties = cardDto.cardTypeProperties as ItemPropertiesDto;
-  if (
-    itemProperties.equipmentType &&
-    !equipmentTypes.includes(itemProperties.equipmentType)
-  ) {
-    throw new Error(
-      `Card ${cardDto.id} has unexpected equipment type ${itemProperties.equipmentType}`
-    );
+  if (itemProperties.equipmentTypes) {
+    itemProperties.equipmentTypes.forEach((equipmentType) => {
+      if (!equipmentTypes.includes(equipmentType)) {
+        throw new Error(
+          `Card ${cardDto.id} has unexpected equipment type ${itemProperties.equipmentTypes}`
+        );
+      }
+    });
   }
 };
 

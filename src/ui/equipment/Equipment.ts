@@ -39,8 +39,9 @@ const EquipmentSlot = (
     monsterCardModel.cardTypeProperties as MonsterProperties;
   const availableEquipment = Array.from(handModel.cards.values()).filter(
     (card) =>
-      (card.cardTypeProperties as ItemProperties).equipmentType ===
-      equipmentType
+      (card.cardTypeProperties as ItemProperties).equipmentTypes?.includes(
+        equipmentType
+      )
   );
 
   const cardPickerDialog = availableEquipment.length
