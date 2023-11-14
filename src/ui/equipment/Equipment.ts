@@ -18,11 +18,9 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
-  CardModel,
   EquipmentType,
   HandModel,
-  ItemProperties,
-  MonsterProperties,
+  MonsterCardModel,
   createId,
 } from "../../business/models";
 import CardPicker from "../cardPicker/CardPicker";
@@ -32,16 +30,12 @@ import { html } from "../templateLiterals";
 
 const EquipmentSlot = (
   equipmentType: EquipmentType,
-  monsterCardModel: CardModel,
+  monsterCardModel: MonsterCardModel,
   handModel: HandModel
 ): string => {
-  const monsterProperties =
-    monsterCardModel.cardTypeProperties as MonsterProperties;
   const availableEquipment = Array.from(handModel.cards.values()).filter(
-    (card) =>
-      (card.cardTypeProperties as ItemProperties).equipmentTypes?.includes(
-        equipmentType
-      )
+    (itemCardModel) =>
+      itemCardModel.itemProperties.equipmentTypes?.includes(equipmentType)
   );
 
   const cardPickerDialog = availableEquipment.length
@@ -71,15 +65,9 @@ const EquipmentSlot = (
 };
 
 const Equipment = (
-  monsterCardModel: CardModel,
+  monsterCardModel: MonsterCardModel,
   handModel: HandModel
 ): string => {
-  if (monsterCardModel.cardType !== "monster") {
-    throw new Error(
-      `Displaying equipment for unsupported card type ${monsterCardModel.cardType}`
-    );
-  }
-
   return html`
     <div>
       <dl>

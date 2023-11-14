@@ -58,7 +58,7 @@ export class EventDispatcher<T> {
   }
 }
 
-export const cardTypes = ["monster", "item"] as const;
+export const cardTypes = ["item", "monster"] as const;
 export type CardType = (typeof cardTypes)[number];
 
 export class MonsterProperties {
@@ -66,32 +66,22 @@ export class MonsterProperties {
   readonly equipmentChanged: EventDispatcher<EquipmentType> =
     new EventDispatcher<EquipmentType>();
 
-  private readonly equipment: CardModel[] = [];
+  private readonly equipment: ItemCardModel[] = [];
 
   constructor(strength: number) {
     bindPrototypeMethods(this);
-
     this.strength = strength;
   }
 
-  setEquipment(equipmentCard: CardModel): void {
-    if (equipmentCard.cardType !== "item") {
-      throw new Error(
-        `Equipping unsupported card type ${equipmentCard.cardType}`
-      );
-    }
-
-    const itemProperties = equipmentCard.cardTypeProperties as ItemProperties;
-    const equipmentTypes = itemProperties.equipmentTypes;
-    if (!equipmentTypes) {
+  setEquipment(equipmentCard: ItemCardModel): void {
+    if (!equipmentCard.itemProperties.equipmentTypes) {
       throw new Error("Equipping item with no equipment type");
     }
-
-    equipmentTypes.forEach((equipmentType) => {
+    equipmentCard.itemProperties.equipmentTypes.forEach((equipmentType) => {
       this.equipment.forEach((equippedItem, i) => {
-        const equippedItemProperties =
-          equippedItem.cardTypeProperties as ItemProperties;
-        if (equippedItemProperties.equipmentTypes?.includes(equipmentType)) {
+        if (
+          equippedItem.itemProperties.equipmentTypes?.includes(equipmentType)
+        ) {
           this.equipment.splice(i, 1);
         }
       });
@@ -99,7 +89,7 @@ export class MonsterProperties {
 
     this.equipment.push(equipmentCard);
 
-    equipmentTypes.forEach((equipmentType) => {
+    equipmentCard.itemProperties.equipmentTypes.forEach((equipmentType) => {
       this.equipmentChanged.dispatch(equipmentType);
     });
   }
@@ -125,12 +115,11 @@ export enum CardSide {
   Back,
 }
 
-export class CardModel {
+export abstract class CardModel {
   readonly id: string;
   readonly cardDefId: number;
   readonly name: string;
   readonly cardType: CardType;
-  readonly cardTypeProperties: CardTypeProperties;
   readonly cardFlipped = new EventDispatcher<void>();
 
   private _side: CardSide;
@@ -145,35 +134,74 @@ export class CardModel {
     }
   }
 
-  constructor(
+  protected constructor(
     id: string,
     cardDefId: number,
     name: string,
     cardType: CardType,
-    cardTypeProperties: CardTypeProperties,
     side: CardSide = CardSide.Back
   ) {
-    bindPrototypeMethods(this);
-
     this.id = id;
     this.cardDefId = cardDefId;
     this.name = name;
     this.cardType = cardType;
-    this.cardTypeProperties = cardTypeProperties;
     this._side = side;
   }
 }
 
+export class ItemCardModel extends CardModel {
+  itemProperties: ItemProperties;
+
+  constructor(
+    id: string,
+    cardDefId: number,
+    name: string,
+    itemProperties: ItemProperties,
+    side: CardSide = CardSide.Back
+  ) {
+    super(id, cardDefId, name, "item", side);
+    this.itemProperties = itemProperties;
+
+    bindPrototypeMethods(this);
+  }
+}
+
+export class MonsterCardModel extends CardModel {
+  monsterProperties: MonsterProperties;
+
+  constructor(
+    id: string,
+    cardDefId: number,
+    name: string,
+    monsterProperties: MonsterProperties,
+    side: CardSide = CardSide.Back
+  ) {
+    super(id, cardDefId, name, "monster", side);
+    this.monsterProperties = monsterProperties;
+
+    bindPrototypeMethods(this);
+  }
+}
+
 export const cardDtoToModel = (cardDto: CardDto): CardModel => {
-  return new CardModel(
-    createId(),
-    cardDto.id,
-    cardDto.name,
-    cardDto.cardType,
-    monsterPropertiesDtoToModel(
-      cardDto.cardTypeProperties as MonsterPropertiesDto
-    )
-  );
+  if (cardDto.cardType === "item") {
+    return new ItemCardModel(
+      createId(),
+      cardDto.id,
+      cardDto.name,
+      cardDto.cardTypeProperties as ItemProperties
+    );
+  } else if (cardDto.cardType === "monster") {
+    return new MonsterCardModel(
+      createId(),
+      cardDto.id,
+      cardDto.name,
+      monsterPropertiesDtoToModel(
+        cardDto.cardTypeProperties as MonsterPropertiesDto
+      )
+    );
+  }
+  throw new Error(`Unknown card type ${cardDto.cardType}`);
 };
 
 const shuffleCards = (cardModels: CardModel[]): CardModel[] => {
@@ -216,14 +244,14 @@ export interface SpaceLeftEmptyEventArgs {
 }
 
 export interface ItemCollectedEventArgs {
-  itemCard: CardModel;
+  itemCard: ItemCardModel;
 }
 
 export class BoardModel {
   readonly dungeonDeck: CardModel[];
   readonly discarded: CardModel[] = [];
 
-  readonly playerCard: CardModel;
+  readonly playerCard: MonsterCardModel;
 
   readonly cardDealt = new EventDispatcher<CardDealtEventArgs>();
   readonly cardMoved = new EventDispatcher<CardMovedEventArgs>();
@@ -239,11 +267,10 @@ export class BoardModel {
     this.dungeonDeck = dungeonDeck;
     shuffleCards(this.dungeonDeck);
 
-    this.playerCard = new CardModel(
+    this.playerCard = new MonsterCardModel(
       playerCardId,
       0,
       "Player",
-      "monster",
       new MonsterProperties(1),
       CardSide.Front
     );
@@ -367,7 +394,7 @@ export class BoardModel {
     if (targetCard) {
       if (targetCard.cardType === "item") {
         this.itemCollected.dispatch({
-          itemCard: targetCard,
+          itemCard: targetCard as ItemCardModel,
         });
       } else if (targetCard.cardType === "monster") {
         // TODO fight monster
@@ -429,17 +456,17 @@ export class BoardModel {
 }
 
 export class HandModel {
-  readonly cards = new Map<string, CardModel>();
+  readonly cards = new Map<string, ItemCardModel>();
 
   constructor() {
     bindPrototypeMethods(this);
   }
 
-  getCardByIdIfExists(cardId: string): CardModel | undefined {
+  getCardByIdIfExists(cardId: string): ItemCardModel | undefined {
     return this.cards.get(cardId);
   }
 
-  getCardById(cardId: string): CardModel {
+  getCardById(cardId: string): ItemCardModel {
     const card = this.getCardByIdIfExists(cardId);
     if (card) {
       return card;
@@ -447,7 +474,7 @@ export class HandModel {
     throw new Error(`No card for ID ${cardId}`);
   }
 
-  addCard(card: CardModel): void {
+  addCard(card: ItemCardModel): void {
     this.cards.set(card.id, card);
   }
 
@@ -480,21 +507,19 @@ export class GameModel {
 
   private addInitialHandCards(): void {
     this.hand.addCard(
-      new CardModel(
+      new ItemCardModel(
         createId(),
         0, // TODO get from loaded deck
         "Mace",
-        "item",
         { equipmentTypes: ["held"] },
         CardSide.Front
       )
     );
     this.hand.addCard(
-      new CardModel(
+      new ItemCardModel(
         createId(),
         0, // TODO get from loaded deck
         "Leather Armor",
-        "item",
         { equipmentTypes: ["body"] },
         CardSide.Front
       )

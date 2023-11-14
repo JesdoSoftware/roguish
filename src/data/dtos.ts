@@ -17,20 +17,14 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-export const cardTypes = ["monster", "item"] as const;
+export const cardTypes = ["item", "monster"] as const;
 export type CardType = (typeof cardTypes)[number];
 
 export interface MonsterPropertiesDto {
   strength: number;
 }
 
-export const equipmentTypes = [
-  "head",
-  "body",
-  "held",
-  "offhand",
-  "two-handed",
-] as const;
+export const equipmentTypes = ["head", "body", "held", "offhand"] as const;
 export type EquipmentType = (typeof equipmentTypes)[number];
 
 export interface ItemPropertiesDto {
