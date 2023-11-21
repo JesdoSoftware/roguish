@@ -58,8 +58,12 @@ export class EventDispatcher<T> {
   }
 }
 
-export const cardTypes = ["item", "monster"] as const;
-export type CardType = (typeof cardTypes)[number];
+export const equipmentTypes = ["head", "body", "held", "offhand"] as const;
+export type EquipmentType = (typeof equipmentTypes)[number];
+
+export interface ItemProperties {
+  equipmentTypes?: EquipmentType[];
+}
 
 export class MonsterProperties {
   readonly strength: number;
@@ -101,15 +105,6 @@ const monsterPropertiesDtoToModel = (
   return new MonsterProperties(dto.strength);
 };
 
-export const equipmentTypes = ["head", "body", "held", "offhand"] as const;
-export type EquipmentType = (typeof equipmentTypes)[number];
-
-export interface ItemProperties {
-  equipmentTypes?: EquipmentType[];
-}
-
-export type CardTypeProperties = MonsterProperties | ItemProperties;
-
 export enum CardSide {
   Front,
   Back,
@@ -119,7 +114,6 @@ export abstract class CardModel {
   readonly id: string;
   readonly cardDefId: number;
   readonly name: string;
-  readonly cardType: CardType;
   readonly cardFlipped = new EventDispatcher<void>();
 
   private _side: CardSide;
@@ -138,13 +132,11 @@ export abstract class CardModel {
     id: string,
     cardDefId: number,
     name: string,
-    cardType: CardType,
     side: CardSide = CardSide.Back
   ) {
     this.id = id;
     this.cardDefId = cardDefId;
     this.name = name;
-    this.cardType = cardType;
     this._side = side;
   }
 }
@@ -159,11 +151,15 @@ export class ItemCardModel extends CardModel {
     itemProperties: ItemProperties,
     side: CardSide = CardSide.Back
   ) {
-    super(id, cardDefId, name, "item", side);
+    super(id, cardDefId, name, side);
     this.itemProperties = itemProperties;
 
     bindPrototypeMethods(this);
   }
+}
+
+function isItemCard(card: CardModel): card is ItemCardModel {
+  return (card as ItemCardModel).itemProperties !== undefined;
 }
 
 export class MonsterCardModel extends CardModel {
@@ -176,32 +172,34 @@ export class MonsterCardModel extends CardModel {
     monsterProperties: MonsterProperties,
     side: CardSide = CardSide.Back
   ) {
-    super(id, cardDefId, name, "monster", side);
+    super(id, cardDefId, name, side);
     this.monsterProperties = monsterProperties;
 
     bindPrototypeMethods(this);
   }
 }
 
+function isMonsterCard(card: CardModel): card is MonsterCardModel {
+  return (card as MonsterCardModel).monsterProperties !== undefined;
+}
+
 export const cardDtoToModel = (cardDto: CardDto): CardModel => {
-  if (cardDto.cardType === "item") {
+  if (cardDto.itemProperties) {
     return new ItemCardModel(
       createId(),
       cardDto.id,
       cardDto.name,
-      cardDto.cardTypeProperties as ItemProperties
+      cardDto.itemProperties
     );
-  } else if (cardDto.cardType === "monster") {
+  } else if (cardDto.monsterProperties) {
     return new MonsterCardModel(
       createId(),
       cardDto.id,
       cardDto.name,
-      monsterPropertiesDtoToModel(
-        cardDto.cardTypeProperties as MonsterPropertiesDto
-      )
+      monsterPropertiesDtoToModel(cardDto.monsterProperties)
     );
   }
-  throw new Error(`Unknown card type ${cardDto.cardType}`);
+  throw new Error(`Unknown card type for card ${cardDto.id}`);
 };
 
 const shuffleCards = (cardModels: CardModel[]): CardModel[] => {
@@ -392,11 +390,11 @@ export class BoardModel {
   moveCard(cardToMove: CardModel, toPosition: BoardPosition): void {
     const targetCard = this.getCardAtPosition(toPosition);
     if (targetCard) {
-      if (targetCard.cardType === "item") {
+      if (isItemCard(targetCard)) {
         this.itemCollected.dispatch({
           itemCard: targetCard as ItemCardModel,
         });
-      } else if (targetCard.cardType === "monster") {
+      } else if (isMonsterCard(targetCard)) {
         // TODO fight monster
         this.discardCard(toPosition);
       } else {

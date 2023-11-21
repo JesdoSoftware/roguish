@@ -17,13 +17,6 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-export const cardTypes = ["item", "monster"] as const;
-export type CardType = (typeof cardTypes)[number];
-
-export interface MonsterPropertiesDto {
-  strength: number;
-}
-
 export const equipmentTypes = ["head", "body", "held", "offhand"] as const;
 export type EquipmentType = (typeof equipmentTypes)[number];
 
@@ -31,12 +24,16 @@ export interface ItemPropertiesDto {
   equipmentTypes?: EquipmentType[];
 }
 
+export interface MonsterPropertiesDto {
+  strength: number;
+}
+
 export interface CardDto {
   id: number;
   name: string;
   quantity: number;
-  cardType: CardType;
-  cardTypeProperties: MonsterPropertiesDto | ItemPropertiesDto;
+  itemProperties: ItemPropertiesDto;
+  monsterProperties: MonsterPropertiesDto;
 }
 
 export interface DeckDto {
@@ -53,42 +50,41 @@ const validateCardDto = (cardDto: CardDto): void => {
   if (!cardDto.quantity) {
     throw new Error(`Card ${cardDto.id} missing quantity`);
   }
-  if (!cardDto.cardType) {
-    throw new Error(`Card ${cardDto.id} missing card type`);
+  if (!cardDto.itemProperties && !cardDto.monsterProperties) {
+    throw new Error(`Card ${cardDto.id} missing card type properties`);
   }
-  if (!cardTypes.includes(cardDto.cardType)) {
-    throw new Error(
-      `Card ${cardDto.id} has unexpected card type ${cardDto.cardType}`
-    );
-  }
-  if (!cardDto.cardTypeProperties) {
-    throw new Error(`Card ${cardDto.id} missing item type properties`);
+  if (cardDto.itemProperties && cardDto.monsterProperties) {
+    throw new Error(`Card ${cardDto.id} has conflicting card type properties`);
   }
 
-  if (cardDto.cardType === "monster") {
-    validateMonsterCardDto(cardDto);
-  } else if (cardDto.cardType === "item") {
-    validateItemCardDto(cardDto);
+  if (cardDto.monsterProperties) {
+    validateMonsterPropertiesDto(cardDto.monsterProperties, cardDto.id);
+  } else if (cardDto.itemProperties) {
+    validateItemPropertiesDto(cardDto.itemProperties, cardDto.id);
   }
 };
 
-const validateMonsterCardDto = (cardDto: CardDto): void => {
-  const monsterProperties = cardDto.cardTypeProperties as MonsterPropertiesDto;
-  if (!monsterProperties.strength) {
-    throw new Error(`Card ${cardDto.id} missing strength`);
-  }
-};
-
-const validateItemCardDto = (cardDto: CardDto): void => {
-  const itemProperties = cardDto.cardTypeProperties as ItemPropertiesDto;
-  if (itemProperties.equipmentTypes) {
-    itemProperties.equipmentTypes.forEach((equipmentType) => {
+const validateItemPropertiesDto = (
+  itemPropertiesDto: ItemPropertiesDto,
+  cardId: number
+): void => {
+  if (itemPropertiesDto.equipmentTypes) {
+    itemPropertiesDto.equipmentTypes.forEach((equipmentType) => {
       if (!equipmentTypes.includes(equipmentType)) {
         throw new Error(
-          `Card ${cardDto.id} has unexpected equipment type ${itemProperties.equipmentTypes}`
+          `Card ${cardId} has unexpected equipment type ${itemPropertiesDto.equipmentTypes}`
         );
       }
     });
+  }
+};
+
+const validateMonsterPropertiesDto = (
+  monsterPropertiesDto: MonsterPropertiesDto,
+  cardId: number
+): void => {
+  if (!monsterPropertiesDto.strength) {
+    throw new Error(`Card ${cardId} missing strength`);
   }
 };
 
