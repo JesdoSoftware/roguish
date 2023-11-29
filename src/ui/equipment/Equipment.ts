@@ -20,12 +20,13 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 import {
   EquipmentType,
   HandModel,
+  ItemCardModel,
   MonsterCardModel,
   createId,
 } from "../../business/models";
 import CardPicker from "../cardPicker/CardPicker";
 import Dialog from "../dialog/Dialog";
-import { onElementAdded } from "../rendering";
+import { getElementById, onElementAdded, onElementRemoved } from "../rendering";
 import { html } from "../templateLiterals";
 
 const EquipmentSlot = (
@@ -33,6 +34,26 @@ const EquipmentSlot = (
   monsterCardModel: MonsterCardModel,
   handModel: HandModel
 ): string => {
+  const buttonId = createId();
+  const getButtonName = (): string =>
+    monsterCardModel.monsterProperties.getEquipment(equipmentType)?.name ??
+    "Choose&hellip;";
+
+  const onEquipmentChanged = (e: EquipmentType): void => {
+    if (e === equipmentType) {
+      const button = getElementById(buttonId);
+      button.innerText = getButtonName();
+    }
+  };
+  monsterCardModel.monsterProperties.equipmentChanged.addListener(
+    onEquipmentChanged
+  );
+  onElementRemoved(buttonId, () => {
+    monsterCardModel.monsterProperties.equipmentChanged.removeListener(
+      onEquipmentChanged
+    );
+  });
+
   const availableEquipment = Array.from(handModel.cards.values()).filter(
     (itemCardModel) =>
       itemCardModel.itemProperties.equipmentTypes?.includes(equipmentType)
@@ -40,25 +61,24 @@ const EquipmentSlot = (
 
   const cardPickerDialog = availableEquipment.length
     ? Dialog(() =>
-        CardPicker(availableEquipment, () => {
-          console.log("picked");
+        CardPicker(availableEquipment, (picked) => {
+          monsterCardModel.monsterProperties.setEquipment(
+            picked as ItemCardModel
+          );
           cardPickerDialog?.close();
         })
       )
     : null;
-  const chooseEquipmentButtonId = createId();
+
   if (cardPickerDialog) {
-    onElementAdded(chooseEquipmentButtonId, (button) => {
+    onElementAdded(buttonId, (button) => {
       button.addEventListener("click", () => cardPickerDialog.showModal());
     });
   }
 
   return html`
-    <button
-      id="${chooseEquipmentButtonId}"
-      ${!cardPickerDialog ? "disabled" : ""}
-    >
-      ${cardPickerDialog ? "Choose" : "None available"}
+    <button id="${buttonId}" ${!cardPickerDialog ? "disabled" : ""}>
+      ${cardPickerDialog ? getButtonName() : "None available"}
     </button>
     ${cardPickerDialog ? cardPickerDialog.markup : ""}
   `;

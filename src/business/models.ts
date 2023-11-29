@@ -77,6 +77,12 @@ export class MonsterProperties {
     this.strength = strength;
   }
 
+  getEquipment(equipmentType: EquipmentType): ItemCardModel | undefined {
+    return this.equipment.find((equippedItem) =>
+      equippedItem.itemProperties.equipmentTypes?.includes(equipmentType)
+    );
+  }
+
   setEquipment(equipmentCard: ItemCardModel): void {
     if (!equipmentCard.itemProperties.equipmentTypes) {
       throw new Error("Equipping item with no equipment type");
