@@ -17,7 +17,7 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { CardModel } from "../../business/models";
+import { CardModel, createId } from "../../business/models";
 import Card from "../card/Card";
 import { onElementAdded } from "../rendering";
 import { html } from "../templateLiterals";
@@ -31,12 +31,13 @@ const CardPicker = (
       <ul>
         ${cardModels
           .map((cardModel) => {
-            onElementAdded(cardModel.id, (cardElem) => {
+            const id = createId();
+            onElementAdded(id, (cardElem) => {
               cardElem.addEventListener("click", () => {
                 cardPicked(cardModel);
               });
             });
-            return html`<li>${Card(cardModel)}</li>`;
+            return html`<li>${Card(id, cardModel)}</li>`;
           })
           .join("")}
       </ul>
