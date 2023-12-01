@@ -249,7 +249,7 @@ const Board = (
       board.appendChild(emptySpace);
 
       const emptySpaceId = createId();
-      emptySpace.outerHTML = EmptySpace(emptySpaceId, [
+      emptySpace.outerHTML = EmptySpace(emptySpaceId, "", [
         boardStyles.space,
         ...getCardClassNamesForPosition({
           column: spaceLeftEmpty.position.column,

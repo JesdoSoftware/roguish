@@ -31,7 +31,7 @@ const CardPicker = (
 ): string => {
   const noneOptionId = createId();
   const noneOption = allowNone
-    ? html`<li>${EmptySpace(noneOptionId)}</li>`
+    ? html`<li>${EmptySpace(noneOptionId, "None")}</li>`
     : "";
   if (allowNone) {
     onElementAdded(noneOptionId, (noneElem) => {
