@@ -42,7 +42,7 @@ const EquipmentSlot = (
   const onEquipmentChanged = (e: EquipmentType): void => {
     if (e === equipmentType) {
       const button = getElementById(buttonId);
-      button.innerText = getButtonName();
+      button.innerHTML = getButtonName();
     }
   };
   monsterCardModel.monsterProperties.equipmentChanged.addListener(
@@ -61,10 +61,14 @@ const EquipmentSlot = (
 
   const cardPickerDialog = availableEquipment.length
     ? Dialog(() =>
-        CardPicker(availableEquipment, (picked) => {
-          monsterCardModel.monsterProperties.setEquipment(
-            picked as ItemCardModel
-          );
+        CardPicker(availableEquipment, true, (picked) => {
+          if (!picked) {
+            monsterCardModel.monsterProperties.removeEquipment(equipmentType);
+          } else {
+            monsterCardModel.monsterProperties.setEquipment(
+              picked as ItemCardModel
+            );
+          }
           cardPickerDialog?.close();
         })
       )

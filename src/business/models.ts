@@ -88,19 +88,26 @@ export class MonsterProperties {
       throw new Error("Equipping item with no equipment type");
     }
     equipmentCard.itemProperties.equipmentTypes.forEach((equipmentType) => {
-      this.equipment.forEach((equippedItem, i) => {
-        if (
-          equippedItem.itemProperties.equipmentTypes?.includes(equipmentType)
-        ) {
-          this.equipment.splice(i, 1);
-        }
-      });
+      this.removeEquipmentWithoutEvent(equipmentType);
     });
 
     this.equipment.push(equipmentCard);
 
     equipmentCard.itemProperties.equipmentTypes.forEach((equipmentType) => {
       this.equipmentChanged.dispatch(equipmentType);
+    });
+  }
+
+  removeEquipment(equipmentType: EquipmentType): void {
+    this.removeEquipmentWithoutEvent(equipmentType);
+    this.equipmentChanged.dispatch(equipmentType);
+  }
+
+  private removeEquipmentWithoutEvent(equipmentType: EquipmentType): void {
+    this.equipment.forEach((equippedItem, i) => {
+      if (equippedItem.itemProperties.equipmentTypes?.includes(equipmentType)) {
+        this.equipment.splice(i, 1);
+      }
     });
   }
 }

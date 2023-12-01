@@ -22,14 +22,29 @@ import Card from "../card/Card";
 import { onElementAdded } from "../rendering";
 import { html } from "../templateLiterals";
 import commonStyles from "../common.module.css";
+import EmptySpace from "../emptySpace/EmptySpace";
 
 const CardPicker = (
   cardModels: CardModel[],
-  cardPicked: (cardModel: CardModel) => void
+  allowNone: boolean,
+  cardPicked: (cardModel: CardModel | null) => void
 ): string => {
+  const noneOptionId = createId();
+  const noneOption = allowNone
+    ? html`<li>${EmptySpace(noneOptionId)}</li>`
+    : "";
+  if (allowNone) {
+    onElementAdded(noneOptionId, (noneElem) => {
+      noneElem.addEventListener("click", () => {
+        cardPicked(null);
+      });
+    });
+  }
+
   return html`
     <div>
       <ul class="${commonStyles.cardList}">
+        ${noneOption}
         ${cardModels
           .map((cardModel) => {
             const id = createId();
