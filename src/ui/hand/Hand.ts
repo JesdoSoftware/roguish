@@ -22,7 +22,6 @@ import Card from "../card/Card";
 import { registerDraggable } from "../dragDrop";
 import { html } from "../templateLiterals";
 import commonStyles from "../common.module.css";
-import handStyles from "./Hand.module.css";
 import { getElementById, onElementAdded } from "../rendering";
 
 const Hand = (
@@ -44,7 +43,7 @@ const Hand = (
 
   return html`
     <div>
-      <ul class="${handStyles.cards}">
+      <ul class="${commonStyles.cardList}">
         ${Array.from(handModel.cards.values())
           .map((cardModel) => {
             const id = createId();

@@ -21,6 +21,7 @@ import { CardModel, createId } from "../../business/models";
 import Card from "../card/Card";
 import { onElementAdded } from "../rendering";
 import { html } from "../templateLiterals";
+import commonStyles from "../common.module.css";
 
 const CardPicker = (
   cardModels: CardModel[],
@@ -28,7 +29,7 @@ const CardPicker = (
 ): string => {
   return html`
     <div>
-      <ul>
+      <ul class="${commonStyles.cardList}">
         ${cardModels
           .map((cardModel) => {
             const id = createId();
