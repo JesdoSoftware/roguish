@@ -24,8 +24,10 @@ import {
   MonsterCardModel,
   createId,
 } from "../../business/models";
+import Card from "../card/Card";
 import CardPicker from "../cardPicker/CardPicker";
 import Dialog from "../dialog/Dialog";
+import EmptySpace from "../emptySpace/EmptySpace";
 import { getElementById, onElementAdded, onElementRemoved } from "../rendering";
 import { html } from "../templateLiterals";
 
@@ -34,57 +36,57 @@ const EquipmentSlot = (
   monsterCardModel: MonsterCardModel,
   handModel: HandModel
 ): string => {
-  const buttonId = createId();
-  const getButtonName = (): string =>
-    monsterCardModel.monsterProperties.getEquipment(equipmentType)?.name ??
-    "Choose&hellip;";
-
-  const onEquipmentChanged = (e: EquipmentType): void => {
-    if (e === equipmentType) {
-      const button = getElementById(buttonId);
-      button.innerHTML = getButtonName();
-    }
-  };
-  monsterCardModel.monsterProperties.equipmentChanged.addListener(
-    onEquipmentChanged
-  );
-  onElementRemoved(buttonId, () => {
-    monsterCardModel.monsterProperties.equipmentChanged.removeListener(
-      onEquipmentChanged
-    );
-  });
+  const slotId = createId();
 
   const availableEquipment = Array.from(handModel.cards.values()).filter(
     (itemCardModel) =>
       itemCardModel.itemProperties.equipmentTypes?.includes(equipmentType)
   );
 
-  const cardPickerDialog = availableEquipment.length
-    ? Dialog(() =>
-        CardPicker(availableEquipment, true, (picked) => {
-          if (!picked) {
-            monsterCardModel.monsterProperties.removeEquipment(equipmentType);
-          } else {
-            monsterCardModel.monsterProperties.setEquipment(
-              picked as ItemCardModel
-            );
-          }
-          cardPickerDialog?.close();
-        })
-      )
-    : null;
+  const cardPickerDialog = Dialog(() =>
+    CardPicker(availableEquipment, true, (picked) => {
+      if (!picked) {
+        monsterCardModel.monsterProperties.removeEquipment(equipmentType);
+      } else {
+        monsterCardModel.monsterProperties.setEquipment(
+          picked as ItemCardModel
+        );
+      }
+      cardPickerDialog?.close();
+    })
+  );
 
-  if (cardPickerDialog) {
-    onElementAdded(buttonId, (button) => {
-      button.addEventListener("click", () => cardPickerDialog.showModal());
+  const getCard = (): string => {
+    onElementAdded(slotId, (slot) => {
+      slot.addEventListener("click", () => cardPickerDialog.showModal());
     });
-  }
+
+    const itemCardModel =
+      monsterCardModel.monsterProperties.getEquipment(equipmentType);
+    if (itemCardModel) {
+      return Card(slotId, itemCardModel);
+    } else {
+      return EmptySpace(slotId, "Choose&hellip;");
+    }
+  };
+
+  const onEquipmentChanged = (e: EquipmentType): void => {
+    if (e === equipmentType) {
+      const slot = getElementById(slotId);
+      slot.outerHTML = getCard();
+    }
+  };
+  monsterCardModel.monsterProperties.equipmentChanged.addListener(
+    onEquipmentChanged
+  );
+  onElementRemoved(slotId, () => {
+    monsterCardModel.monsterProperties.equipmentChanged.removeListener(
+      onEquipmentChanged
+    );
+  });
 
   return html`
-    <button id="${buttonId}" ${!cardPickerDialog ? "disabled" : ""}>
-      ${cardPickerDialog ? getButtonName() : "None available"}
-    </button>
-    ${cardPickerDialog ? cardPickerDialog.markup : ""}
+    ${getCard()} ${cardPickerDialog ? cardPickerDialog.markup : ""}
   `;
 };
 
@@ -94,20 +96,22 @@ const Equipment = (
 ): string => {
   return html`
     <div>
-      <dl>
-        <dt>Head</dt>
-        <dd>${EquipmentSlot("head", monsterCardModel, handModel)}</dd>
-        <dt>Body</dt>
-        <dd>
-        <dd>${EquipmentSlot("body", monsterCardModel, handModel)}</dd>
-        </dd>
-        <dt>Held</dt>
-        <dd>${EquipmentSlot("held", monsterCardModel, handModel)}</dd>
-        <dt>Offhand</dt>
-        <dd>
-        <dd>${EquipmentSlot("offhand", monsterCardModel, handModel)}</dd>
-        </dd>
-      </dl>
+      <div>
+        <div>Head</div>
+        ${EquipmentSlot("head", monsterCardModel, handModel)}
+      </div>
+      <div>
+        <div>Body</div>
+        ${EquipmentSlot("body", monsterCardModel, handModel)}
+      </div>
+      <div>
+        <div>Held</div>
+        ${EquipmentSlot("held", monsterCardModel, handModel)}
+      </div>
+      <div>
+        <div>Offhand</div>
+        ${EquipmentSlot("offhand", monsterCardModel, handModel)}
+      </div>
     </div>
   `;
 };
