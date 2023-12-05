@@ -18,6 +18,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
+  CardModel,
   EquipmentType,
   HandModel,
   ItemCardModel,
@@ -36,15 +37,13 @@ const EquipmentSlot = (
   monsterCardModel: MonsterCardModel,
   handModel: HandModel
 ): string => {
-  const slotId = createId();
-
-  const availableEquipment = Array.from(handModel.cards.values()).filter(
-    (itemCardModel) =>
+  const getAvailableCardModels = (): CardModel[] =>
+    Array.from(handModel.cards.values()).filter((itemCardModel) =>
       itemCardModel.itemProperties.equipmentTypes?.includes(equipmentType)
-  );
+    );
 
   const cardPickerDialog = Dialog(() =>
-    CardPicker(availableEquipment, true, (picked) => {
+    CardPicker(getAvailableCardModels, true, (picked) => {
       if (!picked) {
         monsterCardModel.monsterProperties.removeEquipment(equipmentType);
       } else {
@@ -56,7 +55,9 @@ const EquipmentSlot = (
     })
   );
 
-  const getCard = (): string => {
+  const slotId = createId();
+
+  const cardForEquippedItem = (): string => {
     onElementAdded(slotId, (slot) => {
       slot.addEventListener("click", () => cardPickerDialog.showModal());
     });
@@ -73,7 +74,7 @@ const EquipmentSlot = (
   const onEquipmentChanged = (e: EquipmentType): void => {
     if (e === equipmentType) {
       const slot = getElementById(slotId);
-      slot.outerHTML = getCard();
+      slot.outerHTML = cardForEquippedItem();
     }
   };
   monsterCardModel.monsterProperties.equipmentChanged.addListener(
@@ -86,7 +87,7 @@ const EquipmentSlot = (
   });
 
   return html`
-    ${getCard()} ${cardPickerDialog ? cardPickerDialog.markup : ""}
+    ${cardForEquippedItem()} ${cardPickerDialog ? cardPickerDialog.markup : ""}
   `;
 };
 

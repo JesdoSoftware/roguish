@@ -25,7 +25,7 @@ import commonStyles from "../common.module.css";
 import EmptySpace from "../emptySpace/EmptySpace";
 
 const CardPicker = (
-  cardModels: CardModel[],
+  getCardModels: () => CardModel[],
   allowNone: boolean,
   cardPicked: (cardModel: CardModel | null) => void
 ): string => {
@@ -45,7 +45,7 @@ const CardPicker = (
     <div>
       <ul class="${commonStyles.cardList}">
         ${noneOption}
-        ${cardModels
+        ${getCardModels()
           .map((cardModel) => {
             const id = createId();
             onElementAdded(id, (cardElem) => {
