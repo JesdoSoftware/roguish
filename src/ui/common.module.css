@@ -33,6 +33,11 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   box-shadow: 15px 15px 15px var(--shadowColor);
 }
 
+.clickable:hover {
+  border: 5px solid blue;
+  transform: translate(-4px, -4px);
+}
+
 ul.cardList {
   list-style: none;
   padding-left: 0;

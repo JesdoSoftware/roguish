@@ -21,8 +21,8 @@ import { CardModel, createId } from "../../business/models";
 import Card from "../card/Card";
 import { onElementAdded } from "../rendering";
 import { html } from "../templateLiterals";
-import commonStyles from "../common.module.css";
 import EmptySpace from "../emptySpace/EmptySpace";
+import commonStyles from "../common.module.css";
 
 const CardPicker = (
   getCardModels: () => CardModel[],
@@ -31,7 +31,9 @@ const CardPicker = (
 ): string => {
   const noneOptionId = createId();
   const noneOption = allowNone
-    ? html`<li>${EmptySpace(noneOptionId, "None")}</li>`
+    ? html`<li>
+        ${EmptySpace(noneOptionId, "None", [commonStyles.clickable])}
+      </li>`
     : "";
   if (allowNone) {
     onElementAdded(noneOptionId, (noneElem) => {
@@ -53,7 +55,9 @@ const CardPicker = (
                 cardPicked(cardModel);
               });
             });
-            return html`<li>${Card(id, cardModel)}</li>`;
+            return html`<li>
+              ${Card(id, cardModel, [commonStyles.clickable])}
+            </li>`;
           })
           .join("")}
       </ul>

@@ -31,7 +31,8 @@ import Dialog from "../dialog/Dialog";
 import EmptySpace from "../emptySpace/EmptySpace";
 import { getElementById, onElementAdded, onElementRemoved } from "../rendering";
 import { html } from "../templateLiterals";
-import styles from "./Equipment.module.css";
+import commonStyles from "../common.module.css";
+import equipmentStyles from "./Equipment.module.css";
 
 const EquipmentSlot = (
   equipmentType: EquipmentType,
@@ -66,9 +67,9 @@ const EquipmentSlot = (
     const itemCardModel =
       monsterCardModel.monsterProperties.getEquipment(equipmentType);
     if (itemCardModel) {
-      return Card(slotId, itemCardModel);
+      return Card(slotId, itemCardModel, [commonStyles.clickable]);
     } else {
-      return EmptySpace(slotId, "Choose&hellip;");
+      return EmptySpace(slotId, "Choose&hellip;", [commonStyles.clickable]);
     }
   };
 
@@ -97,20 +98,20 @@ const Equipment = (
   handModel: HandModel
 ): string => {
   return html`
-    <div class="${styles.equipment}">
-      <div class="${styles.slot}">
+    <div class="${equipmentStyles.equipment}">
+      <div class="${equipmentStyles.slot}">
         <div>Head</div>
         ${EquipmentSlot("head", monsterCardModel, handModel)}
       </div>
-      <div class="${styles.slot}">
+      <div class="${equipmentStyles.slot}">
         <div>Body</div>
         ${EquipmentSlot("body", monsterCardModel, handModel)}
       </div>
-      <div class="${styles.slot}">
+      <div class="${equipmentStyles.slot}">
         <div>Held</div>
         ${EquipmentSlot("held", monsterCardModel, handModel)}
       </div>
-      <div class="${styles.slot}">
+      <div class="${equipmentStyles.slot}">
         <div>Offhand</div>
         ${EquipmentSlot("offhand", monsterCardModel, handModel)}
       </div>
