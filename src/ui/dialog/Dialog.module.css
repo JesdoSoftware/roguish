@@ -20,8 +20,14 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 .dialog {
   width: 50vw;
   height: 80vh;
+  overflow: hidden;
 }
 
 .dialogHeader {
   text-align: right;
+}
+
+.dialogContent {
+  height: 100%;
+  overflow-y: auto;
 }

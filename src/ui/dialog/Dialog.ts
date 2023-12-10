@@ -51,7 +51,7 @@ const Dialog = (
       <div class="${styles.dialogHeader}">
         <button id="${closeButtonId}">X</button>
       </div>
-      <div id="${contentId}"></div>
+      <div id="${contentId}" class="${styles.dialogContent}"></div>
     </dialog>
   `;
 
