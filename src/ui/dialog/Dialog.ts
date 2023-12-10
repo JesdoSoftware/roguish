@@ -23,6 +23,7 @@ import { html } from "../templateLiterals";
 import styles from "./Dialog.module.css";
 
 const Dialog = (
+  title: string,
   content: () => string
 ): { markup: string; showModal: () => void; close: () => void } => {
   const dialogId = createId();
@@ -48,10 +49,13 @@ const Dialog = (
 
   const markup = html`
     <dialog id="${dialogId}" class="${styles.dialog}">
-      <div class="${styles.dialogHeader}">
-        <button id="${closeButtonId}">X</button>
+      <div class="${styles.header}">
+        <div class="${styles.headerTitle}">${title}</div>
+        <button id="${closeButtonId}" class="${styles.headerCloseButton}">
+          X
+        </button>
       </div>
-      <div id="${contentId}" class="${styles.dialogContent}"></div>
+      <div id="${contentId}" class="${styles.content}"></div>
     </dialog>
   `;
 

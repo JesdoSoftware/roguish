@@ -23,11 +23,25 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   overflow: hidden;
 }
 
-.dialogHeader {
-  text-align: right;
+.header {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  justify-items: center;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
-.dialogContent {
+.headerTitle {
+  grid-column-start: 2;
+  font-weight: bold;
+}
+
+.headerCloseButton {
+  margin-left: auto;
+}
+
+.content {
+  clear: both;
   height: 100%;
   overflow-y: auto;
 }

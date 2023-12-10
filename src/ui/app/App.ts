@@ -67,22 +67,24 @@ const App = (loadDeck: () => Promise<DeckDto>): string => {
       const gameModel = new GameModel(deckDto);
       const boardId = createId();
 
-      const handDialog = Dialog(() =>
-        Hand(
-          gameModel.hand,
-          (cardElement, pointerEvent) => {
-            dragCardToBoard(boardId, cardElement, pointerEvent);
-            handDialog.close();
-          },
-          returnCardFromBoard
-        )
+      const handDialog = Dialog(
+        "Drag and drop an item to use or throw it",
+        () =>
+          Hand(
+            gameModel.hand,
+            (cardElement, pointerEvent) => {
+              dragCardToBoard(boardId, cardElement, pointerEvent);
+              handDialog.close();
+            },
+            returnCardFromBoard
+          )
       );
       const openHandButtonId = createId();
       onElementAdded(openHandButtonId, (openHandButton) => {
         openHandButton.addEventListener("click", () => handDialog.showModal());
       });
 
-      const equipmentDialog = Dialog(() =>
+      const equipmentDialog = Dialog("Equipment", () =>
         Equipment(gameModel.board.playerCard, gameModel.hand)
       );
       const openEquipmentButtonId = createId();
