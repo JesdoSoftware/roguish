@@ -47,11 +47,15 @@ const EquipmentSlot = (
   const cardPickerDialog = Dialog("Choose a piece of equipment", () =>
     CardPicker(getAvailableCardModels, true, (picked) => {
       if (!picked) {
-        monsterCardModel.monsterProperties.removeEquipment(equipmentType);
+        const removed =
+          monsterCardModel.monsterProperties.removeEquipment(equipmentType);
+        if (removed) {
+          handModel.addCard(removed);
+        }
       } else {
-        monsterCardModel.monsterProperties.setEquipment(
-          picked as ItemCardModel
-        );
+        const equipped = picked as ItemCardModel;
+        monsterCardModel.monsterProperties.setEquipment(equipped);
+        handModel.removeCard(equipped.id);
       }
       cardPickerDialog?.close();
     })

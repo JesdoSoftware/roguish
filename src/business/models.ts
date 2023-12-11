@@ -98,17 +98,24 @@ export class MonsterProperties {
     });
   }
 
-  removeEquipment(equipmentType: EquipmentType): void {
-    this.removeEquipmentWithoutEvent(equipmentType);
+  removeEquipment(equipmentType: EquipmentType): ItemCardModel | null {
+    const removed = this.removeEquipmentWithoutEvent(equipmentType);
     this.equipmentChanged.dispatch(equipmentType);
+
+    return removed;
   }
 
-  private removeEquipmentWithoutEvent(equipmentType: EquipmentType): void {
+  private removeEquipmentWithoutEvent(
+    equipmentType: EquipmentType
+  ): ItemCardModel | null {
+    let removed: ItemCardModel | null = null;
     this.equipment.forEach((equippedItem, i) => {
       if (equippedItem.itemProperties.equipmentTypes?.includes(equipmentType)) {
-        this.equipment.splice(i, 1);
+        removed = this.equipment.splice(i, 1)[0];
+        return;
       }
     });
+    return removed;
   }
 }
 
