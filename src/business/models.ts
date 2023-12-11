@@ -169,7 +169,7 @@ export class ItemCardModel extends CardModel {
     cardDefId: number,
     name: string,
     itemProperties: ItemProperties,
-    side: CardSide = CardSide.Back
+    side: CardSide
   ) {
     super(id, cardDefId, name, side);
     this.itemProperties = itemProperties;
@@ -190,7 +190,7 @@ export class MonsterCardModel extends CardModel {
     cardDefId: number,
     name: string,
     monsterProperties: MonsterProperties,
-    side: CardSide = CardSide.Back
+    side: CardSide
   ) {
     super(id, cardDefId, name, side);
     this.monsterProperties = monsterProperties;
@@ -203,20 +203,25 @@ function isMonsterCard(card: CardModel): card is MonsterCardModel {
   return (card as MonsterCardModel).monsterProperties !== undefined;
 }
 
-export const cardDefDtoToModel = (cardDefDto: CardDefDto): CardModel => {
+export const cardDefDtoToModel = (
+  cardDefDto: CardDefDto,
+  side: CardSide = CardSide.Back
+): CardModel => {
   if (cardDefDto.itemProperties) {
     return new ItemCardModel(
       createId(),
       cardDefDto.id,
       cardDefDto.name,
-      cardDefDto.itemProperties
+      cardDefDto.itemProperties,
+      side
     );
   } else if (cardDefDto.monsterProperties) {
     return new MonsterCardModel(
       createId(),
       cardDefDto.id,
       cardDefDto.name,
-      monsterPropertiesDtoToModel(cardDefDto.monsterProperties)
+      monsterPropertiesDtoToModel(cardDefDto.monsterProperties),
+      side
     );
   }
   throw new Error(`Unknown card type for card ${cardDefDto.id}`);
@@ -529,27 +534,16 @@ export class GameModel {
       this.hand.addCard(e.itemCard);
     });
 
-    this.addInitialHandCards();
-  }
+    // TODO add hand cards from deck
 
-  private addInitialHandCards(): void {
-    this.hand.addCard(
-      new ItemCardModel(
-        createId(),
-        0, // TODO get from loaded deck
-        "Mace",
-        { equipmentTypes: ["held"] },
-        CardSide.Front
-      )
-    );
-    this.hand.addCard(
-      new ItemCardModel(
-        createId(),
-        0, // TODO get from loaded deck
-        "Leather Armor",
-        { equipmentTypes: ["body"] },
-        CardSide.Front
-      )
-    );
+    deckDto.equippedCardIds.forEach((equippedCardId) => {
+      const equippedDto = cardDefDtos.get(equippedCardId);
+      if (!equippedDto) {
+        throw new Error(`No card def found for ID ${equippedCardId}`);
+      }
+      this.board.playerCard.monsterProperties.setEquipment(
+        cardDefDtoToModel(equippedDto, CardSide.Front) as ItemCardModel
+      );
+    });
   }
 }
