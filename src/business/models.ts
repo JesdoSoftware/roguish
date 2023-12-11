@@ -18,7 +18,12 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import bindPrototypeMethods from "../bindPrototypeMethods";
-import { CardDefDto, DeckDto, MonsterPropertiesDto } from "../data/dtos";
+import {
+  CardDefDto,
+  CardInstanceDto,
+  DeckDto,
+  MonsterPropertiesDto,
+} from "../data/dtos";
 
 export const maxBoardColumns = 3;
 export const maxBoardRows = 3;
@@ -518,15 +523,24 @@ export class GameModel {
       cardDefDtos.set(cardDefDto.id, cardDefDto);
     });
 
-    const dungeonCards: CardModel[] = [];
-    deckDto.dungeonCards.forEach((cardInstanceDto) => {
+    const forEachCardInstance = (
+      cardInstanceDto: CardInstanceDto,
+      callback: (cardDefDto: CardDefDto) => void
+    ): void => {
       for (let i = 0; i < cardInstanceDto.quantity; ++i) {
         const cardDefDto = cardDefDtos.get(cardInstanceDto.id);
         if (!cardDefDto) {
           throw new Error(`No card def found for ID ${cardInstanceDto.id}`);
         }
-        dungeonCards.push(cardDefDtoToModel(cardDefDto));
+        callback(cardDefDto);
       }
+    };
+
+    const dungeonCards: CardModel[] = [];
+    deckDto.dungeonCards.forEach((cardInstanceDto) => {
+      forEachCardInstance(cardInstanceDto, (cardDefDto) =>
+        dungeonCards.push(cardDefDtoToModel(cardDefDto))
+      );
     });
     this.board = new BoardModel(dungeonCards);
 
@@ -534,7 +548,13 @@ export class GameModel {
       this.hand.addCard(e.itemCard);
     });
 
-    // TODO add hand cards from deck
+    deckDto.handCards.forEach((cardInstanceDto) => {
+      forEachCardInstance(cardInstanceDto, (cardDefDto) =>
+        this.hand.addCard(
+          cardDefDtoToModel(cardDefDto, CardSide.Front) as ItemCardModel
+        )
+      );
+    });
 
     deckDto.equippedCardIds.forEach((equippedCardId) => {
       const equippedDto = cardDefDtos.get(equippedCardId);
