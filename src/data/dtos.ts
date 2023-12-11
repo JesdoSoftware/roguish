@@ -28,39 +28,45 @@ export interface MonsterPropertiesDto {
   strength: number;
 }
 
-export interface CardDto {
+export interface CardDefDto {
   id: number;
   name: string;
-  quantity: number;
   itemProperties: ItemPropertiesDto;
   monsterProperties: MonsterPropertiesDto;
 }
 
-export interface DeckDto {
-  cards: CardDto[];
+export interface CardInstanceDto {
+  id: number;
+  quantity: number;
 }
 
-const validateCardDto = (cardDto: CardDto): void => {
-  if (!cardDto.id) {
-    throw new Error(`Card missing ID (name: "${cardDto.name}")`);
+export interface DeckDto {
+  cardDefs: CardDefDto[];
+  handCards: CardInstanceDto[];
+  equippedCardIds: number[];
+  dungeonCards: CardInstanceDto[];
+}
+
+const validateCardDefDto = (cardDefDto: CardDefDto): void => {
+  if (!cardDefDto.id) {
+    throw new Error(`Card missing ID (name: "${cardDefDto.name}")`);
   }
-  if (!cardDto.name) {
-    throw new Error(`Card ${cardDto.id} missing name`);
+  if (!cardDefDto.name) {
+    throw new Error(`Card ${cardDefDto.id} missing name`);
   }
-  if (!cardDto.quantity) {
-    throw new Error(`Card ${cardDto.id} missing quantity`);
+  if (!cardDefDto.itemProperties && !cardDefDto.monsterProperties) {
+    throw new Error(`Card ${cardDefDto.id} missing card type properties`);
   }
-  if (!cardDto.itemProperties && !cardDto.monsterProperties) {
-    throw new Error(`Card ${cardDto.id} missing card type properties`);
-  }
-  if (cardDto.itemProperties && cardDto.monsterProperties) {
-    throw new Error(`Card ${cardDto.id} has conflicting card type properties`);
+  if (cardDefDto.itemProperties && cardDefDto.monsterProperties) {
+    throw new Error(
+      `Card ${cardDefDto.id} has conflicting card type properties`
+    );
   }
 
-  if (cardDto.monsterProperties) {
-    validateMonsterPropertiesDto(cardDto.monsterProperties, cardDto.id);
-  } else if (cardDto.itemProperties) {
-    validateItemPropertiesDto(cardDto.itemProperties, cardDto.id);
+  if (cardDefDto.monsterProperties) {
+    validateMonsterPropertiesDto(cardDefDto.monsterProperties, cardDefDto.id);
+  } else if (cardDefDto.itemProperties) {
+    validateItemPropertiesDto(cardDefDto.itemProperties, cardDefDto.id);
   }
 };
 
@@ -88,6 +94,16 @@ const validateMonsterPropertiesDto = (
   }
 };
 
+const validateCardInstance = (cardInstance: CardInstanceDto): void => {
+  if (!cardInstance.id) {
+    throw new Error("Card instance missing ID");
+  } else if (!cardInstance.quantity) {
+    throw new Error(`Card instance ${cardInstance.id} missing quantity`);
+  }
+};
+
 export const validateDeckDto = (deckDto: DeckDto): void => {
-  deckDto.cards.forEach((cardDto) => validateCardDto(cardDto));
+  deckDto.cardDefs.forEach((dto) => validateCardDefDto(dto));
+  deckDto.handCards.forEach((dto) => validateCardInstance(dto));
+  deckDto.dungeonCards.forEach((dto) => validateCardInstance(dto));
 };

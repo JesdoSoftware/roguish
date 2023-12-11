@@ -18,7 +18,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import bindPrototypeMethods from "../bindPrototypeMethods";
-import { CardDto, DeckDto, MonsterPropertiesDto } from "../data/dtos";
+import { CardDefDto, DeckDto, MonsterPropertiesDto } from "../data/dtos";
 
 export const maxBoardColumns = 3;
 export const maxBoardRows = 3;
@@ -203,23 +203,23 @@ function isMonsterCard(card: CardModel): card is MonsterCardModel {
   return (card as MonsterCardModel).monsterProperties !== undefined;
 }
 
-export const cardDtoToModel = (cardDto: CardDto): CardModel => {
-  if (cardDto.itemProperties) {
+export const cardDefDtoToModel = (cardDefDto: CardDefDto): CardModel => {
+  if (cardDefDto.itemProperties) {
     return new ItemCardModel(
       createId(),
-      cardDto.id,
-      cardDto.name,
-      cardDto.itemProperties
+      cardDefDto.id,
+      cardDefDto.name,
+      cardDefDto.itemProperties
     );
-  } else if (cardDto.monsterProperties) {
+  } else if (cardDefDto.monsterProperties) {
     return new MonsterCardModel(
       createId(),
-      cardDto.id,
-      cardDto.name,
-      monsterPropertiesDtoToModel(cardDto.monsterProperties)
+      cardDefDto.id,
+      cardDefDto.name,
+      monsterPropertiesDtoToModel(cardDefDto.monsterProperties)
     );
   }
-  throw new Error(`Unknown card type for card ${cardDto.id}`);
+  throw new Error(`Unknown card type for card ${cardDefDto.id}`);
 };
 
 const shuffleCards = (cardModels: CardModel[]): CardModel[] => {
@@ -266,7 +266,7 @@ export interface ItemCollectedEventArgs {
 }
 
 export class BoardModel {
-  readonly dungeonDeck: CardModel[];
+  readonly dungeonCards: CardModel[];
   readonly discarded: CardModel[] = [];
 
   readonly playerCard: MonsterCardModel;
@@ -279,11 +279,11 @@ export class BoardModel {
 
   private readonly cards = new Map<string, CardModel>();
 
-  constructor(dungeonDeck: CardModel[]) {
+  constructor(dungeonCards: CardModel[]) {
     bindPrototypeMethods(this);
 
-    this.dungeonDeck = dungeonDeck;
-    shuffleCards(this.dungeonDeck);
+    this.dungeonCards = dungeonCards;
+    shuffleCards(this.dungeonCards);
 
     this.playerCard = new MonsterCardModel(
       playerCardId,
@@ -360,7 +360,7 @@ export class BoardModel {
       for (let column = 0; column < maxBoardColumns; ++column) {
         const position = { column, row };
         if (!this.getCardAtPosition(position)) {
-          const card = this.dungeonDeck.pop();
+          const card = this.dungeonCards.pop();
           if (card) {
             this.dealCard(card, position);
           } else {
@@ -505,13 +505,22 @@ export class GameModel {
   readonly board: BoardModel;
   readonly hand: HandModel = new HandModel();
 
-  constructor(dungeonDeckDto: DeckDto) {
+  constructor(deckDto: DeckDto) {
     bindPrototypeMethods(this);
 
+    const cardDefDtos = new Map<number, CardDefDto>();
+    deckDto.cardDefs.forEach((cardDefDto) => {
+      cardDefDtos.set(cardDefDto.id, cardDefDto);
+    });
+
     const dungeonCards: CardModel[] = [];
-    dungeonDeckDto.cards.forEach((cardDto) => {
-      for (let i = 0; i < cardDto.quantity; ++i) {
-        dungeonCards.push(cardDtoToModel(cardDto));
+    deckDto.dungeonCards.forEach((cardInstanceDto) => {
+      for (let i = 0; i < cardInstanceDto.quantity; ++i) {
+        const cardDefDto = cardDefDtos.get(cardInstanceDto.id);
+        if (!cardDefDto) {
+          throw new Error(`No card def found for ID ${cardInstanceDto.id}`);
+        }
+        dungeonCards.push(cardDefDtoToModel(cardDefDto));
       }
     });
     this.board = new BoardModel(dungeonCards);
