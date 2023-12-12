@@ -17,13 +17,18 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-export interface CardDto {
-  name: string;
-  cardType: "player" | "monster" | "item";
-  strength: number;
-  quantity: number;
-}
+import { DeckDto, validateDeckDto } from "./dtos";
 
-export interface DeckDto {
-  cards: CardDto[];
-}
+export const loadDeck = async (): Promise<DeckDto> => {
+  const decksUrl = `${process.env.API_BASE_URL}/decks/deck.json`;
+  const response = await fetch(decksUrl);
+  if (!response.ok) {
+    throw new Error(
+      `Error fetching deck from ${response.url}: ${response.status}`
+    );
+  }
+
+  const deckDto = (await response.json()) as DeckDto;
+  validateDeckDto(deckDto);
+  return deckDto;
+};

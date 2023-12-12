@@ -17,17 +17,14 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-ul.cards {
-  list-style: none;
-  padding-left: 0;
-  width: 100%;
+.equipment {
   display: flex;
-  justify-content: space-evenly;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 25px;
 }
 
-.cards > li {
+.slot {
   min-width: 150px;
   width: 25%;
 }

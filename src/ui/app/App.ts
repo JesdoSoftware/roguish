@@ -17,7 +17,6 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { loadDeck } from "../../business/dataAccess";
 import { GameModel, createId } from "../../business/models";
 import Board, { dragCardToBoard, returnCardFromBoard } from "../board/Board";
 import { setGlobalOnDragEnd, setGlobalOnDragStart } from "../dragDrop";
@@ -25,7 +24,9 @@ import Hand from "../hand/Hand";
 import { getElementById, getNextZIndex, onElementAdded } from "../rendering";
 import { html } from "../templateLiterals";
 import commonStyles from "../common.module.css";
-import appStyles from "./App.module.css";
+import { DeckDto } from "../../data/dtos";
+import Equipment from "../equipment/Equipment";
+import Dialog from "../dialog/Dialog";
 
 const CopyrightLicenseSource = (): string => {
   return html`
@@ -48,7 +49,7 @@ const CopyrightLicenseSource = (): string => {
   `;
 };
 
-const App = (): string => {
+const App = (loadDeck: () => Promise<DeckDto>): string => {
   setGlobalOnDragStart((draggableId) => {
     const draggable = getElementById(draggableId);
     draggable.style.zIndex = getNextZIndex().toString();
@@ -60,52 +61,49 @@ const App = (): string => {
     draggable.classList.remove(commonStyles.dragging);
   });
 
-  const openHandDialogButtonId = createId();
-  const handDialogId = createId();
-  const closeHandDialogButtonId = createId();
-  const handId = createId();
-
-  const boardId = createId();
-  onElementAdded(boardId, (board) => {
+  const gameId = createId();
+  onElementAdded(gameId, (game) => {
     loadDeck().then((deckDto) => {
       const gameModel = new GameModel(deckDto);
-      board.outerHTML = Board(boardId, gameModel.board, gameModel.hand);
+      const boardId = createId();
 
-      onElementAdded(openHandDialogButtonId, (button) => {
-        button.addEventListener("click", (): void => {
-          const handDialog = getElementById(handDialogId) as HTMLDialogElement;
-          const hand = getElementById(handId);
-          hand.outerHTML = Hand(
-            handId,
+      const handDialog = Dialog(
+        "Drag and drop an item to use or throw it",
+        () =>
+          Hand(
             gameModel.hand,
             (cardElement, pointerEvent) => {
               dragCardToBoard(boardId, cardElement, pointerEvent);
               handDialog.close();
             },
             returnCardFromBoard
-          );
-          handDialog.showModal();
-        });
+          )
+      );
+      const openHandButtonId = createId();
+      onElementAdded(openHandButtonId, (openHandButton) => {
+        openHandButton.addEventListener("click", () => handDialog.showModal());
       });
-      onElementAdded(closeHandDialogButtonId, (button) => {
-        button.addEventListener("click", (): void => {
-          const handDialog = getElementById(handDialogId) as HTMLDialogElement;
-          handDialog.close();
-        });
+
+      const equipmentDialog = Dialog("Equipment", () =>
+        Equipment(gameModel.board.playerCard, gameModel.hand)
+      );
+      const openEquipmentButtonId = createId();
+      onElementAdded(openEquipmentButtonId, (button) => {
+        button.addEventListener("click", () => equipmentDialog.showModal());
       });
+
+      game.outerHTML = html`
+        ${Board(boardId, gameModel.board, gameModel.hand)}
+        <button id="${openHandButtonId}">Hand</button>
+        <button id="${openEquipmentButtonId}">Equipment</button>
+        ${handDialog.markup} ${equipmentDialog.markup}
+      `;
     });
   });
 
   return html`
     <div>
-      <div id="${boardId}">Loading deck&hellip;</div>
-      <button id="${openHandDialogButtonId}">Hand</button>
-      <dialog id="${handDialogId}" class="${appStyles.handDialog}">
-        <div class="${appStyles.handDialogHeader}">
-          <button id="${closeHandDialogButtonId}">Close</button>
-        </div>
-        <div id="${handId}"></div>
-      </dialog>
+      <div id="${gameId}">Loading deck&hellip;</div>
       <hr />
       ${CopyrightLicenseSource()}
     </div>

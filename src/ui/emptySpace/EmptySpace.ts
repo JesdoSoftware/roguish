@@ -24,9 +24,15 @@ const getCombinedClassName = (externalClassNames: string[]): string => {
   return `${styles.emptySpace} ${externalClassNames.join(" ")}`;
 };
 
-const EmptySpace = (id: string, classNames: string[]): string => {
+const EmptySpace = (
+  id: string,
+  text: string,
+  classNames: string[] = []
+): string => {
   return html`
-    <div id="${id}" class="${getCombinedClassName(classNames)}"></div>
+    <div id="${id}" class="${getCombinedClassName(classNames)}">
+      <p>${text}</p>
+    </div>
   `;
 };
 

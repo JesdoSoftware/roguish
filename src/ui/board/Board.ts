@@ -234,7 +234,7 @@ const Board = (
       );
     });
 
-    card.outerHTML = Card(cardDealt.card, classNames);
+    card.outerHTML = Card(cardDealt.card.id, cardDealt.card, classNames);
   };
 
   const emptySpaceIds = new Map<string, string>(); // key is position, value is ID
@@ -249,7 +249,7 @@ const Board = (
       board.appendChild(emptySpace);
 
       const emptySpaceId = createId();
-      emptySpace.outerHTML = EmptySpace(emptySpaceId, [
+      emptySpace.outerHTML = EmptySpace(emptySpaceId, "", [
         boardStyles.space,
         ...getCardClassNamesForPosition({
           column: spaceLeftEmpty.position.column,
@@ -287,13 +287,13 @@ const Board = (
     }
   };
 
-  boardModel.onCardDealt.addListener((e) =>
+  boardModel.cardDealt.addListener((e) =>
     queueEvent(() => {
       dealCard(e);
     }, 250)
   );
 
-  boardModel.onCardMoved.addListener((e) => {
+  boardModel.cardMoved.addListener((e) => {
     queueEvent(() => {
       if (isSpaceMarkedEmpty(e.toPosition)) {
         unmarkEmptySpace(e.toPosition);
@@ -307,7 +307,7 @@ const Board = (
     });
   });
 
-  boardModel.onCardDiscarded.addListener((e) => {
+  boardModel.cardDiscarded.addListener((e) => {
     queueEvent(() => {
       const cardElem = getElementById(e.card.id);
       cardElem.classList.add(boardStyles.discarded);
@@ -317,13 +317,13 @@ const Board = (
     });
   });
 
-  boardModel.onSpaceLeftEmpty.addListener((e) => {
+  boardModel.spaceLeftEmpty.addListener((e) => {
     queueEvent(() => {
       markEmptySpace(e);
     });
   });
 
-  boardModel.onItemCollected.addListener((e) => {
+  boardModel.itemCollected.addListener((e) => {
     queueEvent(() => {
       const cardElem = getElementById(e.itemCard.id);
       updateCardZIndex(cardElem, getNextZIndex());
@@ -341,7 +341,7 @@ const Board = (
       const position = { column, row };
       const cardModel = boardModel.getCardAtPosition(position);
       if (cardModel) {
-        initialCards += Card(cardModel, [
+        initialCards += Card(cardModel.id, cardModel, [
           boardStyles.space,
           ...getCardClassNamesForPosition(position),
           // TODO add global handler for e.g. assigning draggable style on enabling

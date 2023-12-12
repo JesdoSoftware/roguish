@@ -17,41 +17,46 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { HandModel, createId } from "../../business/models";
+import { CardModel, createId } from "../../business/models";
 import Card from "../card/Card";
-import { registerDraggable } from "../dragDrop";
+import { onElementAdded } from "../rendering";
 import { html } from "../templateLiterals";
+import EmptySpace from "../emptySpace/EmptySpace";
 import commonStyles from "../common.module.css";
-import { getElementById, onElementAdded } from "../rendering";
 
-const Hand = (
-  handModel: HandModel,
-  dragCardOut: (cardElement: HTMLElement, pointerEvent: PointerEvent) => void,
-  returnCard: (cardElement: HTMLElement) => void
+const CardPicker = (
+  getCardModels: () => CardModel[],
+  allowNone: boolean,
+  cardPicked: (cardModel: CardModel | null) => void
 ): string => {
-  const onDragStart = (
-    draggableId: string,
-    pointerEvent: PointerEvent
-  ): void => {
-    const draggable = getElementById(draggableId);
-    dragCardOut(draggable, pointerEvent);
-  };
-  const onDragEnd = (draggableId: string): void => {
-    const draggable = getElementById(draggableId);
-    returnCard(draggable);
-  };
+  const noneOptionId = createId();
+  const noneOption = allowNone
+    ? html`<li>
+        ${EmptySpace(noneOptionId, "None", [commonStyles.clickable])}
+      </li>`
+    : "";
+  if (allowNone) {
+    onElementAdded(noneOptionId, (noneElem) => {
+      noneElem.addEventListener("click", () => {
+        cardPicked(null);
+      });
+    });
+  }
 
   return html`
     <div>
       <ul class="${commonStyles.cardList}">
-        ${Array.from(handModel.cards.values())
+        ${noneOption}
+        ${getCardModels()
           .map((cardModel) => {
             const id = createId();
             onElementAdded(id, (cardElem) => {
-              registerDraggable(cardElem, () => true, onDragStart, onDragEnd);
+              cardElem.addEventListener("click", () => {
+                cardPicked(cardModel);
+              });
             });
             return html`<li>
-              ${Card(id, cardModel, [commonStyles.draggable])}
+              ${Card(id, cardModel, [commonStyles.clickable])}
             </li>`;
           })
           .join("")}
@@ -60,4 +65,4 @@ const Hand = (
   `;
 };
 
-export default Hand;
+export default CardPicker;

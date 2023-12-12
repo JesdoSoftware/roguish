@@ -43,6 +43,17 @@ export const onElementAdded = (
   observer.observe(document.getRootNode(), { subtree: true, childList: true });
 };
 
+export const onElementRemoved = (id: string, callback: () => void): void => {
+  const observer = new MutationObserver(() => {
+    const element = getElementByIdIfExists(id);
+    if (!element) {
+      observer.disconnect();
+      callback();
+    }
+  });
+  observer.observe(document.getRootNode(), { subtree: true, childList: true });
+};
+
 export interface Style {
   [property: string]: string;
 }

@@ -17,8 +17,9 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { loadDeck } from "./data/dataAccess";
 import App from "./ui/app/App";
 
 const app = document.createElement("div");
 document.body.append(app);
-app.outerHTML = App();
+app.outerHTML = App(loadDeck);

@@ -18,7 +18,12 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import bindPrototypeMethods from "../bindPrototypeMethods";
-import { CardDto, DeckDto } from "./dtos";
+import {
+  CardDefDto,
+  CardInstanceDto,
+  DeckDto,
+  MonsterPropertiesDto,
+} from "../data/dtos";
 
 export const maxBoardColumns = 3;
 export const maxBoardRows = 3;
@@ -58,19 +63,80 @@ export class EventDispatcher<T> {
   }
 }
 
-export type CardType = "player" | "monster" | "item";
+export const equipmentTypes = ["head", "body", "held", "offhand"] as const;
+export type EquipmentType = (typeof equipmentTypes)[number];
+
+export interface ItemProperties {
+  equipmentTypes?: EquipmentType[];
+}
+
+export class MonsterProperties {
+  readonly strength: number;
+  readonly equipmentChanged: EventDispatcher<EquipmentType> =
+    new EventDispatcher<EquipmentType>();
+
+  private readonly equipment: ItemCardModel[] = [];
+
+  constructor(strength: number) {
+    bindPrototypeMethods(this);
+    this.strength = strength;
+  }
+
+  getEquipment(equipmentType: EquipmentType): ItemCardModel | undefined {
+    return this.equipment.find((equippedItem) =>
+      equippedItem.itemProperties.equipmentTypes?.includes(equipmentType)
+    );
+  }
+
+  setEquipment(equipmentCard: ItemCardModel): void {
+    if (!equipmentCard.itemProperties.equipmentTypes) {
+      throw new Error("Equipping item with no equipment type");
+    }
+    equipmentCard.itemProperties.equipmentTypes.forEach((equipmentType) => {
+      this.equipment.forEach((equipped) => {
+        if (equipped.itemProperties.equipmentTypes?.includes(equipmentType)) {
+          throw new Error("Equipping item with type that's already equipped");
+        }
+      });
+    });
+
+    this.equipment.push(equipmentCard);
+
+    equipmentCard.itemProperties.equipmentTypes.forEach((equipmentType) => {
+      this.equipmentChanged.dispatch(equipmentType);
+    });
+  }
+
+  removeEquipment(equipmentType: EquipmentType): ItemCardModel | null {
+    let removed: ItemCardModel | null = null;
+    this.equipment.forEach((equippedItem, i) => {
+      if (equippedItem.itemProperties.equipmentTypes?.includes(equipmentType)) {
+        removed = this.equipment.splice(i, 1)[0];
+        return;
+      }
+    });
+    this.equipmentChanged.dispatch(equipmentType);
+
+    return removed;
+  }
+}
+
+const monsterPropertiesDtoToModel = (
+  dto: MonsterPropertiesDto
+): MonsterProperties => {
+  return new MonsterProperties(dto.strength);
+};
 
 export enum CardSide {
   Front,
   Back,
 }
 
-export class CardModel {
+export abstract class CardModel {
   readonly id: string;
+  readonly cardDefId: number;
   readonly name: string;
-  readonly cardType: CardType;
-  readonly strength: number;
-  readonly onCardFlipped = new EventDispatcher<void>();
+  readonly cardFlipped = new EventDispatcher<void>();
 
   private _side: CardSide;
   get side(): CardSide {
@@ -80,34 +146,87 @@ export class CardModel {
     const oldSide = this._side;
     this._side = newSide;
     if (oldSide !== newSide) {
-      this.onCardFlipped.dispatch();
+      this.cardFlipped.dispatch();
     }
   }
 
-  constructor(
+  protected constructor(
     id: string,
+    cardDefId: number,
     name: string,
-    cardType: CardType,
-    strength: number,
     side: CardSide = CardSide.Back
   ) {
     this.id = id;
+    this.cardDefId = cardDefId;
     this.name = name;
-    this.cardType = cardType;
-    this.strength = strength;
     this._side = side;
+  }
+}
+
+export class ItemCardModel extends CardModel {
+  itemProperties: ItemProperties;
+
+  constructor(
+    id: string,
+    cardDefId: number,
+    name: string,
+    itemProperties: ItemProperties,
+    side: CardSide
+  ) {
+    super(id, cardDefId, name, side);
+    this.itemProperties = itemProperties;
 
     bindPrototypeMethods(this);
   }
 }
 
-export const cardDtoToModel = (cardDto: CardDto): CardModel => {
-  return new CardModel(
-    createId(),
-    cardDto.name,
-    cardDto.cardType,
-    cardDto.strength
-  );
+function isItemCard(card: CardModel): card is ItemCardModel {
+  return (card as ItemCardModel).itemProperties !== undefined;
+}
+
+export class MonsterCardModel extends CardModel {
+  monsterProperties: MonsterProperties;
+
+  constructor(
+    id: string,
+    cardDefId: number,
+    name: string,
+    monsterProperties: MonsterProperties,
+    side: CardSide
+  ) {
+    super(id, cardDefId, name, side);
+    this.monsterProperties = monsterProperties;
+
+    bindPrototypeMethods(this);
+  }
+}
+
+function isMonsterCard(card: CardModel): card is MonsterCardModel {
+  return (card as MonsterCardModel).monsterProperties !== undefined;
+}
+
+export const cardDefDtoToModel = (
+  cardDefDto: CardDefDto,
+  side: CardSide = CardSide.Back
+): CardModel => {
+  if (cardDefDto.itemProperties) {
+    return new ItemCardModel(
+      createId(),
+      cardDefDto.id,
+      cardDefDto.name,
+      cardDefDto.itemProperties,
+      side
+    );
+  } else if (cardDefDto.monsterProperties) {
+    return new MonsterCardModel(
+      createId(),
+      cardDefDto.id,
+      cardDefDto.name,
+      monsterPropertiesDtoToModel(cardDefDto.monsterProperties),
+      side
+    );
+  }
+  throw new Error(`Unknown card type for card ${cardDefDto.id}`);
 };
 
 const shuffleCards = (cardModels: CardModel[]): CardModel[] => {
@@ -150,32 +269,34 @@ export interface SpaceLeftEmptyEventArgs {
 }
 
 export interface ItemCollectedEventArgs {
-  itemCard: CardModel;
+  itemCard: ItemCardModel;
 }
 
 export class BoardModel {
-  readonly dungeonDeck: CardModel[];
+  readonly dungeonCards: CardModel[];
   readonly discarded: CardModel[] = [];
 
-  readonly onCardDealt = new EventDispatcher<CardDealtEventArgs>();
-  readonly onCardMoved = new EventDispatcher<CardMovedEventArgs>();
-  readonly onCardDiscarded = new EventDispatcher<CardDiscardedEventArgs>();
-  readonly onSpaceLeftEmpty = new EventDispatcher<SpaceLeftEmptyEventArgs>();
-  readonly onItemCollected = new EventDispatcher<ItemCollectedEventArgs>();
+  readonly playerCard: MonsterCardModel;
+
+  readonly cardDealt = new EventDispatcher<CardDealtEventArgs>();
+  readonly cardMoved = new EventDispatcher<CardMovedEventArgs>();
+  readonly cardDiscarded = new EventDispatcher<CardDiscardedEventArgs>();
+  readonly spaceLeftEmpty = new EventDispatcher<SpaceLeftEmptyEventArgs>();
+  readonly itemCollected = new EventDispatcher<ItemCollectedEventArgs>();
 
   private readonly cards = new Map<string, CardModel>();
-  private readonly playerCard: CardModel;
 
-  constructor(dungeonDeck: CardModel[]) {
-    this.dungeonDeck = dungeonDeck;
+  constructor(dungeonCards: CardModel[]) {
     bindPrototypeMethods(this);
-    shuffleCards(this.dungeonDeck);
 
-    this.playerCard = new CardModel(
+    this.dungeonCards = dungeonCards;
+    shuffleCards(this.dungeonCards);
+
+    this.playerCard = new MonsterCardModel(
       playerCardId,
-      "Player",
-      "player",
       0,
+      "Player",
+      new MonsterProperties(1),
       CardSide.Front
     );
     this.cards.set(
@@ -235,7 +356,7 @@ export class BoardModel {
       card.side = CardSide.Front;
     }
 
-    this.onCardDealt.dispatch({
+    this.cardDealt.dispatch({
       card: card,
       position: position,
     });
@@ -246,11 +367,11 @@ export class BoardModel {
       for (let column = 0; column < maxBoardColumns; ++column) {
         const position = { column, row };
         if (!this.getCardAtPosition(position)) {
-          const card = this.dungeonDeck.pop();
+          const card = this.dungeonCards.pop();
           if (card) {
             this.dealCard(card, position);
           } else {
-            this.onSpaceLeftEmpty.dispatch({ position: position });
+            this.spaceLeftEmpty.dispatch({ position: position });
           }
         }
       }
@@ -296,11 +417,11 @@ export class BoardModel {
   moveCard(cardToMove: CardModel, toPosition: BoardPosition): void {
     const targetCard = this.getCardAtPosition(toPosition);
     if (targetCard) {
-      if (targetCard.cardType === "item") {
-        this.onItemCollected.dispatch({
-          itemCard: targetCard,
+      if (isItemCard(targetCard)) {
+        this.itemCollected.dispatch({
+          itemCard: targetCard as ItemCardModel,
         });
-      } else if (targetCard.cardType === "monster") {
+      } else if (isMonsterCard(targetCard)) {
         // TODO fight monster
         this.discardCard(toPosition);
       } else {
@@ -311,7 +432,7 @@ export class BoardModel {
     const fromPosition = this.getCardPosition(cardToMove);
     this.cards.delete(this.positionToString(fromPosition));
     this.cards.set(this.positionToString(toPosition), cardToMove);
-    this.onCardMoved.dispatch({
+    this.cardMoved.dispatch({
       card: cardToMove,
       fromPosition,
       toPosition,
@@ -352,7 +473,7 @@ export class BoardModel {
       this.cards.delete(cardKey);
       this.discarded.push(card);
 
-      this.onCardDiscarded.dispatch({
+      this.cardDiscarded.dispatch({
         card: card,
       });
     }
@@ -360,17 +481,17 @@ export class BoardModel {
 }
 
 export class HandModel {
-  readonly cards = new Map<string, CardModel>();
+  readonly cards = new Map<string, ItemCardModel>();
 
   constructor() {
     bindPrototypeMethods(this);
   }
 
-  getCardByIdIfExists(cardId: string): CardModel | undefined {
+  getCardByIdIfExists(cardId: string): ItemCardModel | undefined {
     return this.cards.get(cardId);
   }
 
-  getCardById(cardId: string): CardModel {
+  getCardById(cardId: string): ItemCardModel {
     const card = this.getCardByIdIfExists(cardId);
     if (card) {
       return card;
@@ -378,7 +499,7 @@ export class HandModel {
     throw new Error(`No card for ID ${cardId}`);
   }
 
-  addCard(card: CardModel): void {
+  addCard(card: ItemCardModel): void {
     this.cards.set(card.id, card);
   }
 
@@ -391,30 +512,55 @@ export class GameModel {
   readonly board: BoardModel;
   readonly hand: HandModel = new HandModel();
 
-  constructor(dungeonDeckDto: DeckDto) {
+  constructor(deckDto: DeckDto) {
     bindPrototypeMethods(this);
 
-    const dungeonCards: CardModel[] = [];
-    dungeonDeckDto.cards.forEach((cardDto) => {
-      for (let i = 0; i < cardDto.quantity; ++i) {
-        dungeonCards.push(cardDtoToModel(cardDto));
+    const cardDefDtos = new Map<number, CardDefDto>();
+    deckDto.cardDefs.forEach((cardDefDto) => {
+      cardDefDtos.set(cardDefDto.id, cardDefDto);
+    });
+
+    const forEachCardInstance = (
+      cardInstanceDto: CardInstanceDto,
+      callback: (cardDefDto: CardDefDto) => void
+    ): void => {
+      for (let i = 0; i < cardInstanceDto.quantity; ++i) {
+        const cardDefDto = cardDefDtos.get(cardInstanceDto.id);
+        if (!cardDefDto) {
+          throw new Error(`No card def found for ID ${cardInstanceDto.id}`);
+        }
+        callback(cardDefDto);
       }
+    };
+
+    const dungeonCards: CardModel[] = [];
+    deckDto.dungeonCards.forEach((cardInstanceDto) => {
+      forEachCardInstance(cardInstanceDto, (cardDefDto) =>
+        dungeonCards.push(cardDefDtoToModel(cardDefDto))
+      );
     });
     this.board = new BoardModel(dungeonCards);
 
-    this.board.onItemCollected.addListener((e) => {
+    this.board.itemCollected.addListener((e) => {
       this.hand.addCard(e.itemCard);
     });
 
-    this.addInitialHandCards();
-  }
+    deckDto.handCards.forEach((cardInstanceDto) => {
+      forEachCardInstance(cardInstanceDto, (cardDefDto) =>
+        this.hand.addCard(
+          cardDefDtoToModel(cardDefDto, CardSide.Front) as ItemCardModel
+        )
+      );
+    });
 
-  private addInitialHandCards(): void {
-    this.hand.addCard(
-      new CardModel(createId(), "Mace", "item", 0, CardSide.Front)
-    );
-    this.hand.addCard(
-      new CardModel(createId(), "Leather Armor", "item", 0, CardSide.Front)
-    );
+    deckDto.equippedCardIds.forEach((equippedCardId) => {
+      const equippedDto = cardDefDtos.get(equippedCardId);
+      if (!equippedDto) {
+        throw new Error(`No card def found for ID ${equippedCardId}`);
+      }
+      this.board.playerCard.monsterProperties.setEquipment(
+        cardDefDtoToModel(equippedDto, CardSide.Front) as ItemCardModel
+      );
+    });
   }
 }

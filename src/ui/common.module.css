@@ -33,6 +33,25 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
   box-shadow: 15px 15px 15px var(--shadowColor);
 }
 
+.clickable:hover {
+  filter: brightness(85%);
+}
+
+ul.cardList {
+  list-style: none;
+  padding-left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+  gap: 25px;
+}
+
+.cardList > li {
+  min-width: 150px;
+  width: 25%;
+}
+
 @media (hover: hover) {
   .draggable:hover {
     box-shadow: 10px 10px 10px var(--shadowColor);
