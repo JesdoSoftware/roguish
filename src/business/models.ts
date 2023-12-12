@@ -93,7 +93,11 @@ export class MonsterProperties {
       throw new Error("Equipping item with no equipment type");
     }
     equipmentCard.itemProperties.equipmentTypes.forEach((equipmentType) => {
-      this.removeEquipmentWithoutEvent(equipmentType);
+      this.equipment.forEach((equipped) => {
+        if (equipped.itemProperties.equipmentTypes?.includes(equipmentType)) {
+          throw new Error("Equipping item with type that's already equipped");
+        }
+      });
     });
 
     this.equipment.push(equipmentCard);
@@ -104,15 +108,6 @@ export class MonsterProperties {
   }
 
   removeEquipment(equipmentType: EquipmentType): ItemCardModel | null {
-    const removed = this.removeEquipmentWithoutEvent(equipmentType);
-    this.equipmentChanged.dispatch(equipmentType);
-
-    return removed;
-  }
-
-  private removeEquipmentWithoutEvent(
-    equipmentType: EquipmentType
-  ): ItemCardModel | null {
     let removed: ItemCardModel | null = null;
     this.equipment.forEach((equippedItem, i) => {
       if (equippedItem.itemProperties.equipmentTypes?.includes(equipmentType)) {
@@ -120,6 +115,8 @@ export class MonsterProperties {
         return;
       }
     });
+    this.equipmentChanged.dispatch(equipmentType);
+
     return removed;
   }
 }
