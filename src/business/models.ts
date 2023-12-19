@@ -68,18 +68,30 @@ export type EquipmentType = (typeof equipmentTypes)[number];
 
 export interface ItemProperties {
   equipmentTypes?: EquipmentType[];
+  // TODO replace w/ more flexible effects
+  combat?: number;
 }
 
 export class MonsterProperties {
+  readonly intrinsicCombat: number;
   readonly strength: number;
   readonly equipmentChanged: EventDispatcher<EquipmentType> =
     new EventDispatcher<EquipmentType>();
 
   private readonly equipment: ItemCardModel[] = [];
 
-  constructor(strength: number) {
+  constructor(intrinsicCombat: number, strength: number) {
     bindPrototypeMethods(this);
+
+    this.intrinsicCombat = intrinsicCombat;
     this.strength = strength;
+  }
+
+  get combat(): number {
+    let combat = this.intrinsicCombat;
+    this.equipment.forEach((e) => (combat += e.itemProperties.combat ?? 0));
+
+    return combat;
   }
 
   getEquipment(equipmentType: EquipmentType): ItemCardModel | undefined {
@@ -124,7 +136,7 @@ export class MonsterProperties {
 const monsterPropertiesDtoToModel = (
   dto: MonsterPropertiesDto
 ): MonsterProperties => {
-  return new MonsterProperties(dto.strength);
+  return new MonsterProperties(dto.combat, dto.strength);
 };
 
 export enum CardSide {
@@ -296,7 +308,7 @@ export class BoardModel {
       playerCardId,
       0,
       "Player",
-      new MonsterProperties(1),
+      new MonsterProperties(1, 1),
       CardSide.Front
     );
     this.cards.set(
@@ -421,9 +433,17 @@ export class BoardModel {
         this.itemCollected.dispatch({
           itemCard: targetCard as ItemCardModel,
         });
-      } else if (isMonsterCard(targetCard)) {
-        // TODO fight monster
-        this.discardCard(toPosition);
+      } else if (isMonsterCard(cardToMove) && isMonsterCard(targetCard)) {
+        if (
+          cardToMove.monsterProperties.combat >
+          targetCard.monsterProperties.combat
+        ) {
+          // TODO remove target strength from moved's health
+          this.discardCard(toPosition);
+        } else {
+          // TODO kill card to move
+          alert("You have died");
+        }
       } else {
         throw new Error("Unexpected card type");
       }

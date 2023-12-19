@@ -22,9 +22,11 @@ export type EquipmentType = (typeof equipmentTypes)[number];
 
 export interface ItemPropertiesDto {
   equipmentTypes?: EquipmentType[];
+  combat: number;
 }
 
 export interface MonsterPropertiesDto {
+  combat: number;
   strength: number;
 }
 
