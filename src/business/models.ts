@@ -198,6 +198,7 @@ function isItemCard(card: CardModel): card is ItemCardModel {
 
 export class MonsterCardModel extends CardModel {
   monsterProperties: MonsterProperties;
+  died = new EventDispatcher<void>();
 
   constructor(
     id: string,
@@ -210,6 +211,19 @@ export class MonsterCardModel extends CardModel {
     this.monsterProperties = monsterProperties;
 
     bindPrototypeMethods(this);
+  }
+
+  attack(target: MonsterCardModel): void {
+    if (this.monsterProperties.combat > target.monsterProperties.combat) {
+      // TODO remove target strength from moved's health
+      target.die();
+    } else {
+      this.die();
+    }
+  }
+
+  die(): void {
+    this.died.dispatch();
   }
 }
 
@@ -315,6 +329,9 @@ export class BoardModel {
       this.positionToString({ column: 1, row: 1 }),
       this.playerCard
     );
+
+    // TODO handle game over
+    this.playerCard.died.addListener(() => alert("You have died"));
   }
 
   positionToString(position: BoardPosition): string {
@@ -372,6 +389,10 @@ export class BoardModel {
       card: card,
       position: position,
     });
+
+    if (isMonsterCard(card)) {
+      card.died.addListener(() => this.discardCard(this.getCardPosition(card)));
+    }
   }
 
   dealCards(): void {
@@ -434,16 +455,7 @@ export class BoardModel {
           itemCard: targetCard as ItemCardModel,
         });
       } else if (isMonsterCard(cardToMove) && isMonsterCard(targetCard)) {
-        if (
-          cardToMove.monsterProperties.combat >
-          targetCard.monsterProperties.combat
-        ) {
-          // TODO remove target strength from moved's health
-          this.discardCard(toPosition);
-        } else {
-          // TODO kill card to move
-          alert("You have died");
-        }
+        cardToMove.attack(targetCard);
       } else {
         throw new Error("Unexpected card type");
       }
