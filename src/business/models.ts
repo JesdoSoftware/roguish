@@ -192,30 +192,47 @@ export class ItemCardModel extends CardModel {
   }
 }
 
-function isItemCard(card: CardModel): card is ItemCardModel {
+export function isItemCard(card: CardModel): card is ItemCardModel {
   return (card as ItemCardModel).itemProperties !== undefined;
 }
 
 export class MonsterCardModel extends CardModel {
   monsterProperties: MonsterProperties;
+
+  lifeChanged = new EventDispatcher<void>();
   died = new EventDispatcher<void>();
+
+  private _life: number;
+  get life(): number {
+    return this._life;
+  }
+  set life(value) {
+    this._life = value;
+    this.lifeChanged.dispatch();
+
+    if (this._life < 1) {
+      this.die();
+    }
+  }
 
   constructor(
     id: string,
     cardDefId: number,
     name: string,
     monsterProperties: MonsterProperties,
-    side: CardSide
+    side: CardSide,
+    life = 1
   ) {
     super(id, cardDefId, name, side);
     this.monsterProperties = monsterProperties;
+    this._life = life;
 
     bindPrototypeMethods(this);
   }
 
   attack(target: MonsterCardModel): void {
     if (this.monsterProperties.combat > target.monsterProperties.combat) {
-      // TODO remove target strength from moved's health
+      this.life -= target.monsterProperties.strength;
       target.die();
     } else {
       this.die();
@@ -227,7 +244,7 @@ export class MonsterCardModel extends CardModel {
   }
 }
 
-function isMonsterCard(card: CardModel): card is MonsterCardModel {
+export function isMonsterCard(card: CardModel): card is MonsterCardModel {
   return (card as MonsterCardModel).monsterProperties !== undefined;
 }
 
@@ -323,7 +340,8 @@ export class BoardModel {
       0,
       "Player",
       new MonsterProperties(1, 1),
-      CardSide.Front
+      CardSide.Front,
+      5
     );
     this.cards.set(
       this.positionToString({ column: 1, row: 1 }),

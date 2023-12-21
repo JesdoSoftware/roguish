@@ -17,8 +17,17 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { CardModel, CardSide } from "../../business/models";
-import { addOrUpdateStyleProperties, getElementById } from "../rendering";
+import {
+  CardModel,
+  CardSide,
+  createId,
+  isMonsterCard,
+} from "../../business/models";
+import {
+  addOrUpdateStyleProperties,
+  getElementById,
+  getElementByIdIfExists,
+} from "../rendering";
 import { html } from "../templateLiterals";
 import styles from "./Card.module.css";
 
@@ -44,6 +53,7 @@ export const updateCardZIndex = (
 const Card = (
   id: string,
   cardModel: CardModel,
+  showLife: boolean,
   classNames: string[] = []
 ): string => {
   const combinedClassName = getCombinedClassName(classNames, cardModel.side);
@@ -57,10 +67,35 @@ const Card = (
     }
   });
 
+  const lifeId = createId();
+  let monsterProperties = "";
+  if (isMonsterCard(cardModel)) {
+    cardModel.lifeChanged.addListener(() => {
+      const lifeElem = getElementByIdIfExists(lifeId);
+      if (lifeElem) {
+        lifeElem.innerText = `${cardModel.life}`;
+      }
+    });
+
+    monsterProperties = html`
+      <dl>
+        <dt>&#x2694;️</dt>
+        <dd>${cardModel.monsterProperties.strength}</dd>
+        ${showLife
+          ? html`
+              <dt>&#x1F9E1;</dt>
+              <dd id="${lifeId}">${cardModel.life}</dd>
+            `
+          : ""}
+      </dl>
+    `;
+  }
+
   return html`
     <div id="${id}" class="${combinedClassName}">
       <div class="${styles.cardSide}">
         <p>${cardModel.name}</p>
+        ${monsterProperties}
       </div>
       <div class="${[styles.cardSide, styles.back].join(" ")}"></div>
     </div>
