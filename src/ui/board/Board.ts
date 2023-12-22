@@ -234,7 +234,7 @@ const Board = (
       );
     });
 
-    card.outerHTML = Card(cardDealt.card.id, cardDealt.card, false, classNames);
+    card.outerHTML = Card(cardDealt.card.id, cardDealt.card, classNames);
   };
 
   const emptySpaceIds = new Map<string, string>(); // key is position, value is ID
@@ -341,7 +341,7 @@ const Board = (
       const position = { column, row };
       const cardModel = boardModel.getCardAtPosition(position);
       if (cardModel) {
-        initialCards += Card(cardModel.id, cardModel, true, [
+        initialCards += Card(cardModel.id, cardModel, [
           boardStyles.space,
           ...getCardClassNamesForPosition(position),
           // TODO add global handler for e.g. assigning draggable style on enabling

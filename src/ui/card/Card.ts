@@ -23,11 +23,7 @@ import {
   createId,
   isMonsterCard,
 } from "../../business/models";
-import {
-  addOrUpdateStyleProperties,
-  getElementById,
-  getElementByIdIfExists,
-} from "../rendering";
+import { addOrUpdateStyleProperties, getElementById } from "../rendering";
 import { html } from "../templateLiterals";
 import styles from "./Card.module.css";
 
@@ -53,7 +49,6 @@ export const updateCardZIndex = (
 const Card = (
   id: string,
   cardModel: CardModel,
-  showLife: boolean,
   classNames: string[] = []
 ): string => {
   const combinedClassName = getCombinedClassName(classNames, cardModel.side);
@@ -67,26 +62,36 @@ const Card = (
     }
   });
 
-  const lifeId = createId();
   let monsterProperties = "";
   if (isMonsterCard(cardModel)) {
+    const combatId = createId();
+    const strengthId = createId();
+    const lifeId = createId();
+
+    // TODO check for relevant changes other than equipment
+    cardModel.monsterProperties.equipmentChanged.addListener(() => {
+      const combatElem = getElementById(combatId);
+      combatElem.innerText = `${cardModel.monsterProperties.combat}`;
+    });
+
+    cardModel.monsterProperties.strengthChanged.addListener(() => {
+      const strengthElem = getElementById(strengthId);
+      strengthElem.innerText = `${cardModel.monsterProperties.strength}`;
+    });
+
     cardModel.lifeChanged.addListener(() => {
-      const lifeElem = getElementByIdIfExists(lifeId);
-      if (lifeElem) {
-        lifeElem.innerText = `${cardModel.life}`;
-      }
+      const lifeElem = getElementById(lifeId);
+      lifeElem.innerText = `${cardModel.life}`;
     });
 
     monsterProperties = html`
       <dl>
         <dt>&#x2694;️</dt>
-        <dd>${cardModel.monsterProperties.strength}</dd>
-        ${showLife
-          ? html`
-              <dt>&#x1F9E1;</dt>
-              <dd id="${lifeId}">${cardModel.life}</dd>
-            `
-          : ""}
+        <dd id="${combatId}">${cardModel.monsterProperties.combat}</dd>
+        <dt>&#x1F4AA</dt>
+        <dd id="${strengthId}">${cardModel.monsterProperties.strength}</dd>
+        <dt>&#x1F9E1;</dt>
+        <dd id="${lifeId}">${cardModel.life}</dd>
       </dl>
     `;
   }

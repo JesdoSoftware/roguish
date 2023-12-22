@@ -73,18 +73,18 @@ export interface ItemProperties {
 }
 
 export class MonsterProperties {
-  readonly intrinsicCombat: number;
-  readonly strength: number;
-  readonly equipmentChanged: EventDispatcher<EquipmentType> =
-    new EventDispatcher<EquipmentType>();
+  private readonly intrinsicCombat: number;
+
+  readonly strengthChanged = new EventDispatcher<void>();
+  readonly equipmentChanged = new EventDispatcher<EquipmentType>();
 
   private readonly equipment: ItemCardModel[] = [];
 
-  constructor(intrinsicCombat: number, strength: number) {
+  constructor(intrinsicCombat: number, intrinsicStrength: number) {
     bindPrototypeMethods(this);
 
     this.intrinsicCombat = intrinsicCombat;
-    this.strength = strength;
+    this._strength = intrinsicStrength;
   }
 
   get combat(): number {
@@ -92,6 +92,15 @@ export class MonsterProperties {
     this.equipment.forEach((e) => (combat += e.itemProperties.combat ?? 0));
 
     return combat;
+  }
+
+  private _strength: number;
+  get strength(): number {
+    return this._strength;
+  }
+  private set strength(value: number) {
+    this._strength = value;
+    this.strengthChanged.dispatch();
   }
 
   getEquipment(equipmentType: EquipmentType): ItemCardModel | undefined {
