@@ -18,12 +18,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import bindPrototypeMethods from "../bindPrototypeMethods";
-import {
-  CardDefDto,
-  CardInstanceDto,
-  DeckDto,
-  MonsterPropertiesDto,
-} from "../data/dtos";
+import { CardDefDto, CardInstanceDto, DeckDto } from "../data/dtos";
 
 export const maxBoardColumns = 3;
 export const maxBoardRows = 3;
@@ -66,25 +61,83 @@ export class EventDispatcher<T> {
 export const equipmentTypes = ["head", "body", "held", "offhand"] as const;
 export type EquipmentType = (typeof equipmentTypes)[number];
 
-export interface ItemProperties {
-  equipmentTypes?: EquipmentType[];
-  // TODO replace w/ more flexible effects
-  combat?: number;
+export enum CardSide {
+  Front,
+  Back,
 }
 
-export class MonsterProperties {
+export abstract class CardModel {
+  readonly id: string;
+  readonly cardDefId: number;
+  readonly name: string;
+
+  readonly cardFlipped = new EventDispatcher<void>();
+
+  private _side: CardSide;
+  get side(): CardSide {
+    return this._side;
+  }
+  set side(newSide) {
+    const oldSide = this._side;
+    this._side = newSide;
+    if (oldSide !== newSide) {
+      this.cardFlipped.dispatch();
+    }
+  }
+
+  protected constructor(
+    id: string,
+    cardDefId: number,
+    name: string,
+    side: CardSide
+  ) {
+    this.id = id;
+    this.cardDefId = cardDefId;
+    this.name = name;
+    this._side = side;
+  }
+}
+
+const itemCardType = "item";
+
+export class ItemCardModel extends CardModel {
+  readonly cardType = itemCardType;
+  readonly equipmentTypes: EquipmentType[] | undefined;
+  // TODO replace w/ more flexible effects
+  readonly combat: number | undefined;
+
+  constructor(
+    id: string,
+    cardDefId: number,
+    name: string,
+    equipmentTypes?: EquipmentType[],
+    combat?: number,
+    side: CardSide = CardSide.Back
+  ) {
+    super(id, cardDefId, name, side);
+    this.equipmentTypes = equipmentTypes;
+    this.combat = combat;
+
+    bindPrototypeMethods(this);
+  }
+}
+
+export function isItemCard(card: CardModel): card is ItemCardModel {
+  return (card as ItemCardModel).cardType === itemCardType;
+}
+
+const monsterCardType = "monster";
+
+export class MonsterCardModel extends CardModel {
+  readonly cardType = monsterCardType;
+
   readonly combatChanged = new EventDispatcher<void>();
   readonly strengthChanged = new EventDispatcher<void>();
   readonly equipmentChanged = new EventDispatcher<EquipmentType>();
+  readonly lifeChanged = new EventDispatcher<void>();
+  readonly died = new EventDispatcher<void>();
 
   private readonly equipment: ItemCardModel[] = [];
-
-  constructor(intrinsicCombat: number, intrinsicStrength: number) {
-    bindPrototypeMethods(this);
-
-    this._combat = intrinsicCombat;
-    this._strength = intrinsicStrength;
-  }
 
   private _combat: number;
   get combat(): number {
@@ -104,118 +157,6 @@ export class MonsterProperties {
     this.strengthChanged.dispatch();
   }
 
-  getEquipment(equipmentType: EquipmentType): ItemCardModel | undefined {
-    return this.equipment.find((equippedItem) =>
-      equippedItem.itemProperties.equipmentTypes?.includes(equipmentType)
-    );
-  }
-
-  setEquipment(equipmentCard: ItemCardModel): void {
-    if (!equipmentCard.itemProperties.equipmentTypes) {
-      throw new Error("Equipping item with no equipment type");
-    }
-    equipmentCard.itemProperties.equipmentTypes.forEach((equipmentType) => {
-      this.equipment.forEach((equipped) => {
-        if (equipped.itemProperties.equipmentTypes?.includes(equipmentType)) {
-          throw new Error("Equipping item with type that's already equipped");
-        }
-      });
-    });
-
-    this.equipment.push(equipmentCard);
-    this.combat += equipmentCard.itemProperties.combat ?? 0;
-
-    equipmentCard.itemProperties.equipmentTypes.forEach((equipmentType) => {
-      this.equipmentChanged.dispatch(equipmentType);
-    });
-  }
-
-  removeEquipment(equipmentType: EquipmentType): ItemCardModel | null {
-    let removed: ItemCardModel | null = null;
-    this.equipment.forEach((equippedItem, i) => {
-      if (equippedItem.itemProperties.equipmentTypes?.includes(equipmentType)) {
-        removed = this.equipment.splice(i, 1)[0];
-        this.combat -= removed.itemProperties.combat ?? 0;
-
-        return;
-      }
-    });
-
-    this.equipmentChanged.dispatch(equipmentType);
-
-    return removed;
-  }
-}
-
-const monsterPropertiesDtoToModel = (
-  dto: MonsterPropertiesDto
-): MonsterProperties => {
-  return new MonsterProperties(dto.combat, dto.strength);
-};
-
-export enum CardSide {
-  Front,
-  Back,
-}
-
-export abstract class CardModel {
-  readonly id: string;
-  readonly cardDefId: number;
-  readonly name: string;
-  readonly cardFlipped = new EventDispatcher<void>();
-
-  private _side: CardSide;
-  get side(): CardSide {
-    return this._side;
-  }
-  set side(newSide) {
-    const oldSide = this._side;
-    this._side = newSide;
-    if (oldSide !== newSide) {
-      this.cardFlipped.dispatch();
-    }
-  }
-
-  protected constructor(
-    id: string,
-    cardDefId: number,
-    name: string,
-    side: CardSide = CardSide.Back
-  ) {
-    this.id = id;
-    this.cardDefId = cardDefId;
-    this.name = name;
-    this._side = side;
-  }
-}
-
-export class ItemCardModel extends CardModel {
-  itemProperties: ItemProperties;
-
-  constructor(
-    id: string,
-    cardDefId: number,
-    name: string,
-    itemProperties: ItemProperties,
-    side: CardSide
-  ) {
-    super(id, cardDefId, name, side);
-    this.itemProperties = itemProperties;
-
-    bindPrototypeMethods(this);
-  }
-}
-
-export function isItemCard(card: CardModel): card is ItemCardModel {
-  return (card as ItemCardModel).itemProperties !== undefined;
-}
-
-export class MonsterCardModel extends CardModel {
-  monsterProperties: MonsterProperties;
-
-  lifeChanged = new EventDispatcher<void>();
-  died = new EventDispatcher<void>();
-
   private _life: number;
   get life(): number {
     return this._life;
@@ -233,20 +174,66 @@ export class MonsterCardModel extends CardModel {
     id: string,
     cardDefId: number,
     name: string,
-    monsterProperties: MonsterProperties,
-    side: CardSide,
-    life = 1
+    intrinsicCombat: number,
+    intrinsicStrength: number,
+    life = 1,
+    side: CardSide = CardSide.Back
   ) {
     super(id, cardDefId, name, side);
-    this.monsterProperties = monsterProperties;
+
     this._life = life;
+
+    this._combat = intrinsicCombat;
+    this._strength = intrinsicStrength;
 
     bindPrototypeMethods(this);
   }
 
+  getEquipment(equipmentType: EquipmentType): ItemCardModel | undefined {
+    return this.equipment.find((equippedItem) =>
+      equippedItem.equipmentTypes?.includes(equipmentType)
+    );
+  }
+
+  setEquipment(equipmentCard: ItemCardModel): void {
+    if (!equipmentCard.equipmentTypes) {
+      throw new Error("Equipping item with no equipment type");
+    }
+    equipmentCard.equipmentTypes.forEach((equipmentType) => {
+      this.equipment.forEach((equipped) => {
+        if (equipped.equipmentTypes?.includes(equipmentType)) {
+          throw new Error("Equipping item with type that's already equipped");
+        }
+      });
+    });
+
+    this.equipment.push(equipmentCard);
+    this.combat += equipmentCard.combat ?? 0;
+
+    equipmentCard.equipmentTypes.forEach((equipmentType) => {
+      this.equipmentChanged.dispatch(equipmentType);
+    });
+  }
+
+  removeEquipment(equipmentType: EquipmentType): ItemCardModel | null {
+    let removed: ItemCardModel | null = null;
+    this.equipment.forEach((equippedItem, i) => {
+      if (equippedItem.equipmentTypes?.includes(equipmentType)) {
+        removed = this.equipment.splice(i, 1)[0];
+        this.combat -= removed.combat ?? 0;
+
+        return;
+      }
+    });
+
+    this.equipmentChanged.dispatch(equipmentType);
+
+    return removed;
+  }
+
   attack(target: MonsterCardModel): void {
-    if (this.monsterProperties.combat > target.monsterProperties.combat) {
-      this.life -= target.monsterProperties.strength;
+    if (this.combat > target.combat) {
+      this.life -= target.strength;
       target.die();
     } else {
       this.die();
@@ -259,7 +246,7 @@ export class MonsterCardModel extends CardModel {
 }
 
 export function isMonsterCard(card: CardModel): card is MonsterCardModel {
-  return (card as MonsterCardModel).monsterProperties !== undefined;
+  return (card as MonsterCardModel).cardType === monsterCardType;
 }
 
 export const cardDefDtoToModel = (
@@ -271,7 +258,8 @@ export const cardDefDtoToModel = (
       createId(),
       cardDefDto.id,
       cardDefDto.name,
-      cardDefDto.itemProperties,
+      cardDefDto.itemProperties.equipmentTypes,
+      cardDefDto.itemProperties.combat,
       side
     );
   } else if (cardDefDto.monsterProperties) {
@@ -279,7 +267,8 @@ export const cardDefDtoToModel = (
       createId(),
       cardDefDto.id,
       cardDefDto.name,
-      monsterPropertiesDtoToModel(cardDefDto.monsterProperties),
+      cardDefDto.monsterProperties.combat,
+      cardDefDto.monsterProperties.strength,
       side
     );
   }
@@ -353,9 +342,10 @@ export class BoardModel {
       playerCardId,
       0,
       "Player",
-      new MonsterProperties(1, 1),
-      CardSide.Front,
-      5
+      1,
+      1,
+      5,
+      CardSide.Front
     );
     this.cards.set(
       this.positionToString({ column: 1, row: 1 }),
@@ -622,7 +612,7 @@ export class GameModel {
       if (!equippedDto) {
         throw new Error(`No card def found for ID ${equippedCardId}`);
       }
-      this.board.playerCard.monsterProperties.setEquipment(
+      this.board.playerCard.setEquipment(
         cardDefDtoToModel(equippedDto, CardSide.Front) as ItemCardModel
       );
     });
