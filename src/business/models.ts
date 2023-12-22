@@ -182,12 +182,12 @@ export class MonsterCardModel extends CardModel {
     name: string,
     intrinsicCombat: number,
     intrinsicStrength: number,
-    life = 1,
+    startingLife: number,
     side: CardSide = CardSide.Back
   ) {
     super(id, cardDefId, name, side);
 
-    this._life = life;
+    this._life = startingLife;
 
     this._combat = intrinsicCombat;
     this._strength = intrinsicStrength;

@@ -17,13 +17,13 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-export const equipmentTypes = ["head", "body", "held", "offhand"] as const;
-export type EquipmentType = (typeof equipmentTypes)[number];
-
 export interface CardDefDto {
   id: number;
   name: string;
 }
+
+const equipmentTypes = ["head", "body", "held", "offhand"] as const;
+type EquipmentType = (typeof equipmentTypes)[number];
 
 export interface ItemCardDefDto extends CardDefDto {
   cardType: "item";
@@ -41,6 +41,7 @@ export interface MonsterCardDefDto extends CardDefDto {
   cardType: "monster";
   combat: number;
   strength: number;
+  life: number;
 }
 
 export const isMonsterCardDefDto = (
@@ -87,8 +88,14 @@ const validateItemCardDefDto = (cardDefDto: ItemCardDefDto): void => {
 const validateMonsterCardDefDto = (cardDefDto: MonsterCardDefDto): void => {
   validateCardDefDto(cardDefDto);
 
+  if (!cardDefDto.combat) {
+    throw new Error(`Card ${cardDefDto.id} missing combat`);
+  }
   if (!cardDefDto.strength) {
     throw new Error(`Card ${cardDefDto.id} missing strength`);
+  }
+  if (!cardDefDto.life) {
+    throw new Error(`Card ${cardDefDto.id} missing life`);
   }
 };
 
