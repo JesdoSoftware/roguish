@@ -20,22 +20,34 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 export const equipmentTypes = ["head", "body", "held", "offhand"] as const;
 export type EquipmentType = (typeof equipmentTypes)[number];
 
-export interface ItemPropertiesDto {
-  equipmentTypes?: EquipmentType[];
-  combat: number;
+export interface CardDefDto {
+  id: number;
+  name: string;
 }
 
-export interface MonsterPropertiesDto {
+export interface ItemCardDefDto extends CardDefDto {
+  cardType: "item";
+  equipmentTypes?: EquipmentType[];
+  combat?: number;
+}
+
+export const isItemCardDefDto = (
+  cardDefDto: CardDefDto
+): cardDefDto is ItemCardDefDto => {
+  return (cardDefDto as ItemCardDefDto).cardType === "item";
+};
+
+export interface MonsterCardDefDto extends CardDefDto {
+  cardType: "monster";
   combat: number;
   strength: number;
 }
 
-export interface CardDefDto {
-  id: number;
-  name: string;
-  itemProperties: ItemPropertiesDto;
-  monsterProperties: MonsterPropertiesDto;
-}
+export const isMonsterCardDefDto = (
+  cardDefDto: CardDefDto
+): cardDefDto is MonsterCardDefDto => {
+  return (cardDefDto as MonsterCardDefDto).cardType === "monster";
+};
 
 export interface CardInstanceDto {
   id: number;
@@ -56,43 +68,27 @@ const validateCardDefDto = (cardDefDto: CardDefDto): void => {
   if (!cardDefDto.name) {
     throw new Error(`Card ${cardDefDto.id} missing name`);
   }
-  if (!cardDefDto.itemProperties && !cardDefDto.monsterProperties) {
-    throw new Error(`Card ${cardDefDto.id} missing card type properties`);
-  }
-  if (cardDefDto.itemProperties && cardDefDto.monsterProperties) {
-    throw new Error(
-      `Card ${cardDefDto.id} has conflicting card type properties`
-    );
-  }
-
-  if (cardDefDto.monsterProperties) {
-    validateMonsterPropertiesDto(cardDefDto.monsterProperties, cardDefDto.id);
-  } else if (cardDefDto.itemProperties) {
-    validateItemPropertiesDto(cardDefDto.itemProperties, cardDefDto.id);
-  }
 };
 
-const validateItemPropertiesDto = (
-  itemPropertiesDto: ItemPropertiesDto,
-  cardId: number
-): void => {
-  if (itemPropertiesDto.equipmentTypes) {
-    itemPropertiesDto.equipmentTypes.forEach((equipmentType) => {
+const validateItemCardDefDto = (cardDefDto: ItemCardDefDto): void => {
+  validateCardDefDto(cardDefDto);
+
+  if (cardDefDto.equipmentTypes) {
+    cardDefDto.equipmentTypes.forEach((equipmentType) => {
       if (!equipmentTypes.includes(equipmentType)) {
         throw new Error(
-          `Card ${cardId} has unexpected equipment type ${itemPropertiesDto.equipmentTypes}`
+          `Card ${cardDefDto.id} has unexpected equipment type ${cardDefDto.equipmentTypes}`
         );
       }
     });
   }
 };
 
-const validateMonsterPropertiesDto = (
-  monsterPropertiesDto: MonsterPropertiesDto,
-  cardId: number
-): void => {
-  if (!monsterPropertiesDto.strength) {
-    throw new Error(`Card ${cardId} missing strength`);
+const validateMonsterCardDefDto = (cardDefDto: MonsterCardDefDto): void => {
+  validateCardDefDto(cardDefDto);
+
+  if (!cardDefDto.strength) {
+    throw new Error(`Card ${cardDefDto.id} missing strength`);
   }
 };
 
@@ -105,7 +101,13 @@ const validateCardInstance = (cardInstance: CardInstanceDto): void => {
 };
 
 export const validateDeckDto = (deckDto: DeckDto): void => {
-  deckDto.cardDefs.forEach((dto) => validateCardDefDto(dto));
+  deckDto.cardDefs.forEach((dto) => {
+    if (isItemCardDefDto(dto)) {
+      validateItemCardDefDto(dto);
+    } else if (isMonsterCardDefDto(dto)) {
+      validateMonsterCardDefDto(dto);
+    }
+  });
   deckDto.handCards.forEach((dto) => validateCardInstance(dto));
   deckDto.dungeonCards.forEach((dto) => validateCardInstance(dto));
 };

@@ -18,7 +18,13 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 import bindPrototypeMethods from "../bindPrototypeMethods";
-import { CardDefDto, CardInstanceDto, DeckDto } from "../data/dtos";
+import {
+  CardDefDto,
+  CardInstanceDto,
+  DeckDto,
+  isItemCardDefDto,
+  isMonsterCardDefDto,
+} from "../data/dtos";
 
 export const maxBoardColumns = 3;
 export const maxBoardRows = 3;
@@ -253,22 +259,22 @@ export const cardDefDtoToModel = (
   cardDefDto: CardDefDto,
   side: CardSide = CardSide.Back
 ): CardModel => {
-  if (cardDefDto.itemProperties) {
+  if (isItemCardDefDto(cardDefDto)) {
     return new ItemCardModel(
       createId(),
       cardDefDto.id,
       cardDefDto.name,
-      cardDefDto.itemProperties.equipmentTypes,
-      cardDefDto.itemProperties.combat,
+      cardDefDto.equipmentTypes,
+      cardDefDto.combat,
       side
     );
-  } else if (cardDefDto.monsterProperties) {
+  } else if (isMonsterCardDefDto(cardDefDto)) {
     return new MonsterCardModel(
       createId(),
       cardDefDto.id,
       cardDefDto.name,
-      cardDefDto.monsterProperties.combat,
-      cardDefDto.monsterProperties.strength,
+      cardDefDto.combat,
+      cardDefDto.strength,
       side
     );
   }
