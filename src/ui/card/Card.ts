@@ -68,8 +68,7 @@ const Card = (
     const strengthId = createId();
     const lifeId = createId();
 
-    // TODO check for relevant changes other than equipment
-    cardModel.monsterProperties.equipmentChanged.addListener(() => {
+    cardModel.monsterProperties.combatChanged.addListener(() => {
       const combatElem = getElementById(combatId);
       combatElem.innerText = `${cardModel.monsterProperties.combat}`;
     });
@@ -88,7 +87,7 @@ const Card = (
       <dl>
         <dt>&#x2694;️</dt>
         <dd id="${combatId}">${cardModel.monsterProperties.combat}</dd>
-        <dt>&#x1F4AA</dt>
+        <dt>&#x1F4AA;</dt>
         <dd id="${strengthId}">${cardModel.monsterProperties.strength}</dd>
         <dt>&#x1F9E1;</dt>
         <dd id="${lifeId}">${cardModel.life}</dd>
