@@ -49,6 +49,7 @@ export const updateCardZIndex = (
 const Card = (
   id: string,
   cardModel: CardModel,
+  showStamina: boolean,
   classNames: string[] = []
 ): string => {
   const combinedClassName = getCombinedClassName(classNames, cardModel.side);
@@ -74,31 +75,41 @@ const Card = (
       combatElem.innerText = `${cardModel.combat}`;
     });
 
-    cardModel.strengthChanged.addListener(() => {
-      const strengthElem = getElementById(strengthId);
-      strengthElem.innerText = `${cardModel.strength}`;
-    });
+    let strengthOrStaminaProperties = "";
+    if (showStamina) {
+      cardModel.staminaChanged.addListener(() => {
+        const staminaElem = getElementById(staminaId);
+        staminaElem.innerText = `${cardModel.stamina}`;
+      });
+      cardModel.maxStaminaChanged.addListener(() => {
+        const maxStaminaElem = getElementById(maxStaminaId);
+        maxStaminaElem.innerText = `${cardModel.maxStamina}`;
+      });
 
-    cardModel.staminaChanged.addListener(() => {
-      const staminaElem = getElementById(staminaId);
-      staminaElem.innerText = `${cardModel.stamina}`;
-    });
-    cardModel.maxStaminaChanged.addListener(() => {
-      const maxStaminaElem = getElementById(maxStaminaId);
-      maxStaminaElem.innerText = `${cardModel.maxStamina}`;
-    });
-
-    monsterProperties = html`
-      <dl>
-        <dt>Combat</dt>
-        <dd id="${combatId}">${cardModel.combat}</dd>
-        <dt>Strength</dt>
-        <dd id="${strengthId}">${cardModel.strength}</dd>
+      strengthOrStaminaProperties = html`
         <dt>Stamina</dt>
         <dd>
           <span id="${staminaId}">${cardModel.stamina}</span> /
           <span id="${maxStaminaId}">${cardModel.maxStamina}</span>
         </dd>
+      `;
+    } else {
+      cardModel.strengthChanged.addListener(() => {
+        const strengthElem = getElementById(strengthId);
+        strengthElem.innerText = `${cardModel.strength}`;
+      });
+
+      strengthOrStaminaProperties = html`
+        <dt>Strength</dt>
+        <dd id="${strengthId}">${cardModel.strength}</dd>
+      `;
+    }
+
+    monsterProperties = html`
+      <dl>
+        <dt>Combat</dt>
+        <dd id="${combatId}">${cardModel.combat}</dd>
+        ${strengthOrStaminaProperties}
       </dl>
     `;
   }
