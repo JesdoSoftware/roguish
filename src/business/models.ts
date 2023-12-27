@@ -83,10 +83,9 @@ export abstract class CardModel {
   get side(): CardSide {
     return this._side;
   }
-  set side(newSide) {
-    const oldSide = this._side;
-    this._side = newSide;
-    if (oldSide !== newSide) {
+  set side(value) {
+    if (this.side !== value) {
+      this._side = value;
       this.cardFlipped.dispatch();
     }
   }
@@ -150,7 +149,7 @@ export class MonsterCardModel extends CardModel {
   get combat(): number {
     return this._combat;
   }
-  private set combat(value: number) {
+  private set combat(value) {
     if (this._combat !== value) {
       this._combat = value;
       this.combatChanged.dispatch();
@@ -161,7 +160,7 @@ export class MonsterCardModel extends CardModel {
   get strength(): number {
     return this._strength;
   }
-  private set strength(value: number) {
+  private set strength(value) {
     if (this._strength !== value) {
       this._strength = value;
       this.strengthChanged.dispatch();
