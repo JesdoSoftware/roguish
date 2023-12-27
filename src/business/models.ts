@@ -140,7 +140,7 @@ export class MonsterCardModel extends CardModel {
   readonly combatChanged = new EventDispatcher<void>();
   readonly strengthChanged = new EventDispatcher<void>();
   readonly equipmentChanged = new EventDispatcher<EquipmentType>();
-  readonly lifeChanged = new EventDispatcher<void>();
+  readonly staminaChanged = new EventDispatcher<void>();
   readonly died = new EventDispatcher<void>();
 
   private readonly equipment: ItemCardModel[] = [];
@@ -163,15 +163,15 @@ export class MonsterCardModel extends CardModel {
     this.strengthChanged.dispatch();
   }
 
-  private _life: number;
-  get life(): number {
-    return this._life;
+  private _stamina: number;
+  get stamina(): number {
+    return this._stamina;
   }
-  set life(value) {
-    this._life = value;
-    this.lifeChanged.dispatch();
+  set stamina(value) {
+    this._stamina = value;
+    this.staminaChanged.dispatch();
 
-    if (this._life < 1) {
+    if (this._stamina < 1) {
       this.die();
     }
   }
@@ -182,12 +182,12 @@ export class MonsterCardModel extends CardModel {
     name: string,
     intrinsicCombat: number,
     intrinsicStrength: number,
-    startingLife: number,
+    startingStamina: number,
     side: CardSide = CardSide.Back
   ) {
     super(id, cardDefId, name, side);
 
-    this._life = startingLife;
+    this._stamina = startingStamina;
 
     this._combat = intrinsicCombat;
     this._strength = intrinsicStrength;
@@ -239,7 +239,7 @@ export class MonsterCardModel extends CardModel {
 
   attack(target: MonsterCardModel): void {
     if (this.combat > target.combat) {
-      this.life -= target.strength;
+      this.stamina -= target.strength;
       target.die();
     } else {
       this.die();

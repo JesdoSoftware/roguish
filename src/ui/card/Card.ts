@@ -66,7 +66,7 @@ const Card = (
   if (isMonsterCard(cardModel)) {
     const combatId = createId();
     const strengthId = createId();
-    const lifeId = createId();
+    const staminaId = createId();
 
     cardModel.combatChanged.addListener(() => {
       const combatElem = getElementById(combatId);
@@ -78,19 +78,19 @@ const Card = (
       strengthElem.innerText = `${cardModel.strength}`;
     });
 
-    cardModel.lifeChanged.addListener(() => {
-      const lifeElem = getElementById(lifeId);
-      lifeElem.innerText = `${cardModel.life}`;
+    cardModel.staminaChanged.addListener(() => {
+      const staminaElem = getElementById(staminaId);
+      staminaElem.innerText = `${cardModel.stamina}`;
     });
 
     monsterProperties = html`
       <dl>
-        <dt>&#x2694;️</dt>
+        <dt>Combat</dt>
         <dd id="${combatId}">${cardModel.combat}</dd>
-        <dt>&#x1F4AA;</dt>
+        <dt>Strength</dt>
         <dd id="${strengthId}">${cardModel.strength}</dd>
-        <dt>&#x1F9E1;</dt>
-        <dd id="${lifeId}">${cardModel.life}</dd>
+        <dt>Stamina</dt>
+        <dd id="${staminaId}">${cardModel.stamina}</dd>
       </dl>
     `;
   }
