@@ -67,6 +67,7 @@ const Card = (
     const combatId = createId();
     const strengthId = createId();
     const staminaId = createId();
+    const maxStaminaId = createId();
 
     cardModel.combatChanged.addListener(() => {
       const combatElem = getElementById(combatId);
@@ -82,6 +83,10 @@ const Card = (
       const staminaElem = getElementById(staminaId);
       staminaElem.innerText = `${cardModel.stamina}`;
     });
+    cardModel.maxStaminaChanged.addListener(() => {
+      const maxStaminaElem = getElementById(maxStaminaId);
+      maxStaminaElem.innerText = `${cardModel.maxStamina}`;
+    });
 
     monsterProperties = html`
       <dl>
@@ -90,7 +95,10 @@ const Card = (
         <dt>Strength</dt>
         <dd id="${strengthId}">${cardModel.strength}</dd>
         <dt>Stamina</dt>
-        <dd id="${staminaId}">${cardModel.stamina}</dd>
+        <dd>
+          <span id="${staminaId}">${cardModel.stamina}</span> /
+          <span id="${maxStaminaId}">${cardModel.maxStamina}</span>
+        </dd>
       </dl>
     `;
   }

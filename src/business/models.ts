@@ -141,6 +141,7 @@ export class MonsterCardModel extends CardModel {
   readonly strengthChanged = new EventDispatcher<void>();
   readonly equipmentChanged = new EventDispatcher<EquipmentType>();
   readonly staminaChanged = new EventDispatcher<void>();
+  readonly maxStaminaChanged = new EventDispatcher<void>();
   readonly died = new EventDispatcher<void>();
 
   private readonly equipment: ItemCardModel[] = [];
@@ -150,8 +151,10 @@ export class MonsterCardModel extends CardModel {
     return this._combat;
   }
   private set combat(value: number) {
-    this._combat = value;
-    this.combatChanged.dispatch();
+    if (this._combat !== value) {
+      this._combat = value;
+      this.combatChanged.dispatch();
+    }
   }
 
   private _strength: number;
@@ -159,8 +162,10 @@ export class MonsterCardModel extends CardModel {
     return this._strength;
   }
   private set strength(value: number) {
-    this._strength = value;
-    this.strengthChanged.dispatch();
+    if (this._strength !== value) {
+      this._strength = value;
+      this.strengthChanged.dispatch();
+    }
   }
 
   private _stamina: number;
@@ -168,11 +173,24 @@ export class MonsterCardModel extends CardModel {
     return this._stamina;
   }
   set stamina(value) {
-    this._stamina = value;
-    this.staminaChanged.dispatch();
+    if (this._stamina !== value && value < this.maxStamina) {
+      this._stamina = value;
+      this.staminaChanged.dispatch();
+    }
 
     if (this._stamina < 1) {
       this.die();
+    }
+  }
+
+  private _maxStamina: number;
+  get maxStamina(): number {
+    return this._maxStamina;
+  }
+  private set maxStamina(value) {
+    if (this._maxStamina !== value) {
+      this._maxStamina = value;
+      this.maxStaminaChanged.dispatch();
     }
   }
 
@@ -182,12 +200,13 @@ export class MonsterCardModel extends CardModel {
     name: string,
     intrinsicCombat: number,
     intrinsicStrength: number,
-    startingStamina: number,
+    maxStamina: number,
     side: CardSide = CardSide.Back
   ) {
     super(id, cardDefId, name, side);
 
-    this._stamina = startingStamina;
+    this._stamina = maxStamina;
+    this._maxStamina = maxStamina;
 
     this._combat = intrinsicCombat;
     this._strength = intrinsicStrength;
