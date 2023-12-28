@@ -66,31 +66,34 @@ const Card = (
   if (isMonsterCard(cardModel)) {
     const combatId = createId();
     const strengthId = createId();
-    const maxStrengthId = createId();
+
+    const getStrengthDisplay = (): string =>
+      cardModel.strength !== cardModel.maxStrength
+        ? html`
+            <span>${cardModel.strength}</span> /
+            <span>${cardModel.maxStrength}</span>
+          `
+        : `${cardModel.strength}`;
 
     cardModel.combatChanged.addListener(() => {
       const combatElem = getElementById(combatId);
       combatElem.innerText = `${cardModel.combat}`;
     });
 
-    cardModel.strengthChanged.addListener(() => {
+    const onStrengthChanged = (): void => {
       const strengthElem = getElementById(strengthId);
-      strengthElem.innerText = `${cardModel.strength}`;
-    });
-    cardModel.maxStrengthChanged.addListener(() => {
-      const maxStrengthElem = getElementById(maxStrengthId);
-      maxStrengthElem.innerText = `${cardModel.maxStrength}`;
-    });
+      strengthElem.innerHTML = getStrengthDisplay();
+    };
+
+    cardModel.strengthChanged.addListener(onStrengthChanged);
+    cardModel.maxStrengthChanged.addListener(onStrengthChanged);
 
     monsterProperties = html`
       <dl>
         <dt>&#x2694;️</dt>
         <dd id="${combatId}">${cardModel.combat}</dd>
         <dt>&#x1F4AA;</dt>
-        <dd>
-          <span id="${strengthId}">${cardModel.strength}</span> /
-          <span id="${maxStrengthId}">${cardModel.maxStrength}</span>
-        </dd>
+        <dd id="${strengthId}">${getStrengthDisplay()}</dd>
       </dl>
     `;
   }
