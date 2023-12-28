@@ -137,10 +137,9 @@ export class MonsterCardModel extends CardModel {
   readonly cardType = monsterCardType;
 
   readonly combatChanged = new EventDispatcher<void>();
-  readonly strengthChanged = new EventDispatcher<void>();
   readonly equipmentChanged = new EventDispatcher<EquipmentType>();
-  readonly staminaChanged = new EventDispatcher<void>();
-  readonly maxStaminaChanged = new EventDispatcher<void>();
+  readonly strengthChanged = new EventDispatcher<void>();
+  readonly maxStrengthChanged = new EventDispatcher<void>();
   readonly died = new EventDispatcher<void>();
 
   private readonly equipment: ItemCardModel[] = [];
@@ -160,36 +159,25 @@ export class MonsterCardModel extends CardModel {
   get strength(): number {
     return this._strength;
   }
-  private set strength(value) {
-    if (this._strength !== value) {
+  set strength(value) {
+    if (this._strength !== value && value < this.maxStrength) {
       this._strength = value;
       this.strengthChanged.dispatch();
     }
-  }
 
-  private _stamina: number;
-  get stamina(): number {
-    return this._stamina;
-  }
-  set stamina(value) {
-    if (this._stamina !== value && value < this.maxStamina) {
-      this._stamina = value;
-      this.staminaChanged.dispatch();
-    }
-
-    if (this._stamina < 1) {
+    if (this._strength < 1) {
       this.die();
     }
   }
 
-  private _maxStamina: number;
-  get maxStamina(): number {
-    return this._maxStamina;
+  private _maxStrength: number;
+  get maxStrength(): number {
+    return this._maxStrength;
   }
-  private set maxStamina(value) {
-    if (this._maxStamina !== value) {
-      this._maxStamina = value;
-      this.maxStaminaChanged.dispatch();
+  private set maxStrength(value) {
+    if (this._maxStrength !== value) {
+      this._maxStrength = value;
+      this.maxStrengthChanged.dispatch();
     }
   }
 
@@ -198,17 +186,14 @@ export class MonsterCardModel extends CardModel {
     cardDefId: number,
     name: string,
     intrinsicCombat: number,
-    intrinsicStrength: number,
-    maxStamina: number,
+    maxStrength: number,
     side: CardSide = CardSide.Back
   ) {
     super(id, cardDefId, name, side);
 
-    this._stamina = maxStamina;
-    this._maxStamina = maxStamina;
-
     this._combat = intrinsicCombat;
-    this._strength = intrinsicStrength;
+    this._strength = maxStrength;
+    this._maxStrength = maxStrength;
 
     bindPrototypeMethods(this);
   }
@@ -257,7 +242,7 @@ export class MonsterCardModel extends CardModel {
 
   attack(target: MonsterCardModel): void {
     if (this.combat > target.combat) {
-      this.stamina -= target.strength;
+      this.strength -= target.strength;
       target.die();
     } else {
       this.die();
@@ -366,7 +351,6 @@ export class BoardModel {
       playerCardId,
       0,
       "Player",
-      1,
       1,
       5,
       CardSide.Front

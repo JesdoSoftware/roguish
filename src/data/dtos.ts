@@ -41,7 +41,6 @@ export interface MonsterCardDefDto extends CardDefDto {
   cardType: "monster";
   combat: number;
   strength: number;
-  stamina: number;
 }
 
 export const isMonsterCardDefDto = (
@@ -93,9 +92,6 @@ const validateMonsterCardDefDto = (cardDefDto: MonsterCardDefDto): void => {
   }
   if (!cardDefDto.strength) {
     throw new Error(`Card ${cardDefDto.id} missing strength`);
-  }
-  if (!cardDefDto.stamina) {
-    throw new Error(`Card ${cardDefDto.id} missing stamina`);
   }
 };
 
