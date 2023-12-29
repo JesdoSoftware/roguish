@@ -51,7 +51,7 @@ const Hand = (
               registerDraggable(cardElem, () => true, onDragStart, onDragEnd);
             });
             return html`<li>
-              ${Card(id, cardModel, [commonStyles.draggable])}
+              ${Card(id, cardModel, false, [commonStyles.draggable])}
             </li>`;
           })
           .join("")}

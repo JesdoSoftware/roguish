@@ -56,7 +56,7 @@ const CardPicker = (
               });
             });
             return html`<li>
-              ${Card(id, cardModel, [commonStyles.clickable])}
+              ${Card(id, cardModel, false, [commonStyles.clickable])}
             </li>`;
           })
           .join("")}

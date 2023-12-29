@@ -49,6 +49,8 @@ export const updateCardZIndex = (
 const Card = (
   id: string,
   cardModel: CardModel,
+  // TODO enable when card becomes controlled by player
+  alwaysShowMaxStrength: boolean,
   classNames: string[] = []
 ): string => {
   const combinedClassName = getCombinedClassName(classNames, cardModel.side);
@@ -68,7 +70,7 @@ const Card = (
     const strengthId = createId();
 
     const getStrengthDisplay = (): string =>
-      cardModel.strength !== cardModel.maxStrength
+      alwaysShowMaxStrength || cardModel.strength !== cardModel.maxStrength
         ? html`
             <span>${cardModel.strength}</span> /
             <span>${cardModel.maxStrength}</span>

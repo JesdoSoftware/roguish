@@ -68,7 +68,7 @@ const EquipmentSlot = (
 
     const itemCardModel = monsterCardModel.getEquipment(equipmentType);
     if (itemCardModel) {
-      return Card(slotId, itemCardModel, [commonStyles.clickable]);
+      return Card(slotId, itemCardModel, false, [commonStyles.clickable]);
     } else {
       return EmptySpace(slotId, "Choose&hellip;", [commonStyles.clickable]);
     }
