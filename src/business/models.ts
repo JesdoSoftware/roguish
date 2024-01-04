@@ -338,7 +338,10 @@ export class BoardModel {
   readonly cardDiscarded = new EventDispatcher<CardDiscardedEventArgs>();
   readonly spaceLeftEmpty = new EventDispatcher<SpaceLeftEmptyEventArgs>();
   readonly itemCollected = new EventDispatcher<ItemCollectedEventArgs>();
+  // TODO include how died, how many turns taken?
+  readonly playerDied = new EventDispatcher<void>();
 
+  // use positionToString to create map keys
   private readonly cards = new Map<string, CardModel>();
 
   constructor(dungeonCards: CardModel[]) {
@@ -360,8 +363,7 @@ export class BoardModel {
       this.playerCard
     );
 
-    // TODO handle game over
-    this.playerCard.died.addListener(() => alert("You have died"));
+    this.playerCard.died.addListener(() => this.playerDied.dispatch());
   }
 
   positionToString(position: BoardPosition): string {

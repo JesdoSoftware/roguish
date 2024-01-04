@@ -27,6 +27,7 @@ import commonStyles from "../common.module.css";
 import { DeckDto } from "../../data/dtos";
 import Equipment from "../equipment/Equipment";
 import Dialog from "../dialog/Dialog";
+import GameOver from "../gameOver/GameOver";
 
 const CopyrightLicenseSource = (): string => {
   return html`
@@ -65,6 +66,13 @@ const App = (loadDeck: () => Promise<DeckDto>): string => {
   onElementAdded(gameId, (game) => {
     loadDeck().then((deckDto) => {
       const gameModel = new GameModel(deckDto);
+
+      const gameOverDialog = Dialog("", () => GameOver(), false);
+
+      gameModel.board.playerDied.addListener(() => {
+        gameOverDialog.showModal();
+      });
+
       const boardId = createId();
 
       const handDialog = Dialog(
@@ -96,7 +104,7 @@ const App = (loadDeck: () => Promise<DeckDto>): string => {
         ${Board(boardId, gameModel.board, gameModel.hand)}
         <button id="${openHandButtonId}">Hand</button>
         <button id="${openEquipmentButtonId}">Equipment</button>
-        ${handDialog.markup} ${equipmentDialog.markup}
+        ${handDialog.markup} ${equipmentDialog.markup} ${gameOverDialog.markup}
       `;
     });
   });

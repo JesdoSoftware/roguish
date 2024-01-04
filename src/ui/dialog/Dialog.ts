@@ -24,7 +24,8 @@ import styles from "./Dialog.module.css";
 
 const Dialog = (
   title: string,
-  content: () => string
+  content: () => string,
+  showCloseButton = true
 ): { markup: string; showModal: () => void; close: () => void } => {
   const dialogId = createId();
   const contentId = createId();
@@ -42,18 +43,24 @@ const Dialog = (
     dialogElem.close();
   };
 
-  const closeButtonId = createId();
-  onElementAdded(closeButtonId, (closeButton) => {
-    closeButton.addEventListener("click", close);
-  });
+  let closeButton = "";
+  if (showCloseButton) {
+    const closeButtonId = createId();
+    onElementAdded(closeButtonId, (closeButton) => {
+      closeButton.addEventListener("click", close);
+    });
+    closeButton = html`
+      <button id="${closeButtonId}" class="${styles.headerCloseButton}">
+        X
+      </button>
+    `;
+  }
 
   const markup = html`
     <dialog id="${dialogId}" class="${styles.dialog}">
       <div class="${styles.header}">
         <div class="${styles.headerTitle}">${title}</div>
-        <button id="${closeButtonId}" class="${styles.headerCloseButton}">
-          X
-        </button>
+        ${closeButton}
       </div>
       <div id="${contentId}" class="${styles.content}"></div>
     </dialog>
