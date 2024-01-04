@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2023 Jesdo Software LLC.
+Copyright (C) 2024 Jesdo Software LLC.
 
 This file is part of Roguish.
 
@@ -31,7 +31,7 @@ import Dialog from "../dialog/Dialog";
 const CopyrightLicenseSource = (): string => {
   return html`
     <div>
-      <p>Copyright &copy; 2023 Jesdo Software LLC.</p>
+      <p>Copyright &copy; 2024 Jesdo Software LLC.</p>
       <p>
         This program comes with ABSOLUTELY NO WARRANTY. This is free software,
         and you are welcome to redistribute it under certain conditions. For
