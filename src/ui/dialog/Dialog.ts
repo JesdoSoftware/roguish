@@ -24,13 +24,13 @@ import styles from "./Dialog.module.css";
 
 const Dialog = <T>(
   title: string,
-  content: (arg?: T) => string,
+  content: (arg: T) => string,
   showCloseButton = true
-): { markup: string; showModal: (arg?: T) => void; close: () => void } => {
+): { markup: string; showModal: (arg: T) => void; close: () => void } => {
   const dialogId = createId();
   const contentId = createId();
 
-  const showModal = (arg?: T): void => {
+  const showModal = (arg: T): void => {
     const dialogContent = getElementById(contentId);
     dialogContent.innerHTML = content(arg);
 

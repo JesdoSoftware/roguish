@@ -329,6 +329,7 @@ export interface ItemCollectedEventArgs {
 
 export interface PlayerDiedEventArgs {
   killedBy: string;
+  turns: number;
 }
 
 export class BoardModel {
@@ -346,6 +347,8 @@ export class BoardModel {
 
   // use positionToString to create map keys
   private readonly cards = new Map<string, CardModel>();
+
+  private turns = 0;
 
   constructor(dungeonCards: CardModel[]) {
     bindPrototypeMethods(this);
@@ -367,7 +370,7 @@ export class BoardModel {
     );
 
     this.playerCard.died.addListener((killedBy) =>
-      this.playerDied.dispatch({ killedBy })
+      this.playerDied.dispatch({ killedBy, turns: this.turns })
     );
   }
 
@@ -485,6 +488,11 @@ export class BoardModel {
   }
 
   moveCard(cardToMove: CardModel, toPosition: BoardPosition): void {
+    ++this.turns;
+    this.doMoveCard(cardToMove, toPosition);
+  }
+
+  private doMoveCard(cardToMove: CardModel, toPosition: BoardPosition): void {
     const targetCard = this.getCardAtPosition(toPosition);
     if (targetCard) {
       if (isItemCard(targetCard)) {
@@ -522,7 +530,7 @@ export class BoardModel {
         row: positionBehindRow,
       });
       if (cardBehind) {
-        this.moveCard(cardBehind, fromPosition);
+        this.doMoveCard(cardBehind, fromPosition);
       }
     }
 

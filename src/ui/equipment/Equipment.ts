@@ -63,7 +63,7 @@ const EquipmentSlot = (
 
   const cardForEquippedItem = (): string => {
     onElementAdded(slotId, (slot) => {
-      slot.addEventListener("click", () => cardPickerDialog.showModal());
+      slot.addEventListener("click", () => cardPickerDialog.showModal(null));
     });
 
     const itemCardModel = monsterCardModel.getEquipment(equipmentType);

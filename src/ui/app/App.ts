@@ -17,7 +17,11 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { GameModel, createId } from "../../business/models";
+import {
+  GameModel,
+  PlayerDiedEventArgs,
+  createId,
+} from "../../business/models";
 import Board, { dragCardToBoard, returnCardFromBoard } from "../board/Board";
 import { setGlobalOnDragEnd, setGlobalOnDragStart } from "../dragDrop";
 import Hand from "../hand/Hand";
@@ -67,14 +71,14 @@ const App = (loadDeck: () => Promise<DeckDto>): string => {
     loadDeck().then((deckDto) => {
       const gameModel = new GameModel(deckDto);
 
-      const gameOverDialog = Dialog<string>(
+      const gameOverDialog = Dialog<PlayerDiedEventArgs>(
         "Game Over",
-        (killedBy) => GameOver(killedBy ?? "", 0),
+        (playerDied) => GameOver(playerDied.killedBy, playerDied.turns),
         false
       );
 
       gameModel.board.playerDied.addListener((e) => {
-        gameOverDialog.showModal(e.killedBy);
+        gameOverDialog.showModal(e);
       });
 
       const boardId = createId();
@@ -93,7 +97,9 @@ const App = (loadDeck: () => Promise<DeckDto>): string => {
       );
       const openHandButtonId = createId();
       onElementAdded(openHandButtonId, (openHandButton) => {
-        openHandButton.addEventListener("click", () => handDialog.showModal());
+        openHandButton.addEventListener("click", () =>
+          handDialog.showModal(null)
+        );
       });
 
       const equipmentDialog = Dialog("Equipment", () =>
@@ -101,7 +107,7 @@ const App = (loadDeck: () => Promise<DeckDto>): string => {
       );
       const openEquipmentButtonId = createId();
       onElementAdded(openEquipmentButtonId, (button) => {
-        button.addEventListener("click", () => equipmentDialog.showModal());
+        button.addEventListener("click", () => equipmentDialog.showModal(null));
       });
 
       game.outerHTML = html`
