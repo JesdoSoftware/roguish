@@ -67,10 +67,14 @@ const App = (loadDeck: () => Promise<DeckDto>): string => {
     loadDeck().then((deckDto) => {
       const gameModel = new GameModel(deckDto);
 
-      const gameOverDialog = Dialog("", () => GameOver(), false);
+      const gameOverDialog = Dialog<string>(
+        "Game Over",
+        (killedBy) => GameOver(killedBy ?? "", 0),
+        false
+      );
 
-      gameModel.board.playerDied.addListener(() => {
-        gameOverDialog.showModal();
+      gameModel.board.playerDied.addListener((e) => {
+        gameOverDialog.showModal(e.killedBy);
       });
 
       const boardId = createId();

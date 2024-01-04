@@ -22,17 +22,17 @@ import { getElementById, onElementAdded } from "../rendering";
 import { html } from "../templateLiterals";
 import styles from "./Dialog.module.css";
 
-const Dialog = (
+const Dialog = <T>(
   title: string,
-  content: () => string,
+  content: (arg?: T) => string,
   showCloseButton = true
-): { markup: string; showModal: () => void; close: () => void } => {
+): { markup: string; showModal: (arg?: T) => void; close: () => void } => {
   const dialogId = createId();
   const contentId = createId();
 
-  const showModal = (): void => {
+  const showModal = (arg?: T): void => {
     const dialogContent = getElementById(contentId);
-    dialogContent.innerHTML = content();
+    dialogContent.innerHTML = content(arg);
 
     const dialogElem = getElementById(dialogId) as HTMLDialogElement;
     dialogElem.showModal();

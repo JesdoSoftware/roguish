@@ -140,7 +140,7 @@ export class MonsterCardModel extends CardModel {
   readonly equipmentChanged = new EventDispatcher<EquipmentType>();
   readonly strengthChanged = new EventDispatcher<void>();
   readonly maxStrengthChanged = new EventDispatcher<void>();
-  readonly died = new EventDispatcher<void>();
+  readonly died = new EventDispatcher<string>();
 
   private readonly equipment: ItemCardModel[] = [];
 
@@ -166,7 +166,7 @@ export class MonsterCardModel extends CardModel {
     }
 
     if (this._strength < 1) {
-      this.die();
+      this.die("exhaustion");
     }
   }
 
@@ -243,14 +243,14 @@ export class MonsterCardModel extends CardModel {
   attack(target: MonsterCardModel): void {
     if (this.combat > target.combat) {
       this.strength -= target.strength;
-      target.die();
+      target.die("the player");
     } else {
-      this.die();
+      this.die(target.name);
     }
   }
 
-  die(): void {
-    this.died.dispatch();
+  die(killedBy: string): void {
+    this.died.dispatch(killedBy);
   }
 }
 
@@ -327,6 +327,10 @@ export interface ItemCollectedEventArgs {
   itemCard: ItemCardModel;
 }
 
+export interface PlayerDiedEventArgs {
+  killedBy: string;
+}
+
 export class BoardModel {
   readonly dungeonCards: CardModel[];
   readonly discarded: CardModel[] = [];
@@ -338,8 +342,7 @@ export class BoardModel {
   readonly cardDiscarded = new EventDispatcher<CardDiscardedEventArgs>();
   readonly spaceLeftEmpty = new EventDispatcher<SpaceLeftEmptyEventArgs>();
   readonly itemCollected = new EventDispatcher<ItemCollectedEventArgs>();
-  // TODO include how died, how many turns taken?
-  readonly playerDied = new EventDispatcher<void>();
+  readonly playerDied = new EventDispatcher<PlayerDiedEventArgs>();
 
   // use positionToString to create map keys
   private readonly cards = new Map<string, CardModel>();
@@ -363,7 +366,9 @@ export class BoardModel {
       this.playerCard
     );
 
-    this.playerCard.died.addListener(() => this.playerDied.dispatch());
+    this.playerCard.died.addListener((killedBy) =>
+      this.playerDied.dispatch({ killedBy })
+    );
   }
 
   positionToString(position: BoardPosition): string {

@@ -1,7 +1,9 @@
 import { html } from "../templateLiterals";
 
-const GameOver = (): string => {
-  return html`<div><p>Game Over</p></div>`;
+const GameOver = (killedBy: string, turns: number): string => {
+  return html`<div>
+    <p>You were killed by ${killedBy} after ${turns} turns.</p>
+  </div>`;
 };
 
 export default GameOver;
