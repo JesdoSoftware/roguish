@@ -67,56 +67,64 @@ const App = (loadDeck: () => Promise<DeckDto>): string => {
   });
 
   const gameId = createId();
-  onElementAdded(gameId, (game) => {
-    loadDeck().then((deckDto) => {
-      const gameModel = new GameModel(deckDto);
 
-      const gameOverDialog = Dialog<PlayerDiedEventArgs>(
-        "Game Over",
-        (playerDied) => GameOver(playerDied.killedBy, playerDied.turns),
-        false
+  const startGame = (deckDto: DeckDto): void => {
+    const gameModel = new GameModel(deckDto);
+
+    const gameOverDialog = Dialog<PlayerDiedEventArgs>(
+      "Game Over",
+      (playerDied) =>
+        GameOver(playerDied.killedBy, playerDied.turns, () =>
+          startGame(deckDto)
+        ),
+      false,
+      () => startGame(deckDto)
+    );
+
+    gameModel.board.playerDied.addListener((e) => {
+      gameOverDialog.showModal(e);
+    });
+
+    const boardId = createId();
+
+    const handDialog = Dialog("Drag and drop an item to use or throw it", () =>
+      Hand(
+        gameModel.hand,
+        (cardElement, pointerEvent) => {
+          dragCardToBoard(boardId, cardElement, pointerEvent);
+          handDialog.close();
+        },
+        returnCardFromBoard
+      )
+    );
+    const openHandButtonId = createId();
+    onElementAdded(openHandButtonId, (openHandButton) => {
+      openHandButton.addEventListener("click", () =>
+        handDialog.showModal(null)
       );
+    });
 
-      gameModel.board.playerDied.addListener((e) => {
-        gameOverDialog.showModal(e);
-      });
+    const equipmentDialog = Dialog("Equipment", () =>
+      Equipment(gameModel.board.playerCard, gameModel.hand)
+    );
+    const openEquipmentButtonId = createId();
+    onElementAdded(openEquipmentButtonId, (button) => {
+      button.addEventListener("click", () => equipmentDialog.showModal(null));
+    });
 
-      const boardId = createId();
-
-      const handDialog = Dialog(
-        "Drag and drop an item to use or throw it",
-        () =>
-          Hand(
-            gameModel.hand,
-            (cardElement, pointerEvent) => {
-              dragCardToBoard(boardId, cardElement, pointerEvent);
-              handDialog.close();
-            },
-            returnCardFromBoard
-          )
-      );
-      const openHandButtonId = createId();
-      onElementAdded(openHandButtonId, (openHandButton) => {
-        openHandButton.addEventListener("click", () =>
-          handDialog.showModal(null)
-        );
-      });
-
-      const equipmentDialog = Dialog("Equipment", () =>
-        Equipment(gameModel.board.playerCard, gameModel.hand)
-      );
-      const openEquipmentButtonId = createId();
-      onElementAdded(openEquipmentButtonId, (button) => {
-        button.addEventListener("click", () => equipmentDialog.showModal(null));
-      });
-
-      game.outerHTML = html`
+    const gameElem = getElementById(gameId);
+    gameElem.outerHTML = html`
+      <div id="${gameId}">
         ${Board(boardId, gameModel.board, gameModel.hand)}
         <button id="${openHandButtonId}">Hand</button>
         <button id="${openEquipmentButtonId}">Equipment</button>
         ${handDialog.markup} ${equipmentDialog.markup} ${gameOverDialog.markup}
-      `;
-    });
+      </div>
+    `;
+  };
+
+  onElementAdded(gameId, () => {
+    loadDeck().then((deckDto) => startGame(deckDto));
   });
 
   return html`

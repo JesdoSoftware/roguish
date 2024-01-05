@@ -25,7 +25,8 @@ import styles from "./Dialog.module.css";
 const Dialog = <T>(
   title: string,
   content: (arg: T) => string,
-  showCloseButton = true
+  showCloseButton = true,
+  onClose?: () => void
 ): { markup: string; showModal: (arg: T) => void; close: () => void } => {
   const dialogId = createId();
   const contentId = createId();
@@ -35,6 +36,9 @@ const Dialog = <T>(
     dialogContent.innerHTML = content(arg);
 
     const dialogElem = getElementById(dialogId) as HTMLDialogElement;
+    if (onClose) {
+      dialogElem.addEventListener("close", onClose);
+    }
     dialogElem.showModal();
   };
 
