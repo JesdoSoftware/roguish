@@ -18,7 +18,7 @@ const GameOver = (
         You were killed by ${killedBy} after ${turns}
         turn${turns > 1 ? "s" : ""}.
       </p>
-      <button id="${restartButtonId}">Restart Game</button>
+      <button id="${restartButtonId}">New Game</button>
     </div>
   `;
 };
