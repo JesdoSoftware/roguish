@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2023 Jesdo Software LLC.
+Copyright (C) 2024 Jesdo Software LLC.
 
 This file is part of Roguish.
 
@@ -22,18 +22,23 @@ import { getElementById, onElementAdded } from "../rendering";
 import { html } from "../templateLiterals";
 import styles from "./Dialog.module.css";
 
-const Dialog = (
+const Dialog = <T>(
   title: string,
-  content: () => string
-): { markup: string; showModal: () => void; close: () => void } => {
+  content: (arg: T) => string,
+  showCloseButton = true,
+  onClose?: () => void
+): { markup: string; showModal: (arg: T) => void; close: () => void } => {
   const dialogId = createId();
   const contentId = createId();
 
-  const showModal = (): void => {
+  const showModal = (arg: T): void => {
     const dialogContent = getElementById(contentId);
-    dialogContent.innerHTML = content();
+    dialogContent.innerHTML = content(arg);
 
     const dialogElem = getElementById(dialogId) as HTMLDialogElement;
+    if (onClose) {
+      dialogElem.addEventListener("close", onClose);
+    }
     dialogElem.showModal();
   };
 
@@ -42,18 +47,24 @@ const Dialog = (
     dialogElem.close();
   };
 
-  const closeButtonId = createId();
-  onElementAdded(closeButtonId, (closeButton) => {
-    closeButton.addEventListener("click", close);
-  });
+  let closeButton = "";
+  if (showCloseButton) {
+    const closeButtonId = createId();
+    onElementAdded(closeButtonId, (closeButton) => {
+      closeButton.addEventListener("click", close);
+    });
+    closeButton = html`
+      <button id="${closeButtonId}" class="${styles.headerCloseButton}">
+        X
+      </button>
+    `;
+  }
 
   const markup = html`
     <dialog id="${dialogId}" class="${styles.dialog}">
       <div class="${styles.header}">
         <div class="${styles.headerTitle}">${title}</div>
-        <button id="${closeButtonId}" class="${styles.headerCloseButton}">
-          X
-        </button>
+        ${closeButton}
       </div>
       <div id="${contentId}" class="${styles.content}"></div>
     </dialog>

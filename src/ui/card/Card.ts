@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2023 Jesdo Software LLC.
+Copyright (C) 2024 Jesdo Software LLC.
 
 This file is part of Roguish.
 
@@ -17,7 +17,12 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { CardModel, CardSide } from "../../business/models";
+import {
+  CardModel,
+  CardSide,
+  createId,
+  isMonsterCard,
+} from "../../business/models";
 import { addOrUpdateStyleProperties, getElementById } from "../rendering";
 import { html } from "../templateLiterals";
 import styles from "./Card.module.css";
@@ -44,6 +49,8 @@ export const updateCardZIndex = (
 const Card = (
   id: string,
   cardModel: CardModel,
+  // TODO enable when card becomes controlled by player
+  alwaysShowMaxStrength: boolean,
   classNames: string[] = []
 ): string => {
   const combinedClassName = getCombinedClassName(classNames, cardModel.side);
@@ -57,10 +64,47 @@ const Card = (
     }
   });
 
+  let monsterProperties = "";
+  if (isMonsterCard(cardModel)) {
+    const combatId = createId();
+    const strengthId = createId();
+
+    const getStrengthDisplay = (): string =>
+      alwaysShowMaxStrength || cardModel.strength !== cardModel.maxStrength
+        ? html`
+            <span>${cardModel.strength}</span> /
+            <span>${cardModel.maxStrength}</span>
+          `
+        : `${cardModel.strength}`;
+
+    cardModel.combatChanged.addListener(() => {
+      const combatElem = getElementById(combatId);
+      combatElem.innerText = `${cardModel.combat}`;
+    });
+
+    const onStrengthChanged = (): void => {
+      const strengthElem = getElementById(strengthId);
+      strengthElem.innerHTML = getStrengthDisplay();
+    };
+
+    cardModel.strengthChanged.addListener(onStrengthChanged);
+    cardModel.maxStrengthChanged.addListener(onStrengthChanged);
+
+    monsterProperties = html`
+      <dl>
+        <dt>&#x2694;️</dt>
+        <dd id="${combatId}">${cardModel.combat}</dd>
+        <dt>&#x1F4AA;</dt>
+        <dd id="${strengthId}">${getStrengthDisplay()}</dd>
+      </dl>
+    `;
+  }
+
   return html`
     <div id="${id}" class="${combinedClassName}">
       <div class="${styles.cardSide}">
         <p>${cardModel.name}</p>
+        ${monsterProperties}
       </div>
       <div class="${[styles.cardSide, styles.back].join(" ")}"></div>
     </div>

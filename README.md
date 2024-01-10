@@ -108,7 +108,7 @@ Assigning to the element's outer HTML causes the browser to parse and render the
 
 ## Copyright and license notices
 
-Copyright (C) 2023 Jesdo Software LLC (jesse@jesdosoftware.com).
+Copyright (C) 2024 Jesdo Software LLC (jesse@jesdosoftware.com).
 
 Roguish is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 

@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2023 Jesdo Software LLC.
+Copyright (C) 2024 Jesdo Software LLC.
 
 This file is part of Roguish.
 
@@ -22,7 +22,8 @@ import {
   CardDefDto,
   CardInstanceDto,
   DeckDto,
-  MonsterPropertiesDto,
+  isItemCardDefDto,
+  isMonsterCardDefDto,
 } from "../data/dtos";
 
 export const maxBoardColumns = 3;
@@ -66,67 +67,6 @@ export class EventDispatcher<T> {
 export const equipmentTypes = ["head", "body", "held", "offhand"] as const;
 export type EquipmentType = (typeof equipmentTypes)[number];
 
-export interface ItemProperties {
-  equipmentTypes?: EquipmentType[];
-}
-
-export class MonsterProperties {
-  readonly strength: number;
-  readonly equipmentChanged: EventDispatcher<EquipmentType> =
-    new EventDispatcher<EquipmentType>();
-
-  private readonly equipment: ItemCardModel[] = [];
-
-  constructor(strength: number) {
-    bindPrototypeMethods(this);
-    this.strength = strength;
-  }
-
-  getEquipment(equipmentType: EquipmentType): ItemCardModel | undefined {
-    return this.equipment.find((equippedItem) =>
-      equippedItem.itemProperties.equipmentTypes?.includes(equipmentType)
-    );
-  }
-
-  setEquipment(equipmentCard: ItemCardModel): void {
-    if (!equipmentCard.itemProperties.equipmentTypes) {
-      throw new Error("Equipping item with no equipment type");
-    }
-    equipmentCard.itemProperties.equipmentTypes.forEach((equipmentType) => {
-      this.equipment.forEach((equipped) => {
-        if (equipped.itemProperties.equipmentTypes?.includes(equipmentType)) {
-          throw new Error("Equipping item with type that's already equipped");
-        }
-      });
-    });
-
-    this.equipment.push(equipmentCard);
-
-    equipmentCard.itemProperties.equipmentTypes.forEach((equipmentType) => {
-      this.equipmentChanged.dispatch(equipmentType);
-    });
-  }
-
-  removeEquipment(equipmentType: EquipmentType): ItemCardModel | null {
-    let removed: ItemCardModel | null = null;
-    this.equipment.forEach((equippedItem, i) => {
-      if (equippedItem.itemProperties.equipmentTypes?.includes(equipmentType)) {
-        removed = this.equipment.splice(i, 1)[0];
-        return;
-      }
-    });
-    this.equipmentChanged.dispatch(equipmentType);
-
-    return removed;
-  }
-}
-
-const monsterPropertiesDtoToModel = (
-  dto: MonsterPropertiesDto
-): MonsterProperties => {
-  return new MonsterProperties(dto.strength);
-};
-
 export enum CardSide {
   Front,
   Back,
@@ -136,16 +76,16 @@ export abstract class CardModel {
   readonly id: string;
   readonly cardDefId: number;
   readonly name: string;
+
   readonly cardFlipped = new EventDispatcher<void>();
 
   private _side: CardSide;
   get side(): CardSide {
     return this._side;
   }
-  set side(newSide) {
-    const oldSide = this._side;
-    this._side = newSide;
-    if (oldSide !== newSide) {
+  set side(value) {
+    if (this.side !== value) {
+      this._side = value;
       this.cardFlipped.dispatch();
     }
   }
@@ -154,7 +94,7 @@ export abstract class CardModel {
     id: string,
     cardDefId: number,
     name: string,
-    side: CardSide = CardSide.Back
+    side: CardSide
   ) {
     this.id = id;
     this.cardDefId = cardDefId;
@@ -163,66 +103,181 @@ export abstract class CardModel {
   }
 }
 
+const itemCardType = "item";
+
 export class ItemCardModel extends CardModel {
-  itemProperties: ItemProperties;
+  readonly cardType = itemCardType;
+  readonly equipmentTypes: EquipmentType[] | undefined;
+  // TODO replace w/ more flexible effects
+  readonly combat: number | undefined;
 
   constructor(
     id: string,
     cardDefId: number,
     name: string,
-    itemProperties: ItemProperties,
-    side: CardSide
+    equipmentTypes?: EquipmentType[],
+    combat?: number,
+    side: CardSide = CardSide.Back
   ) {
     super(id, cardDefId, name, side);
-    this.itemProperties = itemProperties;
+    this.equipmentTypes = equipmentTypes;
+    this.combat = combat;
 
     bindPrototypeMethods(this);
   }
 }
 
-function isItemCard(card: CardModel): card is ItemCardModel {
-  return (card as ItemCardModel).itemProperties !== undefined;
+export function isItemCard(card: CardModel): card is ItemCardModel {
+  return (card as ItemCardModel).cardType === itemCardType;
 }
+
+const monsterCardType = "monster";
 
 export class MonsterCardModel extends CardModel {
-  monsterProperties: MonsterProperties;
+  readonly cardType = monsterCardType;
+
+  readonly combatChanged = new EventDispatcher<void>();
+  readonly equipmentChanged = new EventDispatcher<EquipmentType>();
+  readonly strengthChanged = new EventDispatcher<void>();
+  readonly maxStrengthChanged = new EventDispatcher<void>();
+  readonly died = new EventDispatcher<string>();
+
+  private readonly equipment: ItemCardModel[] = [];
+
+  private _combat: number;
+  get combat(): number {
+    return this._combat;
+  }
+  private set combat(value) {
+    if (this._combat !== value) {
+      this._combat = value;
+      this.combatChanged.dispatch();
+    }
+  }
+
+  private _strength: number;
+  get strength(): number {
+    return this._strength;
+  }
+  set strength(value) {
+    if (this._strength !== value && value < this.maxStrength) {
+      this._strength = value;
+      this.strengthChanged.dispatch();
+    }
+
+    if (this._strength < 1) {
+      this.die("exhaustion");
+    }
+  }
+
+  private _maxStrength: number;
+  get maxStrength(): number {
+    return this._maxStrength;
+  }
+  private set maxStrength(value) {
+    if (this._maxStrength !== value) {
+      this._maxStrength = value;
+      this.maxStrengthChanged.dispatch();
+    }
+  }
 
   constructor(
     id: string,
     cardDefId: number,
     name: string,
-    monsterProperties: MonsterProperties,
-    side: CardSide
+    intrinsicCombat: number,
+    maxStrength: number,
+    side: CardSide = CardSide.Back
   ) {
     super(id, cardDefId, name, side);
-    this.monsterProperties = monsterProperties;
+
+    this._combat = intrinsicCombat;
+    this._strength = maxStrength;
+    this._maxStrength = maxStrength;
 
     bindPrototypeMethods(this);
   }
+
+  getEquipment(equipmentType: EquipmentType): ItemCardModel | undefined {
+    return this.equipment.find((equippedItem) =>
+      equippedItem.equipmentTypes?.includes(equipmentType)
+    );
+  }
+
+  setEquipment(equipmentCard: ItemCardModel): void {
+    if (!equipmentCard.equipmentTypes) {
+      throw new Error("Equipping item with no equipment type");
+    }
+    equipmentCard.equipmentTypes.forEach((equipmentType) => {
+      this.equipment.forEach((equipped) => {
+        if (equipped.equipmentTypes?.includes(equipmentType)) {
+          throw new Error("Equipping item with type that's already equipped");
+        }
+      });
+    });
+
+    this.equipment.push(equipmentCard);
+    this.combat += equipmentCard.combat ?? 0;
+
+    equipmentCard.equipmentTypes.forEach((equipmentType) => {
+      this.equipmentChanged.dispatch(equipmentType);
+    });
+  }
+
+  removeEquipment(equipmentType: EquipmentType): ItemCardModel | null {
+    let removed: ItemCardModel | null = null;
+    this.equipment.forEach((equippedItem, i) => {
+      if (equippedItem.equipmentTypes?.includes(equipmentType)) {
+        removed = this.equipment.splice(i, 1)[0];
+        this.combat -= removed.combat ?? 0;
+
+        return;
+      }
+    });
+
+    this.equipmentChanged.dispatch(equipmentType);
+
+    return removed;
+  }
+
+  attack(target: MonsterCardModel): void {
+    if (this.combat > target.combat) {
+      this.strength -= target.strength;
+      target.die("the player");
+    } else {
+      this.die(target.name);
+    }
+  }
+
+  die(killedBy: string): void {
+    this.died.dispatch(killedBy);
+  }
 }
 
-function isMonsterCard(card: CardModel): card is MonsterCardModel {
-  return (card as MonsterCardModel).monsterProperties !== undefined;
+export function isMonsterCard(card: CardModel): card is MonsterCardModel {
+  return (card as MonsterCardModel).cardType === monsterCardType;
 }
 
 export const cardDefDtoToModel = (
   cardDefDto: CardDefDto,
   side: CardSide = CardSide.Back
 ): CardModel => {
-  if (cardDefDto.itemProperties) {
+  if (isItemCardDefDto(cardDefDto)) {
     return new ItemCardModel(
       createId(),
       cardDefDto.id,
       cardDefDto.name,
-      cardDefDto.itemProperties,
+      cardDefDto.equipmentTypes,
+      cardDefDto.combat,
       side
     );
-  } else if (cardDefDto.monsterProperties) {
+  } else if (isMonsterCardDefDto(cardDefDto)) {
     return new MonsterCardModel(
       createId(),
       cardDefDto.id,
       cardDefDto.name,
-      monsterPropertiesDtoToModel(cardDefDto.monsterProperties),
+      cardDefDto.combat,
+      cardDefDto.strength,
       side
     );
   }
@@ -272,6 +327,11 @@ export interface ItemCollectedEventArgs {
   itemCard: ItemCardModel;
 }
 
+export interface PlayerDiedEventArgs {
+  killedBy: string;
+  turns: number;
+}
+
 export class BoardModel {
   readonly dungeonCards: CardModel[];
   readonly discarded: CardModel[] = [];
@@ -283,8 +343,12 @@ export class BoardModel {
   readonly cardDiscarded = new EventDispatcher<CardDiscardedEventArgs>();
   readonly spaceLeftEmpty = new EventDispatcher<SpaceLeftEmptyEventArgs>();
   readonly itemCollected = new EventDispatcher<ItemCollectedEventArgs>();
+  readonly playerDied = new EventDispatcher<PlayerDiedEventArgs>();
 
+  // use positionToString to create map keys
   private readonly cards = new Map<string, CardModel>();
+
+  private turns = 0;
 
   constructor(dungeonCards: CardModel[]) {
     bindPrototypeMethods(this);
@@ -296,12 +360,17 @@ export class BoardModel {
       playerCardId,
       0,
       "Player",
-      new MonsterProperties(1),
+      1,
+      5,
       CardSide.Front
     );
     this.cards.set(
       this.positionToString({ column: 1, row: 1 }),
       this.playerCard
+    );
+
+    this.playerCard.died.addListener((killedBy) =>
+      this.playerDied.dispatch({ killedBy, turns: this.turns })
     );
   }
 
@@ -360,6 +429,10 @@ export class BoardModel {
       card: card,
       position: position,
     });
+
+    if (isMonsterCard(card)) {
+      card.died.addListener(() => this.discardCard(this.getCardPosition(card)));
+    }
   }
 
   dealCards(): void {
@@ -415,15 +488,19 @@ export class BoardModel {
   }
 
   moveCard(cardToMove: CardModel, toPosition: BoardPosition): void {
+    ++this.turns;
+    this.doMoveCard(cardToMove, toPosition);
+  }
+
+  private doMoveCard(cardToMove: CardModel, toPosition: BoardPosition): void {
     const targetCard = this.getCardAtPosition(toPosition);
     if (targetCard) {
       if (isItemCard(targetCard)) {
         this.itemCollected.dispatch({
           itemCard: targetCard as ItemCardModel,
         });
-      } else if (isMonsterCard(targetCard)) {
-        // TODO fight monster
-        this.discardCard(toPosition);
+      } else if (isMonsterCard(cardToMove) && isMonsterCard(targetCard)) {
+        cardToMove.attack(targetCard);
       } else {
         throw new Error("Unexpected card type");
       }
@@ -453,7 +530,7 @@ export class BoardModel {
         row: positionBehindRow,
       });
       if (cardBehind) {
-        this.moveCard(cardBehind, fromPosition);
+        this.doMoveCard(cardBehind, fromPosition);
       }
     }
 
@@ -558,7 +635,7 @@ export class GameModel {
       if (!equippedDto) {
         throw new Error(`No card def found for ID ${equippedCardId}`);
       }
-      this.board.playerCard.monsterProperties.setEquipment(
+      this.board.playerCard.setEquipment(
         cardDefDtoToModel(equippedDto, CardSide.Front) as ItemCardModel
       );
     });

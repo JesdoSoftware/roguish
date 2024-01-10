@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2023 Jesdo Software LLC.
+Copyright (C) 2024 Jesdo Software LLC.
 
 This file is part of Roguish.
 

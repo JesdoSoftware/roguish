@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2023 Jesdo Software LLC.
+Copyright (C) 2024 Jesdo Software LLC.
 
 This file is part of Roguish.
 
@@ -41,19 +41,18 @@ const EquipmentSlot = (
 ): string => {
   const getAvailableCardModels = (): CardModel[] =>
     Array.from(handModel.cards.values()).filter((itemCardModel) =>
-      itemCardModel.itemProperties.equipmentTypes?.includes(equipmentType)
+      itemCardModel.equipmentTypes?.includes(equipmentType)
     );
 
   const cardPickerDialog = Dialog("Choose a piece of equipment", () =>
     CardPicker(getAvailableCardModels, true, (picked) => {
-      const removed =
-        monsterCardModel.monsterProperties.removeEquipment(equipmentType);
+      const removed = monsterCardModel.removeEquipment(equipmentType);
       if (removed) {
         handModel.addCard(removed);
       }
       if (picked) {
         const equipped = picked as ItemCardModel;
-        monsterCardModel.monsterProperties.setEquipment(equipped);
+        monsterCardModel.setEquipment(equipped);
         handModel.removeCard(equipped.id);
       }
       cardPickerDialog?.close();
@@ -64,13 +63,12 @@ const EquipmentSlot = (
 
   const cardForEquippedItem = (): string => {
     onElementAdded(slotId, (slot) => {
-      slot.addEventListener("click", () => cardPickerDialog.showModal());
+      slot.addEventListener("click", () => cardPickerDialog.showModal(null));
     });
 
-    const itemCardModel =
-      monsterCardModel.monsterProperties.getEquipment(equipmentType);
+    const itemCardModel = monsterCardModel.getEquipment(equipmentType);
     if (itemCardModel) {
-      return Card(slotId, itemCardModel, [commonStyles.clickable]);
+      return Card(slotId, itemCardModel, false, [commonStyles.clickable]);
     } else {
       return EmptySpace(slotId, "Choose&hellip;", [commonStyles.clickable]);
     }
@@ -82,13 +80,9 @@ const EquipmentSlot = (
       slot.outerHTML = cardForEquippedItem();
     }
   };
-  monsterCardModel.monsterProperties.equipmentChanged.addListener(
-    onEquipmentChanged
-  );
+  monsterCardModel.equipmentChanged.addListener(onEquipmentChanged);
   onElementRemoved(slotId, () => {
-    monsterCardModel.monsterProperties.equipmentChanged.removeListener(
-      onEquipmentChanged
-    );
+    monsterCardModel.equipmentChanged.removeListener(onEquipmentChanged);
   });
 
   return html`

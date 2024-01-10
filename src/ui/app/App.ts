@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2023 Jesdo Software LLC.
+Copyright (C) 2024 Jesdo Software LLC.
 
 This file is part of Roguish.
 
@@ -17,7 +17,11 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { GameModel, createId } from "../../business/models";
+import {
+  GameModel,
+  PlayerDiedEventArgs,
+  createId,
+} from "../../business/models";
 import Board, { dragCardToBoard, returnCardFromBoard } from "../board/Board";
 import { setGlobalOnDragEnd, setGlobalOnDragStart } from "../dragDrop";
 import Hand from "../hand/Hand";
@@ -27,11 +31,12 @@ import commonStyles from "../common.module.css";
 import { DeckDto } from "../../data/dtos";
 import Equipment from "../equipment/Equipment";
 import Dialog from "../dialog/Dialog";
+import GameOver from "../gameOver/GameOver";
 
 const CopyrightLicenseSource = (): string => {
   return html`
     <div>
-      <p>Copyright &copy; 2023 Jesdo Software LLC.</p>
+      <p>Copyright &copy; 2024 Jesdo Software LLC.</p>
       <p>
         This program comes with ABSOLUTELY NO WARRANTY. This is free software,
         and you are welcome to redistribute it under certain conditions. For
@@ -62,43 +67,64 @@ const App = (loadDeck: () => Promise<DeckDto>): string => {
   });
 
   const gameId = createId();
-  onElementAdded(gameId, (game) => {
-    loadDeck().then((deckDto) => {
-      const gameModel = new GameModel(deckDto);
-      const boardId = createId();
 
-      const handDialog = Dialog(
-        "Drag and drop an item to use or throw it",
-        () =>
-          Hand(
-            gameModel.hand,
-            (cardElement, pointerEvent) => {
-              dragCardToBoard(boardId, cardElement, pointerEvent);
-              handDialog.close();
-            },
-            returnCardFromBoard
-          )
+  const startGame = (deckDto: DeckDto): void => {
+    const gameModel = new GameModel(deckDto);
+
+    const gameOverDialog = Dialog<PlayerDiedEventArgs>(
+      "Game Over",
+      (playerDied) =>
+        GameOver(playerDied.killedBy, playerDied.turns, () =>
+          startGame(deckDto)
+        ),
+      false,
+      () => startGame(deckDto)
+    );
+
+    gameModel.board.playerDied.addListener((e) => {
+      gameOverDialog.showModal(e);
+    });
+
+    const boardId = createId();
+
+    const handDialog = Dialog("Drag and drop an item to use or throw it", () =>
+      Hand(
+        gameModel.hand,
+        (cardElement, pointerEvent) => {
+          dragCardToBoard(boardId, cardElement, pointerEvent);
+          handDialog.close();
+        },
+        returnCardFromBoard
+      )
+    );
+    const openHandButtonId = createId();
+    onElementAdded(openHandButtonId, (openHandButton) => {
+      openHandButton.addEventListener("click", () =>
+        handDialog.showModal(null)
       );
-      const openHandButtonId = createId();
-      onElementAdded(openHandButtonId, (openHandButton) => {
-        openHandButton.addEventListener("click", () => handDialog.showModal());
-      });
+    });
 
-      const equipmentDialog = Dialog("Equipment", () =>
-        Equipment(gameModel.board.playerCard, gameModel.hand)
-      );
-      const openEquipmentButtonId = createId();
-      onElementAdded(openEquipmentButtonId, (button) => {
-        button.addEventListener("click", () => equipmentDialog.showModal());
-      });
+    const equipmentDialog = Dialog("Equipment", () =>
+      Equipment(gameModel.board.playerCard, gameModel.hand)
+    );
+    const openEquipmentButtonId = createId();
+    onElementAdded(openEquipmentButtonId, (button) => {
+      button.addEventListener("click", () => equipmentDialog.showModal(null));
+    });
 
-      game.outerHTML = html`
+    const gameElem = getElementById(gameId);
+    gameElem.outerHTML = html`
+      <div id="${gameId}">
         ${Board(boardId, gameModel.board, gameModel.hand)}
         <button id="${openHandButtonId}">Hand</button>
         <button id="${openEquipmentButtonId}">Equipment</button>
-        ${handDialog.markup} ${equipmentDialog.markup}
-      `;
-    });
+        ${handDialog.markup} ${equipmentDialog.markup} ${gameOverDialog.markup}
+      </div>
+    `;
+  };
+
+  onElementAdded(gameId, () => {
+    loadDeck().then((deckDto) => startGame(deckDto));
   });
 
   return html`
