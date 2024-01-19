@@ -64,6 +64,27 @@ export class EventDispatcher<T> {
   }
 }
 
+export abstract class ItemEffect {
+  readonly id: string;
+  readonly name: string;
+  readonly description: string;
+
+  protected constructor(id: string, name: string, description: string) {
+    this.id = id;
+    this.name = name;
+    this.description = description;
+  }
+
+  abstract apply(card: CardModel): void;
+}
+
+export abstract class MonsterItemEffect extends ItemEffect {
+  abstract apply(card: MonsterCardModel): void;
+}
+
+export const cardTypes = ["item", "monster"] as const;
+export type CardType = (typeof cardTypes)[number];
+
 export const equipmentTypes = ["head", "body", "held", "offhand"] as const;
 export type EquipmentType = (typeof equipmentTypes)[number];
 
@@ -73,6 +94,7 @@ export enum CardSide {
 }
 
 export abstract class CardModel {
+  readonly cardType: CardType;
   readonly id: string;
   readonly cardDefId: number;
   readonly name: string;
@@ -91,11 +113,13 @@ export abstract class CardModel {
   }
 
   protected constructor(
+    cardType: CardType,
     id: string,
     cardDefId: number,
     name: string,
     side: CardSide
   ) {
+    this.cardType = cardType;
     this.id = id;
     this.cardDefId = cardDefId;
     this.name = name;
@@ -103,10 +127,7 @@ export abstract class CardModel {
   }
 }
 
-const itemCardType = "item";
-
 export class ItemCardModel extends CardModel {
-  readonly cardType = itemCardType;
   readonly equipmentTypes: EquipmentType[] | undefined;
   // TODO replace w/ more flexible effects
   readonly combat: number | undefined;
@@ -119,7 +140,7 @@ export class ItemCardModel extends CardModel {
     combat?: number,
     side: CardSide = CardSide.Back
   ) {
-    super(id, cardDefId, name, side);
+    super("item", id, cardDefId, name, side);
     this.equipmentTypes = equipmentTypes;
     this.combat = combat;
 
@@ -128,14 +149,10 @@ export class ItemCardModel extends CardModel {
 }
 
 export function isItemCard(card: CardModel): card is ItemCardModel {
-  return (card as ItemCardModel).cardType === itemCardType;
+  return (card as ItemCardModel).cardType === "item";
 }
 
-const monsterCardType = "monster";
-
 export class MonsterCardModel extends CardModel {
-  readonly cardType = monsterCardType;
-
   readonly combatChanged = new EventDispatcher<void>();
   readonly equipmentChanged = new EventDispatcher<EquipmentType>();
   readonly strengthChanged = new EventDispatcher<void>();
@@ -189,7 +206,7 @@ export class MonsterCardModel extends CardModel {
     maxStrength: number,
     side: CardSide = CardSide.Back
   ) {
-    super(id, cardDefId, name, side);
+    super("monster", id, cardDefId, name, side);
 
     this._combat = intrinsicCombat;
     this._strength = maxStrength;
@@ -255,7 +272,7 @@ export class MonsterCardModel extends CardModel {
 }
 
 export function isMonsterCard(card: CardModel): card is MonsterCardModel {
-  return (card as MonsterCardModel).cardType === monsterCardType;
+  return (card as MonsterCardModel).cardType === "monster";
 }
 
 export const cardDefDtoToModel = (
