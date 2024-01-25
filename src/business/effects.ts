@@ -17,27 +17,95 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { ItemEffect, MonsterCardModel, MonsterItemEffect } from "./models";
+export abstract class Effect {
+  readonly id: string;
+  readonly name: string;
+  readonly description: string;
 
-export const createEffect = (id: string, ...params: number[]): ItemEffect => {
+  protected constructor(id: string, name: string, description: string) {
+    this.id = id;
+    this.name = name;
+    this.description = description;
+  }
+}
+
+export abstract class OneTimeEffect extends Effect {
+  abstract apply(affected: Affected): void;
+}
+
+export abstract class ModifierEffect extends Effect {
+  amount: number | undefined;
+
+  protected constructor(
+    id: string,
+    name: string,
+    description: string,
+    amount?: number
+  ) {
+    super(id, name, description);
+    this.amount = amount;
+  }
+
+  getStrengthModifier(): number {
+    return 0;
+  }
+
+  getCombatModifier(): number {
+    return 0;
+  }
+}
+
+export interface Affected {
+  addActiveEffect: (effect: ModifierEffect) => void;
+  removeActiveEffect: (id: string, amount?: number) => void;
+}
+
+export const createOneTimeEffect = (
+  id: string,
+  amount: number
+): OneTimeEffect => {
   switch (id) {
     case "food":
-      return new FoodEffect(id, params[0]);
+      return new FoodEffect(id, amount);
     default:
       throw new Error(`Unknown effect ID ${id}`);
   }
 };
 
-class FoodEffect extends MonsterItemEffect {
-  readonly toStrength: number;
+export const createModifierEffect = (
+  id: string,
+  amount: number
+): ModifierEffect => {
+  switch (id) {
+    case "fatigue":
+      return new FatigueEffect(id, amount);
+    default:
+      throw new Error(`Unknown effect ID ${id}`);
+  }
+};
 
-  constructor(id: string, toStrength: number) {
-    super(id, "Food", `Increase strength by ${toStrength}, up to the maximum`);
-    this.toStrength = toStrength;
+export class FatigueEffect extends ModifierEffect {
+  readonly amount: number;
+
+  constructor(id: string, amount: number) {
+    super(id, "Fatigue", `Reduces strength by ${amount}`);
+    this.amount = amount;
   }
 
-  apply(monster: MonsterCardModel): void {
-    const strengthToMax = monster.maxStrength - monster.strength;
-    monster.strength += Math.min(this.toStrength, strengthToMax);
+  override getStrengthModifier(): number {
+    return -this.amount;
+  }
+}
+
+export class FoodEffect extends OneTimeEffect {
+  readonly amount: number;
+
+  constructor(id: string, amount: number) {
+    super(id, "Food", `Heals fatigue by ${amount}`);
+    this.amount = amount;
+  }
+
+  override apply(affected: Affected): void {
+    affected.removeActiveEffect("fatigue", this.amount);
   }
 }

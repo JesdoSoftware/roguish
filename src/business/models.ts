@@ -25,6 +25,7 @@ import {
   isItemCardDefDto,
   isMonsterCardDefDto,
 } from "../data/dtos";
+import { Affected, ModifierEffect } from "./effects";
 
 export const maxBoardColumns = 3;
 export const maxBoardRows = 3;
@@ -64,24 +65,6 @@ export class EventDispatcher<T> {
   }
 }
 
-export abstract class ItemEffect {
-  readonly id: string;
-  readonly name: string;
-  readonly description: string;
-
-  protected constructor(id: string, name: string, description: string) {
-    this.id = id;
-    this.name = name;
-    this.description = description;
-  }
-
-  abstract apply(card: CardModel): void;
-}
-
-export abstract class MonsterItemEffect extends ItemEffect {
-  abstract apply(card: MonsterCardModel): void;
-}
-
 export const cardTypes = ["item", "monster"] as const;
 export type CardType = (typeof cardTypes)[number];
 
@@ -93,13 +76,16 @@ export enum CardSide {
   Back,
 }
 
-export abstract class CardModel {
+export abstract class CardModel implements Affected {
   readonly cardType: CardType;
   readonly id: string;
   readonly cardDefId: number;
   readonly name: string;
 
   readonly cardFlipped = new EventDispatcher<void>();
+  readonly activeEffectsChanged = new EventDispatcher<void>();
+
+  private readonly activeEffects: ModifierEffect[] = [];
 
   private _side: CardSide;
   get side(): CardSide {
@@ -124,6 +110,31 @@ export abstract class CardModel {
     this.cardDefId = cardDefId;
     this.name = name;
     this._side = side;
+  }
+
+  addActiveEffect(effect: ModifierEffect): void {
+    const existingEffect = this.activeEffects.find(
+      (effect) => effect.id === effect.id
+    );
+    if (existingEffect && existingEffect.amount && effect.amount) {
+      existingEffect.amount += effect.amount;
+    } else {
+      this.activeEffects.push(effect);
+    }
+    this.activeEffectsChanged.dispatch();
+  }
+
+  removeActiveEffect(id: string, amount?: number): void {
+    const index = this.activeEffects.findIndex((effect) => effect.id === id);
+    if (index > -1) {
+      const existingEffect = this.activeEffects[index];
+      if (amount && existingEffect.amount && existingEffect.amount > amount) {
+        existingEffect.amount -= amount;
+      } else {
+        this.activeEffects.splice(index, 1);
+      }
+      this.activeEffectsChanged.dispatch();
+    }
   }
 }
 
