@@ -71,10 +71,7 @@ const Card = (
 
     const getStrengthDisplay = (): string =>
       alwaysShowMaxStrength || cardModel.strength !== cardModel.maxStrength
-        ? html`
-            <span>${cardModel.strength}</span> /
-            <span>${cardModel.maxStrength}</span>
-          `
+        ? `${cardModel.strength} / ${cardModel.maxStrength}`
         : `${cardModel.strength}`;
 
     cardModel.combatChanged.addListener(() => {
@@ -82,13 +79,12 @@ const Card = (
       combatElem.innerText = `${cardModel.combat}`;
     });
 
-    const onStrengthChanged = (): void => {
+    const onActiveEffectsChanged = (): void => {
       const strengthElem = getElementById(strengthId);
       strengthElem.innerHTML = getStrengthDisplay();
     };
 
-    cardModel.strengthChanged.addListener(onStrengthChanged);
-    cardModel.maxStrengthChanged.addListener(onStrengthChanged);
+    cardModel.activeEffectsChanged.addListener(onActiveEffectsChanged);
 
     monsterProperties = html`
       <dl>

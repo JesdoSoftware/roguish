@@ -25,7 +25,7 @@ import {
   isItemCardDefDto,
   isMonsterCardDefDto,
 } from "../data/dtos";
-import { Affected, ModifierEffect } from "./effects";
+import { Affected, ModifierEffect, createModifierEffect } from "./effects";
 
 export const maxBoardColumns = 3;
 export const maxBoardRows = 3;
@@ -85,7 +85,10 @@ export abstract class CardModel implements Affected {
   readonly cardFlipped = new EventDispatcher<void>();
   readonly activeEffectsChanged = new EventDispatcher<void>();
 
-  private readonly activeEffects: ModifierEffect[] = [];
+  private readonly _activeEffects: ModifierEffect[] = [];
+  get activeEffects(): readonly ModifierEffect[] {
+    return this._activeEffects;
+  }
 
   private _side: CardSide;
   get side(): CardSide {
@@ -113,25 +116,25 @@ export abstract class CardModel implements Affected {
   }
 
   addActiveEffect(effect: ModifierEffect): void {
-    const existingEffect = this.activeEffects.find(
+    const existingEffect = this._activeEffects.find(
       (effect) => effect.id === effect.id
     );
     if (existingEffect && existingEffect.amount && effect.amount) {
       existingEffect.amount += effect.amount;
     } else {
-      this.activeEffects.push(effect);
+      this._activeEffects.push(effect);
     }
     this.activeEffectsChanged.dispatch();
   }
 
   removeActiveEffect(id: string, amount?: number): void {
-    const index = this.activeEffects.findIndex((effect) => effect.id === id);
+    const index = this._activeEffects.findIndex((effect) => effect.id === id);
     if (index > -1) {
-      const existingEffect = this.activeEffects[index];
+      const existingEffect = this._activeEffects[index];
       if (amount && existingEffect.amount && existingEffect.amount > amount) {
         existingEffect.amount -= amount;
       } else {
-        this.activeEffects.splice(index, 1);
+        this._activeEffects.splice(index, 1);
       }
       this.activeEffectsChanged.dispatch();
     }
@@ -164,13 +167,35 @@ export function isItemCard(card: CardModel): card is ItemCardModel {
 }
 
 export class MonsterCardModel extends CardModel {
+  readonly intrinsicStrength: number;
+
   readonly combatChanged = new EventDispatcher<void>();
   readonly equipmentChanged = new EventDispatcher<EquipmentType>();
-  readonly strengthChanged = new EventDispatcher<void>();
-  readonly maxStrengthChanged = new EventDispatcher<void>();
   readonly died = new EventDispatcher<string>();
 
   private readonly equipment: ItemCardModel[] = [];
+
+  get strength(): number {
+    const sumStrengthModifiers = (affected: Affected): number => {
+      let strength = 0;
+      for (const activeEffect of affected.activeEffects) {
+        strength += activeEffect.getStrengthModifier();
+      }
+      return strength;
+    };
+
+    let strength = this.intrinsicStrength;
+    strength += sumStrengthModifiers(this);
+    this.equipment.forEach(
+      (equipped) => (strength += sumStrengthModifiers(equipped))
+    );
+    return strength;
+  }
+
+  get maxStrength(): number {
+    // calculate from active effects
+    return this.intrinsicStrength;
+  }
 
   private _combat: number;
   get combat(): number {
@@ -183,47 +208,26 @@ export class MonsterCardModel extends CardModel {
     }
   }
 
-  private _strength: number;
-  get strength(): number {
-    return this._strength;
-  }
-  set strength(value) {
-    if (this._strength !== value && value < this.maxStrength) {
-      this._strength = value;
-      this.strengthChanged.dispatch();
-    }
-
-    if (this._strength < 1) {
-      this.die("exhaustion");
-    }
-  }
-
-  private _maxStrength: number;
-  get maxStrength(): number {
-    return this._maxStrength;
-  }
-  private set maxStrength(value) {
-    if (this._maxStrength !== value) {
-      this._maxStrength = value;
-      this.maxStrengthChanged.dispatch();
-    }
-  }
-
   constructor(
     id: string,
     cardDefId: number,
     name: string,
     intrinsicCombat: number,
-    maxStrength: number,
+    intrinsicStrength: number,
     side: CardSide = CardSide.Back
   ) {
     super("monster", id, cardDefId, name, side);
 
     this._combat = intrinsicCombat;
-    this._strength = maxStrength;
-    this._maxStrength = maxStrength;
+    this.intrinsicStrength = intrinsicStrength;
 
     bindPrototypeMethods(this);
+
+    this.activeEffectsChanged.addListener(() => {
+      if (this.strength <= 0) {
+        this.die("exhaustion");
+      }
+    });
   }
 
   getEquipment(equipmentType: EquipmentType): ItemCardModel | undefined {
@@ -270,8 +274,10 @@ export class MonsterCardModel extends CardModel {
 
   attack(target: MonsterCardModel): void {
     if (this.combat > target.combat) {
-      this.strength -= target.strength;
-      target.die("the player");
+      const fatigueEffect = createModifierEffect("fatigue", target.strength);
+      this.addActiveEffect(fatigueEffect);
+
+      target.die(this.name);
     } else {
       this.die(target.name);
     }

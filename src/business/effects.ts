@@ -56,6 +56,7 @@ export abstract class ModifierEffect extends Effect {
 }
 
 export interface Affected {
+  activeEffects: readonly ModifierEffect[];
   addActiveEffect: (effect: ModifierEffect) => void;
   removeActiveEffect: (id: string, amount?: number) => void;
 }
