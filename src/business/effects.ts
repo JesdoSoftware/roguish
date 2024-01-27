@@ -34,14 +34,18 @@ export abstract class OneTimeEffect extends Effect {
 }
 
 export abstract class ModifierEffect extends Effect {
-  amount: number | undefined;
+  amount: number;
 
   protected constructor(
     id: string,
     name: string,
     description: string,
-    amount?: number
+    amount: number
   ) {
+    if (amount < 1) {
+      throw new Error(`Creating effect ${name} with non-positive amount`);
+    }
+
     super(id, name, description);
     this.amount = amount;
   }
@@ -86,11 +90,8 @@ export const createModifierEffect = (
 };
 
 export class FatigueEffect extends ModifierEffect {
-  readonly amount: number;
-
   constructor(id: string, amount: number) {
-    super(id, "Fatigue", `Reduces strength by ${amount}`);
-    this.amount = amount;
+    super(id, "Fatigue", `Reduces strength by ${amount}`, amount);
   }
 
   override getStrengthModifier(): number {
