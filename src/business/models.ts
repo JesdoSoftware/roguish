@@ -166,6 +166,29 @@ export function isItemCard(card: CardModel): card is ItemCardModel {
   return (card as ItemCardModel).cardType === "item";
 }
 
+const sumEffectModifiers = (
+  affected: Affected,
+  getModifier: (effect: ModifierEffect) => number
+): number => {
+  let strength = 0;
+  for (const activeEffect of affected.activeEffects) {
+    strength += getModifier(activeEffect);
+  }
+  return strength;
+};
+
+const sumMonsterEffectModifiers = (
+  monster: MonsterCardModel,
+  getModifier: (effect: ModifierEffect) => number
+): number => {
+  let modifier = sumEffectModifiers(monster, getModifier);
+  monster.equipment.forEach(
+    (equipped) => (modifier += sumEffectModifiers(equipped, getModifier))
+  );
+
+  return modifier;
+};
+
 export class MonsterCardModel extends CardModel {
   readonly intrinsicStrength: number;
 
@@ -173,28 +196,25 @@ export class MonsterCardModel extends CardModel {
   readonly equipmentChanged = new EventDispatcher<EquipmentType>();
   readonly died = new EventDispatcher<string>();
 
-  private readonly equipment: ItemCardModel[] = [];
+  private readonly _equipment: ItemCardModel[] = [];
+  get equipment(): readonly ItemCardModel[] {
+    return this._equipment;
+  }
 
   getStrength(): number {
-    const sumStrengthModifiers = (affected: Affected): number => {
-      let strength = 0;
-      for (const activeEffect of affected.activeEffects) {
-        strength += activeEffect.getStrengthModifier();
-      }
-      return strength;
-    };
-
-    let strength = this.intrinsicStrength;
-    strength += sumStrengthModifiers(this);
-    this.equipment.forEach(
-      (equipped) => (strength += sumStrengthModifiers(equipped))
+    return (
+      this.intrinsicStrength +
+      sumMonsterEffectModifiers(this, (effect) => effect.getStrengthModifier())
     );
-    return strength;
   }
 
   getMaxStrength(): number {
-    // calculate from active effects
-    return this.intrinsicStrength;
+    return (
+      this.intrinsicStrength +
+      sumMonsterEffectModifiers(this, (effect) =>
+        Math.max(effect.getStrengthModifier(), 0)
+      )
+    );
   }
 
   private _combat: number;
@@ -231,7 +251,7 @@ export class MonsterCardModel extends CardModel {
   }
 
   getEquipment(equipmentType: EquipmentType): ItemCardModel | undefined {
-    return this.equipment.find((equippedItem) =>
+    return this._equipment.find((equippedItem) =>
       equippedItem.equipmentTypes?.includes(equipmentType)
     );
   }
@@ -241,14 +261,14 @@ export class MonsterCardModel extends CardModel {
       throw new Error("Equipping item with no equipment type");
     }
     equipmentCard.equipmentTypes.forEach((equipmentType) => {
-      this.equipment.forEach((equipped) => {
+      this._equipment.forEach((equipped) => {
         if (equipped.equipmentTypes?.includes(equipmentType)) {
           throw new Error("Equipping item with type that's already equipped");
         }
       });
     });
 
-    this.equipment.push(equipmentCard);
+    this._equipment.push(equipmentCard);
     this.combat += equipmentCard.combat ?? 0;
 
     equipmentCard.equipmentTypes.forEach((equipmentType) => {
@@ -258,9 +278,9 @@ export class MonsterCardModel extends CardModel {
 
   removeEquipment(equipmentType: EquipmentType): ItemCardModel | null {
     let removed: ItemCardModel | null = null;
-    this.equipment.forEach((equippedItem, i) => {
+    this._equipment.forEach((equippedItem, i) => {
       if (equippedItem.equipmentTypes?.includes(equipmentType)) {
-        removed = this.equipment.splice(i, 1)[0];
+        removed = this._equipment.splice(i, 1)[0];
         this.combat -= removed.combat ?? 0;
 
         return;
