@@ -69,10 +69,13 @@ const Card = (
     const combatId = createId();
     const strengthId = createId();
 
-    const getStrengthDisplay = (): string =>
-      alwaysShowMaxStrength || cardModel.strength !== cardModel.maxStrength
-        ? `${cardModel.strength} / ${cardModel.maxStrength}`
-        : `${cardModel.strength}`;
+    const getStrengthDisplay = (): string => {
+      const strength = cardModel.getStrength();
+      const maxStrength = cardModel.getMaxStrength();
+      return alwaysShowMaxStrength || strength !== maxStrength
+        ? `${strength} / ${maxStrength}`
+        : `${strength}`;
+    };
 
     cardModel.combatChanged.addListener(() => {
       const combatElem = getElementById(combatId);

@@ -175,7 +175,7 @@ export class MonsterCardModel extends CardModel {
 
   private readonly equipment: ItemCardModel[] = [];
 
-  get strength(): number {
+  getStrength(): number {
     const sumStrengthModifiers = (affected: Affected): number => {
       let strength = 0;
       for (const activeEffect of affected.activeEffects) {
@@ -192,7 +192,7 @@ export class MonsterCardModel extends CardModel {
     return strength;
   }
 
-  get maxStrength(): number {
+  getMaxStrength(): number {
     // calculate from active effects
     return this.intrinsicStrength;
   }
@@ -224,7 +224,7 @@ export class MonsterCardModel extends CardModel {
     bindPrototypeMethods(this);
 
     this.activeEffectsChanged.addListener(() => {
-      if (this.strength <= 0) {
+      if (this.getStrength() <= 0) {
         this.die("exhaustion");
       }
     });
@@ -274,7 +274,10 @@ export class MonsterCardModel extends CardModel {
 
   attack(target: MonsterCardModel): void {
     if (this.combat > target.combat) {
-      const fatigueEffect = createModifierEffect("fatigue", target.strength);
+      const fatigueEffect = createModifierEffect(
+        "fatigue",
+        target.getStrength()
+      );
       this.addActiveEffect(fatigueEffect);
 
       target.die(this.name);
