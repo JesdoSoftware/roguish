@@ -25,7 +25,7 @@ import {
   isItemCardDefDto,
   isMonsterCardDefDto,
 } from "../data/dtos";
-import { Affected, ModifierEffect, createModifierEffect } from "./effects";
+import { Affected, Effect, ModifierEffect, createEffect } from "./effects";
 
 export const maxBoardColumns = 3;
 export const maxBoardRows = 3;
@@ -65,9 +65,6 @@ export class EventDispatcher<T> {
   }
 }
 
-export const cardTypes = ["item", "monster"] as const;
-export type CardType = (typeof cardTypes)[number];
-
 export const equipmentTypes = ["head", "body", "held", "offhand"] as const;
 export type EquipmentType = (typeof equipmentTypes)[number];
 
@@ -77,7 +74,6 @@ export enum CardSide {
 }
 
 export abstract class CardModel implements Affected {
-  readonly cardType: CardType;
   readonly id: string;
   readonly cardDefId: number;
   readonly name: string;
@@ -102,13 +98,11 @@ export abstract class CardModel implements Affected {
   }
 
   protected constructor(
-    cardType: CardType,
     id: string,
     cardDefId: number,
     name: string,
     side: CardSide
   ) {
-    this.cardType = cardType;
     this.id = id;
     this.cardDefId = cardDefId;
     this.name = name;
@@ -142,6 +136,8 @@ export abstract class CardModel implements Affected {
 }
 
 export class ItemCardModel extends CardModel {
+  readonly cardType = "item";
+  readonly effects: Effect[];
   readonly equipmentTypes: EquipmentType[] | undefined;
   // TODO replace w/ more flexible effects
   readonly combat: number | undefined;
@@ -150,11 +146,13 @@ export class ItemCardModel extends CardModel {
     id: string,
     cardDefId: number,
     name: string,
+    effects: Effect[],
     equipmentTypes?: EquipmentType[],
     combat?: number,
     side: CardSide = CardSide.Back
   ) {
-    super("item", id, cardDefId, name, side);
+    super(id, cardDefId, name, side);
+    this.effects = effects;
     this.equipmentTypes = equipmentTypes;
     this.combat = combat;
 
@@ -190,6 +188,7 @@ const sumMonsterEffectModifiers = (
 };
 
 export class MonsterCardModel extends CardModel {
+  readonly cardType = "monster";
   readonly intrinsicStrength: number;
 
   readonly combatChanged = new EventDispatcher<void>();
@@ -236,7 +235,7 @@ export class MonsterCardModel extends CardModel {
     intrinsicStrength: number,
     side: CardSide = CardSide.Back
   ) {
-    super("monster", id, cardDefId, name, side);
+    super(id, cardDefId, name, side);
 
     this._combat = intrinsicCombat;
     this.intrinsicStrength = intrinsicStrength;
@@ -294,10 +293,10 @@ export class MonsterCardModel extends CardModel {
 
   attack(target: MonsterCardModel): void {
     if (this.combat > target.combat) {
-      const fatigueEffect = createModifierEffect(
+      const fatigueEffect = createEffect(
         "fatigue",
         target.getStrength()
-      );
+      ) as ModifierEffect;
       this.addActiveEffect(fatigueEffect);
 
       target.die(this.name);
@@ -320,10 +319,16 @@ export const cardDefDtoToModel = (
   side: CardSide = CardSide.Back
 ): CardModel => {
   if (isItemCardDefDto(cardDefDto)) {
+    const effects: Effect[] = [];
+    cardDefDto.effects?.forEach((effectDto) =>
+      effects.push(createEffect(effectDto.id, effectDto.amount))
+    );
+
     return new ItemCardModel(
       createId(),
       cardDefDto.id,
       cardDefDto.name,
+      effects,
       cardDefDto.equipmentTypes,
       cardDefDto.combat,
       side

@@ -27,9 +27,7 @@ export abstract class Effect {
     this.name = name;
     this.description = description;
   }
-}
 
-export abstract class OneTimeEffect extends Effect {
   abstract apply(affected: Affected): void;
 }
 
@@ -50,6 +48,10 @@ export abstract class ModifierEffect extends Effect {
     this.amount = amount;
   }
 
+  override apply(affected: Affected): void {
+    affected.addActiveEffect(this);
+  }
+
   getStrengthModifier(): number {
     return 0;
   }
@@ -65,25 +67,12 @@ export interface Affected {
   removeActiveEffect: (id: string, amount?: number) => void;
 }
 
-export const createOneTimeEffect = (
-  id: string,
-  amount: number
-): OneTimeEffect => {
-  switch (id) {
-    case "food":
-      return new FoodEffect(id, amount);
-    default:
-      throw new Error(`Unknown effect ID ${id}`);
-  }
-};
-
-export const createModifierEffect = (
-  id: string,
-  amount: number
-): ModifierEffect => {
+export const createEffect = (id: string, amount: number): Effect => {
   switch (id) {
     case "fatigue":
       return new FatigueEffect(id, amount);
+    case "food":
+      return new FoodEffect(id, amount);
     default:
       throw new Error(`Unknown effect ID ${id}`);
   }
@@ -99,7 +88,7 @@ export class FatigueEffect extends ModifierEffect {
   }
 }
 
-export class FoodEffect extends OneTimeEffect {
+export class FoodEffect extends Effect {
   readonly amount: number;
 
   constructor(id: string, amount: number) {
