@@ -17,7 +17,7 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { HandModel, createId } from "../../business/models";
+import { HandModel } from "../../business/models";
 import Card from "../card/Card";
 import { registerDraggable } from "../dragDrop";
 import { html } from "../templateLiterals";
@@ -46,12 +46,11 @@ const Hand = (
       <ul class="${commonStyles.cardList}">
         ${Array.from(handModel.cards.values())
           .map((cardModel) => {
-            const id = createId();
-            onElementAdded(id, (cardElem) => {
+            onElementAdded(cardModel.id, (cardElem) => {
               registerDraggable(cardElem, () => true, onDragStart, onDragEnd);
             });
             return html`<li>
-              ${Card(id, cardModel, false, [commonStyles.draggable])}
+              ${Card(cardModel.id, cardModel, false, [commonStyles.draggable])}
             </li>`;
           })
           .join("")}

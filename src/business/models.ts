@@ -158,6 +158,10 @@ export class ItemCardModel extends CardModel {
 
     bindPrototypeMethods(this);
   }
+
+  applyEffects(target: CardModel): void {
+    this.effects.forEach((effect) => effect.apply(target));
+  }
 }
 
 export function isItemCard(card: CardModel): card is ItemCardModel {
