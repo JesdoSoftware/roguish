@@ -208,8 +208,7 @@ const Board = (
       handModel.removeCard(cardFromHand.id);
 
       const cardElem = getElementById(cardFromHand.id);
-      cardElem.classList.remove(boardStyles.inHand);
-      cardElem.classList.add(boardStyles.discarded);
+      removeElementAfterDuration(cardElem, 0);
     }
   };
 
