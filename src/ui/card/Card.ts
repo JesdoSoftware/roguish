@@ -82,12 +82,10 @@ const Card = (
       combatElem.innerText = `${cardModel.combat}`;
     });
 
-    const onActiveEffectsChanged = (): void => {
+    cardModel.activeEffectsChanged.addListener(() => {
       const strengthElem = getElementById(strengthId);
       strengthElem.innerHTML = getStrengthDisplay();
-    };
-
-    cardModel.activeEffectsChanged.addListener(onActiveEffectsChanged);
+    });
 
     monsterProperties = html`
       <dl>
