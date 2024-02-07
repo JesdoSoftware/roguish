@@ -165,7 +165,6 @@ const Board = (
   const canDropCard = (draggableId: string, dropTargetId: string): boolean => {
     const cardFromBoard = boardModel.getCardByIdIfExists(draggableId);
     const cardFromHand = handModel.getCardByIdIfExists(draggableId);
-
     if (cardFromBoard) {
       const dropTarget = boardModel.getCardById(dropTargetId);
       const dropTargetPosition = boardModel.getCardPosition(dropTarget);
@@ -174,7 +173,9 @@ const Board = (
         row: dropTargetPosition.row,
       });
     } else if (cardFromHand) {
-      return false; // TODO implement
+      // TODO check if drop target is valid for card from hand
+      // TODO allow throwing
+      return dropTargetId === boardModel.playerCard.id;
     } else {
       return false;
     }
@@ -195,11 +196,20 @@ const Board = (
   };
 
   const onDropCard = (draggableId: string, dropTargetId: string): void => {
-    const droppedCard = boardModel.getCardById(draggableId);
     const dropTarget = boardModel.getCardById(dropTargetId);
     const dropTargetPosition = boardModel.getCardPosition(dropTarget);
 
-    boardModel.moveCard(droppedCard, dropTargetPosition);
+    const cardFromBoard = boardModel.getCardByIdIfExists(draggableId);
+    const cardFromHand = handModel.getCardByIdIfExists(draggableId);
+    if (cardFromBoard) {
+      boardModel.moveCard(cardFromBoard, dropTargetPosition);
+    } else if (cardFromHand) {
+      cardFromHand.applyEffects(dropTarget);
+      handModel.removeCard(cardFromHand.id);
+
+      const cardElem = getElementById(cardFromHand.id);
+      removeElementAfterDuration(cardElem, 0);
+    }
   };
 
   const dealCard = (cardDealt: CardDealtEventArgs): void => {
@@ -355,6 +365,13 @@ const Board = (
             () => boardModel.canMoveCard(cardModel),
             onDragCardStart,
             onDragCardEnd
+          );
+          registerDropTarget(
+            card.id,
+            canDropCard,
+            onCanDropHover,
+            onCanDropUnhover,
+            onDropCard
           );
         });
       }

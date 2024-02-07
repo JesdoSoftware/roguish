@@ -25,6 +25,7 @@ import {
   isItemCardDefDto,
   isMonsterCardDefDto,
 } from "../data/dtos";
+import { Affected, Effect, ModifierEffect, createEffect } from "./effects";
 
 export const maxBoardColumns = 3;
 export const maxBoardRows = 3;
@@ -72,12 +73,18 @@ export enum CardSide {
   Back,
 }
 
-export abstract class CardModel {
+export abstract class CardModel implements Affected {
   readonly id: string;
   readonly cardDefId: number;
   readonly name: string;
 
   readonly cardFlipped = new EventDispatcher<void>();
+  readonly activeEffectsChanged = new EventDispatcher<void>();
+
+  private readonly _activeEffects: ModifierEffect[] = [];
+  get activeEffects(): readonly ModifierEffect[] {
+    return this._activeEffects;
+  }
 
   private _side: CardSide;
   get side(): CardSide {
@@ -101,12 +108,36 @@ export abstract class CardModel {
     this.name = name;
     this._side = side;
   }
+
+  addActiveEffect(effect: ModifierEffect): void {
+    const existingEffect = this._activeEffects.find(
+      (effect) => effect.id === effect.id
+    );
+    if (existingEffect && existingEffect.amount && effect.amount) {
+      existingEffect.amount += effect.amount;
+    } else {
+      this._activeEffects.push(effect);
+    }
+    this.activeEffectsChanged.dispatch();
+  }
+
+  removeActiveEffect(id: string, amount?: number): void {
+    const index = this._activeEffects.findIndex((effect) => effect.id === id);
+    if (index > -1) {
+      const existingEffect = this._activeEffects[index];
+      if (amount && existingEffect.amount && existingEffect.amount > amount) {
+        existingEffect.amount -= amount;
+      } else {
+        this._activeEffects.splice(index, 1);
+      }
+      this.activeEffectsChanged.dispatch();
+    }
+  }
 }
 
-const itemCardType = "item";
-
 export class ItemCardModel extends CardModel {
-  readonly cardType = itemCardType;
+  readonly cardType = "item";
+  readonly effects: Effect[];
   readonly equipmentTypes: EquipmentType[] | undefined;
   // TODO replace w/ more flexible effects
   readonly combat: number | undefined;
@@ -115,34 +146,79 @@ export class ItemCardModel extends CardModel {
     id: string,
     cardDefId: number,
     name: string,
+    effects: Effect[],
     equipmentTypes?: EquipmentType[],
     combat?: number,
     side: CardSide = CardSide.Back
   ) {
     super(id, cardDefId, name, side);
+    this.effects = effects;
     this.equipmentTypes = equipmentTypes;
     this.combat = combat;
 
     bindPrototypeMethods(this);
   }
+
+  applyEffects(target: CardModel): void {
+    this.effects.forEach((effect) => effect.apply(target));
+  }
 }
 
 export function isItemCard(card: CardModel): card is ItemCardModel {
-  return (card as ItemCardModel).cardType === itemCardType;
+  return (card as ItemCardModel).cardType === "item";
 }
 
-const monsterCardType = "monster";
+const sumEffectModifiers = (
+  affected: Affected,
+  getModifier: (effect: ModifierEffect) => number
+): number => {
+  let strength = 0;
+  for (const activeEffect of affected.activeEffects) {
+    strength += getModifier(activeEffect);
+  }
+  return strength;
+};
+
+const sumMonsterEffectModifiers = (
+  monster: MonsterCardModel,
+  getModifier: (effect: ModifierEffect) => number
+): number => {
+  let modifier = sumEffectModifiers(monster, getModifier);
+  monster.equipment.forEach(
+    (equipped) => (modifier += sumEffectModifiers(equipped, getModifier))
+  );
+
+  return modifier;
+};
 
 export class MonsterCardModel extends CardModel {
-  readonly cardType = monsterCardType;
+  readonly cardType = "monster";
+  readonly intrinsicStrength: number;
 
   readonly combatChanged = new EventDispatcher<void>();
   readonly equipmentChanged = new EventDispatcher<EquipmentType>();
-  readonly strengthChanged = new EventDispatcher<void>();
-  readonly maxStrengthChanged = new EventDispatcher<void>();
   readonly died = new EventDispatcher<string>();
 
-  private readonly equipment: ItemCardModel[] = [];
+  private readonly _equipment: ItemCardModel[] = [];
+  get equipment(): readonly ItemCardModel[] {
+    return this._equipment;
+  }
+
+  getStrength(): number {
+    return (
+      this.intrinsicStrength +
+      sumMonsterEffectModifiers(this, (effect) => effect.getStrengthModifier())
+    );
+  }
+
+  getMaxStrength(): number {
+    return (
+      this.intrinsicStrength +
+      sumMonsterEffectModifiers(this, (effect) =>
+        Math.max(effect.getStrengthModifier(), 0)
+      )
+    );
+  }
 
   private _combat: number;
   get combat(): number {
@@ -155,51 +231,30 @@ export class MonsterCardModel extends CardModel {
     }
   }
 
-  private _strength: number;
-  get strength(): number {
-    return this._strength;
-  }
-  set strength(value) {
-    if (this._strength !== value && value < this.maxStrength) {
-      this._strength = value;
-      this.strengthChanged.dispatch();
-    }
-
-    if (this._strength < 1) {
-      this.die("exhaustion");
-    }
-  }
-
-  private _maxStrength: number;
-  get maxStrength(): number {
-    return this._maxStrength;
-  }
-  private set maxStrength(value) {
-    if (this._maxStrength !== value) {
-      this._maxStrength = value;
-      this.maxStrengthChanged.dispatch();
-    }
-  }
-
   constructor(
     id: string,
     cardDefId: number,
     name: string,
     intrinsicCombat: number,
-    maxStrength: number,
+    intrinsicStrength: number,
     side: CardSide = CardSide.Back
   ) {
     super(id, cardDefId, name, side);
 
     this._combat = intrinsicCombat;
-    this._strength = maxStrength;
-    this._maxStrength = maxStrength;
+    this.intrinsicStrength = intrinsicStrength;
 
     bindPrototypeMethods(this);
+
+    this.activeEffectsChanged.addListener(() => {
+      if (this.getStrength() <= 0) {
+        this.die("exhaustion");
+      }
+    });
   }
 
   getEquipment(equipmentType: EquipmentType): ItemCardModel | undefined {
-    return this.equipment.find((equippedItem) =>
+    return this._equipment.find((equippedItem) =>
       equippedItem.equipmentTypes?.includes(equipmentType)
     );
   }
@@ -209,14 +264,14 @@ export class MonsterCardModel extends CardModel {
       throw new Error("Equipping item with no equipment type");
     }
     equipmentCard.equipmentTypes.forEach((equipmentType) => {
-      this.equipment.forEach((equipped) => {
+      this._equipment.forEach((equipped) => {
         if (equipped.equipmentTypes?.includes(equipmentType)) {
           throw new Error("Equipping item with type that's already equipped");
         }
       });
     });
 
-    this.equipment.push(equipmentCard);
+    this._equipment.push(equipmentCard);
     this.combat += equipmentCard.combat ?? 0;
 
     equipmentCard.equipmentTypes.forEach((equipmentType) => {
@@ -226,9 +281,9 @@ export class MonsterCardModel extends CardModel {
 
   removeEquipment(equipmentType: EquipmentType): ItemCardModel | null {
     let removed: ItemCardModel | null = null;
-    this.equipment.forEach((equippedItem, i) => {
+    this._equipment.forEach((equippedItem, i) => {
       if (equippedItem.equipmentTypes?.includes(equipmentType)) {
-        removed = this.equipment.splice(i, 1)[0];
+        removed = this._equipment.splice(i, 1)[0];
         this.combat -= removed.combat ?? 0;
 
         return;
@@ -242,8 +297,13 @@ export class MonsterCardModel extends CardModel {
 
   attack(target: MonsterCardModel): void {
     if (this.combat > target.combat) {
-      this.strength -= target.strength;
-      target.die("the player");
+      const fatigueEffect = createEffect(
+        "fatigue",
+        target.getStrength()
+      ) as ModifierEffect;
+      this.addActiveEffect(fatigueEffect);
+
+      target.die(this.name);
     } else {
       this.die(target.name);
     }
@@ -255,7 +315,7 @@ export class MonsterCardModel extends CardModel {
 }
 
 export function isMonsterCard(card: CardModel): card is MonsterCardModel {
-  return (card as MonsterCardModel).cardType === monsterCardType;
+  return (card as MonsterCardModel).cardType === "monster";
 }
 
 export const cardDefDtoToModel = (
@@ -263,10 +323,16 @@ export const cardDefDtoToModel = (
   side: CardSide = CardSide.Back
 ): CardModel => {
   if (isItemCardDefDto(cardDefDto)) {
+    const effects: Effect[] = [];
+    cardDefDto.effects?.forEach((effectDto) =>
+      effects.push(createEffect(effectDto.id, effectDto.amount))
+    );
+
     return new ItemCardModel(
       createId(),
       cardDefDto.id,
       cardDefDto.name,
+      effects,
       cardDefDto.equipmentTypes,
       cardDefDto.combat,
       side

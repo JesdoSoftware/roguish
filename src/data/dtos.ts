@@ -25,10 +25,16 @@ export interface CardDefDto {
 const equipmentTypes = ["head", "body", "held", "offhand"] as const;
 type EquipmentType = (typeof equipmentTypes)[number];
 
+export interface EffectDto {
+  id: string;
+  amount: number;
+}
+
 export interface ItemCardDefDto extends CardDefDto {
   cardType: "item";
   equipmentTypes?: EquipmentType[];
   combat?: number;
+  effects?: EffectDto[];
 }
 
 export const isItemCardDefDto = (
@@ -70,6 +76,15 @@ const validateCardDefDto = (cardDefDto: CardDefDto): void => {
   }
 };
 
+const validateEffectDto = (effectDto: EffectDto): void => {
+  if (!effectDto.id) {
+    throw new Error("Effect missing ID");
+  }
+  if (!effectDto.amount) {
+    throw new Error(`Effect ${effectDto.id} missing amount`);
+  }
+};
+
 const validateItemCardDefDto = (cardDefDto: ItemCardDefDto): void => {
   validateCardDefDto(cardDefDto);
 
@@ -81,6 +96,9 @@ const validateItemCardDefDto = (cardDefDto: ItemCardDefDto): void => {
         );
       }
     });
+  }
+  if (cardDefDto.effects) {
+    cardDefDto.effects.forEach((effect) => validateEffectDto(effect));
   }
 };
 

@@ -69,26 +69,23 @@ const Card = (
     const combatId = createId();
     const strengthId = createId();
 
-    const getStrengthDisplay = (): string =>
-      alwaysShowMaxStrength || cardModel.strength !== cardModel.maxStrength
-        ? html`
-            <span>${cardModel.strength}</span> /
-            <span>${cardModel.maxStrength}</span>
-          `
-        : `${cardModel.strength}`;
+    const getStrengthDisplay = (): string => {
+      const strength = cardModel.getStrength();
+      const maxStrength = cardModel.getMaxStrength();
+      return alwaysShowMaxStrength || strength !== maxStrength
+        ? `${strength} / ${maxStrength}`
+        : `${strength}`;
+    };
 
     cardModel.combatChanged.addListener(() => {
       const combatElem = getElementById(combatId);
       combatElem.innerText = `${cardModel.combat}`;
     });
 
-    const onStrengthChanged = (): void => {
+    cardModel.activeEffectsChanged.addListener(() => {
       const strengthElem = getElementById(strengthId);
       strengthElem.innerHTML = getStrengthDisplay();
-    };
-
-    cardModel.strengthChanged.addListener(onStrengthChanged);
-    cardModel.maxStrengthChanged.addListener(onStrengthChanged);
+    });
 
     monsterProperties = html`
       <dl>
