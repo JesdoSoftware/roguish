@@ -296,17 +296,14 @@ export class MonsterCardModel extends CardModel {
   }
 
   attack(target: MonsterCardModel): void {
-    if (this.combat > target.combat) {
+    if (this.combat <= target.combat) {
       const fatigueEffect = createEffect(
         "fatigue",
         target.getStrength()
       ) as ModifierEffect;
       this.addActiveEffect(fatigueEffect);
-
-      target.die(this.name);
-    } else {
-      this.die(target.name);
     }
+    target.die(this.name);
   }
 
   die(killedBy: string): void {
