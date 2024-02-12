@@ -69,8 +69,8 @@ export interface Affected {
 
 export const createEffect = (id: string, amount: number): Effect => {
   switch (id) {
-    case "fatigue":
-      return new FatigueEffect(id, amount);
+    case "damage":
+      return new DamageEffect(id, amount);
     case "food":
       return new FoodEffect(id, amount);
     default:
@@ -78,9 +78,9 @@ export const createEffect = (id: string, amount: number): Effect => {
   }
 };
 
-export class FatigueEffect extends ModifierEffect {
+export class DamageEffect extends ModifierEffect {
   constructor(id: string, amount: number) {
-    super(id, "Fatigue", `Reduces strength by ${amount}`, amount);
+    super(id, "Damage", `Reduces strength by ${amount}`, amount);
   }
 
   override getStrengthModifier(): number {
@@ -92,11 +92,11 @@ export class FoodEffect extends Effect {
   readonly amount: number;
 
   constructor(id: string, amount: number) {
-    super(id, "Food", `Heals fatigue by ${amount}`);
+    super(id, "Food", `Heals damage by ${amount}`);
     this.amount = amount;
   }
 
   override apply(affected: Affected, source: string): void {
-    affected.removeActiveEffect("fatigue", source, this.amount);
+    affected.removeActiveEffect("damage", source, this.amount);
   }
 }
