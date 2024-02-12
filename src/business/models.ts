@@ -74,7 +74,7 @@ export enum CardSide {
 }
 
 export interface ActiveEffectsChangedEventArgs {
-  source?: string;
+  source: string;
 }
 
 export abstract class CardModel implements Affected {
@@ -126,7 +126,7 @@ export abstract class CardModel implements Affected {
     this.activeEffectsChanged.dispatch({ source });
   }
 
-  removeActiveEffect(id: string, amount?: number): void {
+  removeActiveEffect(id: string, source: string, amount?: number): void {
     const index = this._activeEffects.findIndex((effect) => effect.id === id);
     if (index > -1) {
       const existingEffect = this._activeEffects[index];
@@ -135,7 +135,7 @@ export abstract class CardModel implements Affected {
       } else {
         this._activeEffects.splice(index, 1);
       }
-      this.activeEffectsChanged.dispatch({});
+      this.activeEffectsChanged.dispatch({ source });
     }
   }
 }
@@ -253,7 +253,7 @@ export class MonsterCardModel extends CardModel {
 
     this.activeEffectsChanged.addListener((e) => {
       if (this.getStrength() <= 0) {
-        this.die(e.source ?? "");
+        this.die(e.source);
       }
     });
   }

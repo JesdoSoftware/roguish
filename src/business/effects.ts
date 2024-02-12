@@ -64,7 +64,7 @@ export abstract class ModifierEffect extends Effect {
 export interface Affected {
   activeEffects: readonly ModifierEffect[];
   addActiveEffect: (effect: ModifierEffect, source: string) => void;
-  removeActiveEffect: (id: string, amount?: number) => void;
+  removeActiveEffect: (id: string, source: string, amount?: number) => void;
 }
 
 export const createEffect = (id: string, amount: number): Effect => {
@@ -96,7 +96,7 @@ export class FoodEffect extends Effect {
     this.amount = amount;
   }
 
-  override apply(affected: Affected): void {
-    affected.removeActiveEffect("fatigue", this.amount);
+  override apply(affected: Affected, source: string): void {
+    affected.removeActiveEffect("fatigue", source, this.amount);
   }
 }
