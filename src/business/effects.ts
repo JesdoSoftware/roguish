@@ -28,7 +28,7 @@ export abstract class Effect {
     this.description = description;
   }
 
-  abstract apply(affected: Affected): void;
+  abstract apply(affected: Affected, source: string): void;
 }
 
 export abstract class ModifierEffect extends Effect {
@@ -48,8 +48,8 @@ export abstract class ModifierEffect extends Effect {
     this.amount = amount;
   }
 
-  override apply(affected: Affected): void {
-    affected.addActiveEffect(this);
+  override apply(affected: Affected, source: string): void {
+    affected.addActiveEffect(this, source);
   }
 
   getStrengthModifier(): number {
@@ -63,7 +63,7 @@ export abstract class ModifierEffect extends Effect {
 
 export interface Affected {
   activeEffects: readonly ModifierEffect[];
-  addActiveEffect: (effect: ModifierEffect) => void;
+  addActiveEffect: (effect: ModifierEffect, source: string) => void;
   removeActiveEffect: (id: string, amount?: number) => void;
 }
 

@@ -73,13 +73,18 @@ export enum CardSide {
   Back,
 }
 
+export interface ActiveEffectsChangedEventArgs {
+  source?: string;
+}
+
 export abstract class CardModel implements Affected {
   readonly id: string;
   readonly cardDefId: number;
   readonly name: string;
 
   readonly cardFlipped = new EventDispatcher<void>();
-  readonly activeEffectsChanged = new EventDispatcher<void>();
+  readonly activeEffectsChanged =
+    new EventDispatcher<ActiveEffectsChangedEventArgs>();
 
   private readonly _activeEffects: ModifierEffect[] = [];
   get activeEffects(): readonly ModifierEffect[] {
@@ -109,7 +114,7 @@ export abstract class CardModel implements Affected {
     this._side = side;
   }
 
-  addActiveEffect(effect: ModifierEffect): void {
+  addActiveEffect(effect: ModifierEffect, source: string): void {
     const existingEffect = this._activeEffects.find(
       (effect) => effect.id === effect.id
     );
@@ -118,7 +123,7 @@ export abstract class CardModel implements Affected {
     } else {
       this._activeEffects.push(effect);
     }
-    this.activeEffectsChanged.dispatch();
+    this.activeEffectsChanged.dispatch({ source });
   }
 
   removeActiveEffect(id: string, amount?: number): void {
@@ -130,7 +135,7 @@ export abstract class CardModel implements Affected {
       } else {
         this._activeEffects.splice(index, 1);
       }
-      this.activeEffectsChanged.dispatch();
+      this.activeEffectsChanged.dispatch({});
     }
   }
 }
@@ -160,7 +165,7 @@ export class ItemCardModel extends CardModel {
   }
 
   applyEffects(target: CardModel): void {
-    this.effects.forEach((effect) => effect.apply(target));
+    this.effects.forEach((effect) => effect.apply(target, this.name));
   }
 }
 
@@ -246,9 +251,9 @@ export class MonsterCardModel extends CardModel {
 
     bindPrototypeMethods(this);
 
-    this.activeEffectsChanged.addListener(() => {
+    this.activeEffectsChanged.addListener((e) => {
       if (this.getStrength() <= 0) {
-        this.die("exhaustion");
+        this.die(e.source ?? "");
       }
     });
   }
@@ -301,7 +306,7 @@ export class MonsterCardModel extends CardModel {
         "fatigue",
         target.getStrength()
       ) as ModifierEffect;
-      this.addActiveEffect(fatigueEffect);
+      this.addActiveEffect(fatigueEffect, target.name);
     }
     target.die(this.name);
   }
